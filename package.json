@@ -1,0 +1,57 @@
+{
+  "name": "notion-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for Notion API - Create, read, update pages and databases",
+  "type": "module",
+  "license": "MIT",
+  "author": "atikk-co-jp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atikk-co-jp/notion-mcp-server.git"
+  },
+  "homepage": "https://github.com/atikk-co-jp/notion-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/atikk-co-jp/notion-mcp-server/issues"
+  },
+  "keywords": [
+    "mcp",
+    "notion",
+    "api",
+    "model-context-protocol"
+  ],
+  "bin": {
+    "notion-mcp-server": "./dist/bin/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx watch bin/cli.ts",
+    "start": "tsx bin/cli.ts",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
