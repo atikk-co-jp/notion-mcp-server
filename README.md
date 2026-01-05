@@ -1,6 +1,10 @@
 # notion-mcp-server
 
+English | [日本語](./README.ja.md)
+
 MCP (Model Context Protocol) server for Notion API. Enables AI assistants to interact with Notion pages, databases, and blocks.
+
+> ⚠️ **Note**: This is an early release. API may change.
 
 ## Features
 
