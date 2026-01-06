@@ -22,5 +22,8 @@ npm-debug.log*
 .env
 .env.*
 
+# MCP config (contains secrets)
+.mcp.json
+
 # Test coverage
 coverage/
