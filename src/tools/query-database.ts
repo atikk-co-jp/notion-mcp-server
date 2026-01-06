@@ -2,12 +2,15 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { type NotionProperty, pagesToSimple } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
-import { FilterSchema, SortsSchema } from '../schemas/filter.js'
+import { FilterSchema, type SortSchema, SortsSchema } from '../schemas/filter.js'
 import {
   formatPaginatedResponse,
   formatSimplePaginatedResponse,
   handleError,
 } from '../utils/index.js'
+
+type Filter = z.infer<typeof FilterSchema>
+type Sort = z.infer<typeof SortSchema>
 
 interface PageResult {
   id: string
@@ -66,18 +69,18 @@ export function registerQueryDatabase(server: McpServer, notion: NotionClient): 
       try {
         const params: {
           database_id: string
-          filter?: unknown
-          sorts?: unknown[]
+          filter?: Filter
+          sorts?: Sort[]
           start_cursor?: string
           page_size?: number
         } = { database_id }
 
         if (filter) {
-          params.filter = filter
+          params.filter = filter as Filter
         }
 
         if (sorts) {
-          params.sorts = sorts
+          params.sorts = sorts as Sort[]
         }
 
         if (start_cursor) {

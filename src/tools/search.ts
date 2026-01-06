@@ -3,6 +3,9 @@ import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { formatPaginatedResponse, handleError } from '../utils/index.js'
 
+type SearchFilter = { value: 'page' | 'database'; property: 'object' }
+type SearchSort = { direction: 'ascending' | 'descending'; timestamp: 'last_edited_time' }
+
 interface PaginatedResponse {
   results: unknown[]
   has_more: boolean
@@ -48,15 +51,18 @@ export function registerSearch(server: McpServer, notion: NotionClient): void {
     'search',
     {
       description:
-        'Search across all pages and databases in the workspace. Returns paginated results.',
+        'Search across all pages and databases in the workspace by title and content. ' +
+        'Filter results by type (page or database) and sort by last edited time. ' +
+        'Returns paginated results. ' +
+        'For querying a specific database with filters, use query-database instead.',
       inputSchema,
     },
     async ({ query, filter, sort, start_cursor, page_size }) => {
       try {
         const params: {
           query?: string
-          filter?: unknown
-          sort?: unknown
+          filter?: SearchFilter
+          sort?: SearchSort
           start_cursor?: string
           page_size?: number
         } = {}
@@ -66,11 +72,11 @@ export function registerSearch(server: McpServer, notion: NotionClient): void {
         }
 
         if (filter) {
-          params.filter = filter
+          params.filter = filter as SearchFilter
         }
 
         if (sort) {
-          params.sort = sort
+          params.sort = sort as SearchSort
         }
 
         if (start_cursor) {

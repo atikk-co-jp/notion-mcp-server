@@ -25,7 +25,10 @@ export function registerCreateComment(server: McpServer, notion: NotionClient): 
     'create-comment',
     {
       description:
-        'Add a comment to a Notion page. Creates a new discussion or adds to an existing one.',
+        'Add a comment to a Notion page. Creates a new discussion or adds to an existing one. ' +
+        'Comments support rich text formatting (bold, italic, links, etc.). ' +
+        'Use discussion_id to reply to an existing comment thread. ' +
+        'Returns the created comment with its ID.',
       inputSchema,
     },
     async ({ page_id, rich_text, discussion_id }) => {

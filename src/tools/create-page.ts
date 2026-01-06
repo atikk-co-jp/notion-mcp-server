@@ -1,10 +1,13 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { BlockChildrenSchema } from '../schemas/block.js'
+import { type Block, BlockChildrenSchema } from '../schemas/block.js'
 import { CoverSchema, IconSchema } from '../schemas/common.js'
-import { PropertiesSchema } from '../schemas/page.js'
+import { PropertiesSchema, type PropertyValueSchema } from '../schemas/page.js'
 import { formatResponse, handleError } from '../utils/index.js'
+type PropertyValue = z.infer<typeof PropertyValueSchema>
+type Icon = z.infer<typeof IconSchema>
+type Cover = z.infer<typeof CoverSchema>
 
 const inputSchema = {
   database_id: z.string().describe('The ID of the database where the page will be created'),
@@ -34,32 +37,34 @@ export function registerCreatePage(server: McpServer, notion: NotionClient): voi
     'create-page',
     {
       description:
-        'Create a new page in a Notion database. Requires a database_id and properties object.',
+        'Create a new page in a Notion database. Requires a database_id and properties object. ' +
+        'Optionally include initial content blocks, icon, and cover image. ' +
+        'Returns the created page with its ID and URL.',
       inputSchema,
     },
     async ({ database_id, properties, children, icon, cover }) => {
       try {
         const params: {
           parent: { database_id: string }
-          properties: Record<string, unknown>
-          children?: unknown[]
-          icon?: unknown
-          cover?: unknown
+          properties: Record<string, PropertyValue>
+          children?: Block[]
+          icon?: Icon
+          cover?: Cover
         } = {
           parent: { database_id },
-          properties,
+          properties: properties as Record<string, PropertyValue>,
         }
 
         if (children) {
-          params.children = children
+          params.children = children as Block[]
         }
 
         if (icon) {
-          params.icon = icon
+          params.icon = icon as Icon
         }
 
         if (cover) {
-          params.cover = cover
+          params.cover = cover as Cover
         }
 
         const response = await notion.pages.create(params)

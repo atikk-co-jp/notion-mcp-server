@@ -2,6 +2,8 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { NotionClient } from '../notion-client.js'
 import { registerAppendBlockChildren } from './append-block-children.js'
 import { registerCreateComment } from './create-comment.js'
+import { registerCreateDatabase } from './create-database.js'
+import { registerUpdateDatabase } from './update-database.js'
 import { registerCreatePage } from './create-page.js'
 import { registerGetBlockChildren } from './get-block-children.js'
 import { registerQueryDatabase } from './query-database.js'
@@ -16,6 +18,8 @@ export function registerAllTools(server: McpServer, notion: NotionClient): void 
   registerUpdatePage(server, notion)
 
   // Database operations
+  registerCreateDatabase(server, notion)
+  registerUpdateDatabase(server, notion)
   registerQueryDatabase(server, notion)
 
   // Search
@@ -33,6 +37,8 @@ export {
   registerRetrievePage,
   registerCreatePage,
   registerUpdatePage,
+  registerCreateDatabase,
+  registerUpdateDatabase,
   registerQueryDatabase,
   registerSearch,
   registerGetBlockChildren,

@@ -1,7 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { BlockChildrenSchema } from '../schemas/block.js'
+import { type Block, BlockChildrenSchema } from '../schemas/block.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
@@ -24,18 +24,22 @@ export function registerAppendBlockChildren(server: McpServer, notion: NotionCli
   server.registerTool(
     'append-block-children',
     {
-      description: 'Append new blocks as children to a block or page.',
+      description:
+        'Append new blocks as children to a block or page. ' +
+        'Supports all block types: paragraph, headings, lists, code, images, etc. ' +
+        'Returns the created blocks with their IDs. ' +
+        'Use the "after" parameter to insert blocks at a specific position.',
       inputSchema,
     },
     async ({ block_id, children, after }) => {
       try {
         const params: {
           block_id: string
-          children: unknown[]
+          children: Block[]
           after?: string
         } = {
           block_id,
-          children,
+          children: children as Block[],
         }
 
         if (after) {
