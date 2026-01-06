@@ -21,7 +21,7 @@ export {
   ToDoBlockSchema,
   ToggleBlockSchema,
   VideoBlockSchema,
-} from "./block.js";
+} from './block.js'
 export {
   CoverSchema,
   DatabaseParentSchema,
@@ -33,7 +33,7 @@ export {
   RichTextArraySchema,
   RichTextSchema,
   SimpleTextSchema,
-} from "./common.js";
+} from './common.js'
 // Filter and sort schemas
 export {
   FilterSchema,
@@ -41,7 +41,7 @@ export {
   PropertyFilterSchema,
   SortSchema,
   SortsSchema,
-} from "./filter.js";
+} from './filter.js'
 // Page property schemas
 export {
   CheckboxPropertySchema,
@@ -60,4 +60,4 @@ export {
   StatusPropertySchema,
   TitlePropertySchema,
   UrlPropertySchema,
-} from "./page.js";
+} from './page.js'

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 // Text filter conditions
 const TextFilterConditionSchema = z
@@ -13,8 +13,8 @@ const TextFilterConditionSchema = z
     is_not_empty: z.literal(true).optional(),
   })
   .refine((obj) => Object.keys(obj).length === 1, {
-    message: "Exactly one filter condition must be specified",
-  });
+    message: 'Exactly one filter condition must be specified',
+  })
 
 // Number filter conditions
 const NumberFilterConditionSchema = z
@@ -29,13 +29,13 @@ const NumberFilterConditionSchema = z
     is_not_empty: z.literal(true).optional(),
   })
   .refine((obj) => Object.keys(obj).length === 1, {
-    message: "Exactly one filter condition must be specified",
-  });
+    message: 'Exactly one filter condition must be specified',
+  })
 
 // Checkbox filter conditions
 const CheckboxFilterConditionSchema = z.object({
   equals: z.boolean(),
-});
+})
 
 // Select filter conditions
 const SelectFilterConditionSchema = z
@@ -46,8 +46,8 @@ const SelectFilterConditionSchema = z
     is_not_empty: z.literal(true).optional(),
   })
   .refine((obj) => Object.keys(obj).length === 1, {
-    message: "Exactly one filter condition must be specified",
-  });
+    message: 'Exactly one filter condition must be specified',
+  })
 
 // Multi-select filter conditions
 const MultiSelectFilterConditionSchema = z
@@ -58,8 +58,8 @@ const MultiSelectFilterConditionSchema = z
     is_not_empty: z.literal(true).optional(),
   })
   .refine((obj) => Object.keys(obj).length === 1, {
-    message: "Exactly one filter condition must be specified",
-  });
+    message: 'Exactly one filter condition must be specified',
+  })
 
 // Status filter conditions
 const StatusFilterConditionSchema = z
@@ -70,8 +70,8 @@ const StatusFilterConditionSchema = z
     is_not_empty: z.literal(true).optional(),
   })
   .refine((obj) => Object.keys(obj).length === 1, {
-    message: "Exactly one filter condition must be specified",
-  });
+    message: 'Exactly one filter condition must be specified',
+  })
 
 // Date filter conditions
 const DateFilterConditionSchema = z
@@ -91,8 +91,8 @@ const DateFilterConditionSchema = z
     is_not_empty: z.literal(true).optional(),
   })
   .refine((obj) => Object.keys(obj).length === 1, {
-    message: "Exactly one filter condition must be specified",
-  });
+    message: 'Exactly one filter condition must be specified',
+  })
 
 // Relation filter conditions
 const RelationFilterConditionSchema = z
@@ -103,8 +103,8 @@ const RelationFilterConditionSchema = z
     is_not_empty: z.literal(true).optional(),
   })
   .refine((obj) => Object.keys(obj).length === 1, {
-    message: "Exactly one filter condition must be specified",
-  });
+    message: 'Exactly one filter condition must be specified',
+  })
 
 // Property filter schema
 export const PropertyFilterSchema = z.object({
@@ -118,13 +118,13 @@ export const PropertyFilterSchema = z.object({
   status: StatusFilterConditionSchema.optional(),
   date: DateFilterConditionSchema.optional(),
   relation: RelationFilterConditionSchema.optional(),
-});
+})
 
 // Compound filter type (recursive)
 export type FilterType =
   | z.infer<typeof PropertyFilterSchema>
   | { and: FilterType[] }
-  | { or: FilterType[] };
+  | { or: FilterType[] }
 
 // Compound filter schema (uses lazy for recursion)
 export const FilterSchema: z.ZodType<FilterType> = z.lazy(() =>
@@ -133,13 +133,13 @@ export const FilterSchema: z.ZodType<FilterType> = z.lazy(() =>
     z.object({ and: z.array(FilterSchema) }),
     z.object({ or: z.array(FilterSchema) }),
   ]),
-);
+)
 
 // Sort schema
 export const SortSchema = z.object({
   property: z.string().optional(),
-  timestamp: z.enum(["created_time", "last_edited_time"]).optional(),
-  direction: z.enum(["ascending", "descending"]),
-});
+  timestamp: z.enum(['created_time', 'last_edited_time']).optional(),
+  direction: z.enum(['ascending', 'descending']),
+})
 
-export const SortsSchema = z.array(SortSchema);
+export const SortsSchema = z.array(SortSchema)
