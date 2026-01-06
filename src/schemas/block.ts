@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { RichTextArraySchema, ColorSchema } from './common.js'
+import { ColorSchema, RichTextArraySchema } from './common.js'
 
 // Base Block interface for recursive type definition
 export interface Block {

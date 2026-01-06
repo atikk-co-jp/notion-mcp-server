@@ -5,6 +5,7 @@ import { type Block, BlockChildrenSchema } from '../schemas/block.js'
 import { CoverSchema, IconSchema } from '../schemas/common.js'
 import { PropertiesSchema, type PropertyValueSchema } from '../schemas/page.js'
 import { formatResponse, handleError } from '../utils/index.js'
+
 type PropertyValue = z.infer<typeof PropertyValueSchema>
 type Icon = z.infer<typeof IconSchema>
 type Cover = z.infer<typeof CoverSchema>

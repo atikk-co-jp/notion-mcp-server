@@ -1,33 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import {
   BlockSchema,
-  ParagraphBlockSchema,
   Heading1BlockSchema,
   ImageBlockSchema,
-  TableBlockSchema,
+  ParagraphBlockSchema,
   SyncedBlockSchema,
+  TableBlockSchema,
 } from './block.js'
-import {
-  RichTextSchema,
-  IconSchema,
-  ColorSchema,
-} from './common.js'
-import {
-  FilterSchema,
-  PropertyFilterSchema,
-  TimestampFilterSchema,
-  SortSchema,
-} from './filter.js'
+import { ColorSchema, IconSchema, RichTextSchema } from './common.js'
+import { DatabasePropertiesSchema, StatusPropertySchemaSchema } from './database.js'
+import { FilterSchema, PropertyFilterSchema, SortSchema, TimestampFilterSchema } from './filter.js'
 import {
   PropertyValueSchema,
-  TitlePropertySchema,
-  StatusPropertySchema,
   RollupPropertySchema,
+  StatusPropertySchema,
+  TitlePropertySchema,
 } from './page.js'
-import {
-  DatabasePropertiesSchema,
-  StatusPropertySchemaSchema,
-} from './database.js'
 
 describe('Common Schemas', () => {
   describe('RichTextSchema', () => {
@@ -104,9 +92,19 @@ describe('Common Schemas', () => {
   describe('ColorSchema', () => {
     it('should validate valid colors', () => {
       const validColors = [
-        'default', 'gray', 'brown', 'orange', 'yellow',
-        'green', 'blue', 'purple', 'pink', 'red',
-        'gray_background', 'brown_background', 'orange_background',
+        'default',
+        'gray',
+        'brown',
+        'orange',
+        'yellow',
+        'green',
+        'blue',
+        'purple',
+        'pink',
+        'red',
+        'gray_background',
+        'brown_background',
+        'orange_background',
       ]
       for (const color of validColors) {
         expect(ColorSchema.safeParse(color).success).toBe(true)

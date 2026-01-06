@@ -165,11 +165,7 @@ export class NotionClient {
         })
       },
 
-      append: <T>(params: {
-        block_id: string
-        children: Block[]
-        after?: string
-      }): Promise<T> => {
+      append: <T>(params: { block_id: string; children: Block[]; after?: string }): Promise<T> => {
         const { block_id, ...body } = params
         return this.request<T>(`/blocks/${block_id}/children`, { method: 'PATCH', body })
       },

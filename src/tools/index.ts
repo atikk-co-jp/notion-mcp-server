@@ -3,12 +3,12 @@ import type { NotionClient } from '../notion-client.js'
 import { registerAppendBlockChildren } from './append-block-children.js'
 import { registerCreateComment } from './create-comment.js'
 import { registerCreateDatabase } from './create-database.js'
-import { registerUpdateDatabase } from './update-database.js'
 import { registerCreatePage } from './create-page.js'
 import { registerGetBlockChildren } from './get-block-children.js'
 import { registerQueryDatabase } from './query-database.js'
 import { registerRetrievePage } from './retrieve-page.js'
 import { registerSearch } from './search.js'
+import { registerUpdateDatabase } from './update-database.js'
 import { registerUpdatePage } from './update-page.js'
 
 export function registerAllTools(server: McpServer, notion: NotionClient): void {
