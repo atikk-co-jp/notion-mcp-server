@@ -9,7 +9,7 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 ## Features
 
 - **Page Operations**: Create, retrieve, and update Notion pages
-- **Database Queries**: Query databases with filters and sorts
+- **Database Operations**: Create, update, and query databases with filters and sorts
 - **Block Operations**: Get and append block children
 - **Search**: Search across pages and databases
 - **Comments**: Add comments to pages
@@ -82,11 +82,13 @@ Retrieve a Notion page by its ID.
 - `format` (optional): Output format - `"simple"` (default) or `"json"`
   - `simple`: Returns simplified property values with reduced token usage
   - `json`: Returns raw Notion API response
+- `include_content` (optional): Include page content as markdown (default: true)
 
 ```json
 {
   "page_id": "page-uuid-here",
-  "format": "simple"
+  "format": "simple",
+  "include_content": true
 }
 ```
 
@@ -148,6 +150,53 @@ Query a database with optional filters and sorts.
     { "property": "Created", "direction": "descending" }
   ],
   "format": "simple"
+}
+```
+
+### create-database
+
+Create a new database as a subpage of an existing page.
+
+**Parameters:**
+- `parent_page_id` (required): The ID of the parent page
+- `properties` (required): Database schema with at least one title property
+- `title` (optional): Database title as rich text array
+- `icon` (optional): Icon for the database
+- `cover` (optional): Cover image for the database
+- `is_inline` (optional): If true, creates an inline database
+
+```json
+{
+  "parent_page_id": "parent-page-uuid",
+  "properties": {
+    "Name": { "title": {} },
+    "Status": { "select": { "options": [{ "name": "Todo" }, { "name": "Done" }] } },
+    "Priority": { "number": {} }
+  },
+  "title": [{ "type": "text", "text": { "content": "Task Database" } }]
+}
+```
+
+### update-database
+
+Update an existing database's properties, title, or schema.
+
+**Parameters:**
+- `database_id` (required): The ID of the database to update
+- `title` (optional): New title as rich text array
+- `description` (optional): New description as rich text array
+- `properties` (optional): Properties to add, update, or delete (set to null)
+- `icon` (optional): Icon (set to null to remove)
+- `cover` (optional): Cover image (set to null to remove)
+- `archived` (optional): Set to true to archive
+
+```json
+{
+  "database_id": "database-uuid-here",
+  "properties": {
+    "NewColumn": { "rich_text": {} },
+    "OldColumn": null
+  }
 }
 ```
 
@@ -226,6 +275,12 @@ pnpm build
 
 # Type check
 pnpm typecheck
+
+# Lint
+pnpm lint
+
+# Format code
+pnpm format
 
 # Run tests
 pnpm test
