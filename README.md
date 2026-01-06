@@ -13,15 +13,16 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 - **Block Operations**: Get and append block children
 - **Search**: Search across pages and databases
 - **Comments**: Add comments to pages
+- **Token-Efficient Output**: Markdown/simple format reduces token usage by ~96%
 
 ## Installation
 
 ```bash
-npm install notion-mcp-server
+npm install @atikk-co-jp/notion-mcp-server
 # or
-pnpm add notion-mcp-server
+pnpm add @atikk-co-jp/notion-mcp-server
 # or
-yarn add notion-mcp-server
+yarn add @atikk-co-jp/notion-mcp-server
 ```
 
 ## Usage
@@ -35,7 +36,7 @@ Add to your Claude Desktop configuration (`~/.config/claude/claude_desktop_confi
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["notion-mcp-server"],
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }
@@ -53,7 +54,7 @@ Add to your `.mcp.json`:
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["notion-mcp-server"],
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }
@@ -76,9 +77,16 @@ Add to your `.mcp.json`:
 
 Retrieve a Notion page by its ID.
 
+**Parameters:**
+- `page_id` (required): The ID of the page to retrieve
+- `format` (optional): Output format - `"simple"` (default) or `"json"`
+  - `simple`: Returns simplified property values with reduced token usage
+  - `json`: Returns raw Notion API response
+
 ```json
 {
-  "page_id": "page-uuid-here"
+  "page_id": "page-uuid-here",
+  "format": "simple"
 }
 ```
 
@@ -119,6 +127,16 @@ Update a page's properties.
 
 Query a database with optional filters and sorts.
 
+**Parameters:**
+- `database_id` (required): The ID of the database to query
+- `filter` (optional): Filter conditions as a JSON object
+- `sorts` (optional): Sort conditions as an array
+- `start_cursor` (optional): Cursor for pagination
+- `page_size` (optional): Number of results to return (1-100)
+- `format` (optional): Output format - `"simple"` (default) or `"json"`
+  - `simple`: Returns simplified property values with reduced token usage
+  - `json`: Returns raw Notion API response
+
 ```json
 {
   "database_id": "database-uuid-here",
@@ -128,7 +146,8 @@ Query a database with optional filters and sorts.
   },
   "sorts": [
     { "property": "Created", "direction": "descending" }
-  ]
+  ],
+  "format": "simple"
 }
 ```
 
@@ -147,9 +166,20 @@ Search across all pages and databases.
 
 Get the child blocks of a page or block.
 
+**Parameters:**
+- `block_id` (required): The ID of the block or page to get children from
+- `start_cursor` (optional): Cursor for pagination
+- `page_size` (optional): Number of results to return (1-100)
+- `format` (optional): Output format - `"markdown"` (default) or `"json"`
+  - `markdown`: Returns human-readable markdown with significantly reduced token usage (~96% reduction)
+  - `json`: Returns raw Notion API response
+- `fetch_nested` (optional): When `format="markdown"`, fetch nested children blocks recursively (default: false)
+
 ```json
 {
-  "block_id": "page-or-block-uuid-here"
+  "block_id": "page-or-block-uuid-here",
+  "format": "markdown",
+  "fetch_nested": true
 }
 ```
 
@@ -196,6 +226,12 @@ pnpm build
 
 # Type check
 pnpm typecheck
+
+# Run tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
 ```
 
 ## License

@@ -13,15 +13,16 @@ Notion API用のMCP（Model Context Protocol）サーバー。AIアシスタン�
 - **ブロック操作**: ブロックの子要素の取得と追加
 - **検索**: ページとデータベースの横断検索
 - **コメント**: ページへのコメント追加
+- **トークン効率化**: マークダウン/シンプル形式でトークン使用量を約96%削減
 
 ## インストール
 
 ```bash
-npm install notion-mcp-server
+npm install @atikk-co-jp/notion-mcp-server
 # または
-pnpm add notion-mcp-server
+pnpm add @atikk-co-jp/notion-mcp-server
 # または
-yarn add notion-mcp-server
+yarn add @atikk-co-jp/notion-mcp-server
 ```
 
 ## 使い方
@@ -35,7 +36,7 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["notion-mcp-server"],
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }
@@ -53,7 +54,7 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["notion-mcp-server"],
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }
@@ -76,9 +77,16 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
 
 ページIDでNotionページを取得します。
 
+**パラメータ:**
+- `page_id` (必須): 取得するページのID
+- `format` (任意): 出力形式 - `"simple"` (デフォルト) または `"json"`
+  - `simple`: トークン使用量を削減した簡略化されたプロパティ値を返す
+  - `json`: Notion APIのレスポンスをそのまま返す
+
 ```json
 {
-  "page_id": "ページのUUID"
+  "page_id": "ページのUUID",
+  "format": "simple"
 }
 ```
 
@@ -119,6 +127,16 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
 
 フィルターやソートを使ってデータベースをクエリします。
 
+**パラメータ:**
+- `database_id` (必須): クエリするデータベースのID
+- `filter` (任意): フィルター条件（JSONオブジェクト）
+- `sorts` (任意): ソート条件（配列）
+- `start_cursor` (任意): ページネーション用カーソル
+- `page_size` (任意): 返す結果の数 (1-100)
+- `format` (任意): 出力形式 - `"simple"` (デフォルト) または `"json"`
+  - `simple`: トークン使用量を削減した簡略化されたプロパティ値を返す
+  - `json`: Notion APIのレスポンスをそのまま返す
+
 ```json
 {
   "database_id": "データベースのUUID",
@@ -128,7 +146,8 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
   },
   "sorts": [
     { "property": "Created", "direction": "descending" }
-  ]
+  ],
+  "format": "simple"
 }
 ```
 
@@ -147,9 +166,20 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
 
 ページまたはブロックの子ブロックを取得します。
 
+**パラメータ:**
+- `block_id` (必須): 子ブロックを取得するブロックまたはページのID
+- `start_cursor` (任意): ページネーション用カーソル
+- `page_size` (任意): 返す結果の数 (1-100)
+- `format` (任意): 出力形式 - `"markdown"` (デフォルト) または `"json"`
+  - `markdown`: トークン使用量を大幅に削減（約96%削減）した人間が読みやすいマークダウン形式
+  - `json`: Notion APIのレスポンスをそのまま返す
+- `fetch_nested` (任意): `format="markdown"`の時、ネストされた子ブロックを再帰的に取得する（デフォルト: false）
+
 ```json
 {
-  "block_id": "ページまたはブロックのUUID"
+  "block_id": "ページまたはブロックのUUID",
+  "format": "markdown",
+  "fetch_nested": true
 }
 ```
 
@@ -196,6 +226,12 @@ pnpm build
 
 # 型チェック
 pnpm typecheck
+
+# テスト実行
+pnpm test
+
+# ウォッチモードでテスト実行
+pnpm test:watch
 ```
 
 ## ライセンス

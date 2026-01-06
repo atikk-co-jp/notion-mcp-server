@@ -1,10 +1,22 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { type NotionProperty, pagesToSimple } from "../converters/index.js";
 import type { NotionClient } from "../notion-client.js";
-import { formatPaginatedResponse, handleError } from "../utils/index.js";
+import {
+  formatPaginatedResponse,
+  formatSimplePaginatedResponse,
+  handleError,
+} from "../utils/index.js";
+
+interface PageResult {
+  id: string;
+  url?: string;
+  properties: Record<string, NotionProperty>;
+  [key: string]: unknown;
+}
 
 interface PaginatedResponse {
-  results: unknown[];
+  results: PageResult[];
   has_more: boolean;
   next_cursor: string | null;
 }
@@ -37,14 +49,21 @@ const inputSchema = {
     .max(100)
     .optional()
     .describe("Number of results to return (1-100). Default is 100."),
+  format: z
+    .enum(["json", "simple"])
+    .optional()
+    .default("simple")
+    .describe(
+      "Output format: 'simple' (default) returns simplified property values with reduced token usage, 'json' returns raw Notion API response",
+    ),
 };
 
 export function registerQueryDatabase(server: McpServer, notion: NotionClient): void {
   server.tool(
     "query-database",
-    "Query a Notion database with optional filters and sorts. Returns paginated results.",
+    "Query a Notion database with optional filters and sorts. Returns paginated results. Use format='simple' (default) for human-readable output with reduced token usage.",
     inputSchema,
-    async ({ database_id, filter, sorts, start_cursor, page_size }) => {
+    async ({ database_id, filter, sorts, start_cursor, page_size, format }) => {
       try {
         const params: {
           database_id: string;
@@ -71,6 +90,16 @@ export function registerQueryDatabase(server: McpServer, notion: NotionClient): 
         }
 
         const response = await notion.databases.query<PaginatedResponse>(params);
+
+        if (format === "simple") {
+          const simplePages = pagesToSimple(response.results);
+          return formatSimplePaginatedResponse(
+            simplePages,
+            response.has_more,
+            response.next_cursor,
+          );
+        }
+
         return formatPaginatedResponse(response.results, response.has_more, response.next_cursor);
       } catch (error) {
         return handleError(error);
