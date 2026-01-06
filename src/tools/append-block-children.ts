@@ -1,23 +1,14 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { type Block, BlockChildrenSchema } from '../schemas/block.js'
+import type { Block } from '../schemas/block.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
+// Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  block_id: z.string().describe('The ID of the block or page to append children to'),
-  children: BlockChildrenSchema.describe(
-    'Array of block objects to append. ' +
-      'Supported types: paragraph, heading_1/2/3, bulleted_list_item, numbered_list_item, to_do, toggle, code, quote, callout, divider, bookmark, image, video, embed, table_of_contents. ' +
-      'Example: [{ "type": "paragraph", "paragraph": { "rich_text": [{ "text": { "content": "Hello" } }] } }]',
-  ),
-  after: z
-    .string()
-    .optional()
-    .describe(
-      'The ID of a block to insert the new children after. ' +
-        'If not provided, children are appended at the end.',
-    ),
+  block_id: z.string().describe('Block or page ID'),
+  children: z.array(z.any()).describe('Block objects to append'),
+  after: z.string().optional().describe('Insert after this block ID'),
 }
 
 export function registerAppendBlockChildren(server: McpServer, notion: NotionClient): void {

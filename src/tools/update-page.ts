@@ -1,37 +1,20 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { CoverSchema, IconSchema } from '../schemas/common.js'
-import { PropertiesSchema, type PropertyValueSchema } from '../schemas/page.js'
+import type { PropertyValueSchema } from '../schemas/page.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 type PropertyValue = z.infer<typeof PropertyValueSchema>
-type Icon = z.infer<typeof IconSchema>
-type Cover = z.infer<typeof CoverSchema>
+type Icon = { type: 'emoji'; emoji: string } | { type: 'external'; external: { url: string } }
+type Cover = { type: 'external'; external: { url: string } }
 
+// Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  page_id: z.string().describe('The ID of the page to update'),
-  properties: PropertiesSchema.optional().describe(
-    'Properties to update. Keys are property names, values follow Notion property format. ' +
-      'Supported types: title, rich_text, number, select, multi_select, status, date, checkbox, url, email, phone_number, relation, people, files. ' +
-      'Example: { "Status": { "status": { "name": "Done" } } }',
-  ),
-  archived: z.boolean().optional().describe('Set to true to archive (delete) the page'),
-  icon: IconSchema.nullable()
-    .optional()
-    .describe(
-      'Icon for the page. ' +
-        'Emoji: { "type": "emoji", "emoji": "🚀" }. ' +
-        'External: { "type": "external", "external": { "url": "https://..." } }. ' +
-        'Set to null to remove.',
-    ),
-  cover: CoverSchema.nullable()
-    .optional()
-    .describe(
-      'Cover image for the page. ' +
-        'Example: { "type": "external", "external": { "url": "https://..." } }. ' +
-        'Set to null to remove.',
-    ),
+  page_id: z.string().describe('Page ID'),
+  properties: z.record(z.string(), z.any()).optional().describe('Properties to update'),
+  archived: z.boolean().optional().describe('Archive the page'),
+  icon: z.any().optional().describe('Page icon (null to remove)'),
+  cover: z.any().optional().describe('Cover image (null to remove)'),
 }
 
 export function registerUpdatePage(server: McpServer, notion: NotionClient): void {

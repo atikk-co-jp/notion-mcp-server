@@ -1,36 +1,21 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { type Block, BlockChildrenSchema } from '../schemas/block.js'
-import { CoverSchema, IconSchema } from '../schemas/common.js'
-import { PropertiesSchema, type PropertyValueSchema } from '../schemas/page.js'
+import type { Block } from '../schemas/block.js'
+import type { PropertyValueSchema } from '../schemas/page.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 type PropertyValue = z.infer<typeof PropertyValueSchema>
-type Icon = z.infer<typeof IconSchema>
-type Cover = z.infer<typeof CoverSchema>
+type Icon = { type: 'emoji'; emoji: string } | { type: 'external'; external: { url: string } }
+type Cover = { type: 'external'; external: { url: string } }
 
+// Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  database_id: z.string().describe('The ID of the database where the page will be created'),
-  properties: PropertiesSchema.describe(
-    'Page properties object. Keys are property names, values follow Notion property format. ' +
-      'Supported types: title, rich_text, number, select, multi_select, status, date, checkbox, url, email, phone_number, relation, people, files. ' +
-      'Example: { "Name": { "title": [{ "text": { "content": "My Page" } }] }, "Status": { "status": { "name": "In Progress" } } }',
-  ),
-  children: BlockChildrenSchema.optional().describe(
-    'Optional array of block objects for the page content. ' +
-      'Supported types: paragraph, heading_1/2/3, bulleted_list_item, numbered_list_item, to_do, toggle, code, quote, callout, divider, bookmark, image, video, embed, table_of_contents. ' +
-      'Example: [{ "type": "paragraph", "paragraph": { "rich_text": [{ "text": { "content": "Hello" } }] } }]',
-  ),
-  icon: IconSchema.optional().describe(
-    'Optional icon for the page. ' +
-      'Emoji: { "type": "emoji", "emoji": "🚀" }. ' +
-      'External: { "type": "external", "external": { "url": "https://..." } }',
-  ),
-  cover: CoverSchema.optional().describe(
-    'Optional cover image for the page. ' +
-      'Example: { "type": "external", "external": { "url": "https://..." } }',
-  ),
+  database_id: z.string().describe('Database ID'),
+  properties: z.record(z.string(), z.any()).describe('Notion properties object'),
+  children: z.array(z.any()).optional().describe('Block objects array'),
+  icon: z.any().optional().describe('Page icon'),
+  cover: z.any().optional().describe('Cover image'),
 }
 
 export function registerCreatePage(server: McpServer, notion: NotionClient): void {

@@ -1,23 +1,13 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { RichTextArraySchema } from '../schemas/common.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
+// Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  page_id: z.string().describe('The ID of the page to add a comment to'),
-  rich_text: RichTextArraySchema.describe(
-    'The comment content as rich text array. ' +
-      'Each item: { "type": "text", "text": { "content": "..." }, "annotations": { "bold": true, ... } }. ' +
-      'Example: [{ "type": "text", "text": { "content": "This is a comment" } }]',
-  ),
-  discussion_id: z
-    .string()
-    .optional()
-    .describe(
-      'Optional ID of an existing discussion to add the comment to. ' +
-        'If not provided, a new discussion is created.',
-    ),
+  page_id: z.string().describe('Page ID'),
+  rich_text: z.array(z.any()).describe('Comment content as rich text'),
+  discussion_id: z.string().optional().describe('Reply to existing discussion'),
 }
 
 export function registerCreateComment(server: McpServer, notion: NotionClient): void {
