@@ -3,63 +3,61 @@ import { RichTextArraySchema } from './common.js'
 
 // Title property schema (every database must have exactly one)
 export const TitlePropertySchemaSchema = z.object({
-  title: z.object({}).optional(),
+  title: z.object({}),
 })
 
 // Rich text property schema
 export const RichTextPropertySchemaSchema = z.object({
-  rich_text: z.object({}).optional(),
+  rich_text: z.object({}),
 })
 
 // Number property schema
 export const NumberPropertySchemaSchema = z.object({
-  number: z
-    .object({
-      format: z
-        .enum([
-          'number',
-          'number_with_commas',
-          'percent',
-          'dollar',
-          'canadian_dollar',
-          'euro',
-          'pound',
-          'yen',
-          'ruble',
-          'rupee',
-          'won',
-          'yuan',
-          'real',
-          'lira',
-          'rupiah',
-          'franc',
-          'hong_kong_dollar',
-          'new_zealand_dollar',
-          'krona',
-          'norwegian_krone',
-          'mexican_peso',
-          'rand',
-          'new_taiwan_dollar',
-          'danish_krone',
-          'zloty',
-          'baht',
-          'forint',
-          'koruna',
-          'shekel',
-          'chilean_peso',
-          'philippine_peso',
-          'dirham',
-          'colombian_peso',
-          'riyal',
-          'ringgit',
-          'leu',
-          'argentine_peso',
-          'uruguayan_peso',
-          'singapore_dollar',
-        ])
-        .optional(),
-    })
-    .optional(),
+  number: z.object({
+    format: z
+      .enum([
+        'number',
+        'number_with_commas',
+        'percent',
+        'dollar',
+        'canadian_dollar',
+        'euro',
+        'pound',
+        'yen',
+        'ruble',
+        'rupee',
+        'won',
+        'yuan',
+        'real',
+        'lira',
+        'rupiah',
+        'franc',
+        'hong_kong_dollar',
+        'new_zealand_dollar',
+        'krona',
+        'norwegian_krone',
+        'mexican_peso',
+        'rand',
+        'new_taiwan_dollar',
+        'danish_krone',
+        'zloty',
+        'baht',
+        'forint',
+        'koruna',
+        'shekel',
+        'chilean_peso',
+        'philippine_peso',
+        'dirham',
+        'colombian_peso',
+        'riyal',
+        'ringgit',
+        'leu',
+        'argentine_peso',
+        'uruguayan_peso',
+        'singapore_dollar',
+      ])
+      .optional(),
+  }),
 })
 
 // Select option schema
@@ -83,20 +81,16 @@ export const SelectOptionSchema = z.object({
 
 // Select property schema
 export const SelectPropertySchemaSchema = z.object({
-  select: z
-    .object({
-      options: z.array(SelectOptionSchema).optional(),
-    })
-    .optional(),
+  select: z.object({
+    options: z.array(SelectOptionSchema).optional(),
+  }),
 })
 
 // Multi-select property schema
 export const MultiSelectPropertySchemaSchema = z.object({
-  multi_select: z
-    .object({
-      options: z.array(SelectOptionSchema).optional(),
-    })
-    .optional(),
+  multi_select: z.object({
+    options: z.array(SelectOptionSchema).optional(),
+  }),
 })
 
 // Status option schema (with groups)
@@ -145,42 +139,42 @@ export const StatusGroupSchema = z.object({
 // Notion automatically creates default options (Not started, In progress, Done).
 // Options can only be modified after the database is created.
 export const StatusPropertySchemaSchema = z.object({
-  status: z.object({}).optional(),
+  status: z.object({}),
 })
 
 // Date property schema
 export const DatePropertySchemaSchema = z.object({
-  date: z.object({}).optional(),
+  date: z.object({}),
 })
 
 // People property schema
 export const PeoplePropertySchemaSchema = z.object({
-  people: z.object({}).optional(),
+  people: z.object({}),
 })
 
 // Files property schema
 export const FilesPropertySchemaSchema = z.object({
-  files: z.object({}).optional(),
+  files: z.object({}),
 })
 
 // Checkbox property schema
 export const CheckboxPropertySchemaSchema = z.object({
-  checkbox: z.object({}).optional(),
+  checkbox: z.object({}),
 })
 
 // URL property schema
 export const UrlPropertySchemaSchema = z.object({
-  url: z.object({}).optional(),
+  url: z.object({}),
 })
 
 // Email property schema
 export const EmailPropertySchemaSchema = z.object({
-  email: z.object({}).optional(),
+  email: z.object({}),
 })
 
 // Phone number property schema
 export const PhoneNumberPropertySchemaSchema = z.object({
-  phone_number: z.object({}).optional(),
+  phone_number: z.object({}),
 })
 
 // Formula property schema
@@ -241,22 +235,22 @@ export const RollupPropertySchemaSchema = z.object({
 
 // Created time property schema (read-only, auto-generated)
 export const CreatedTimePropertySchemaSchema = z.object({
-  created_time: z.object({}).optional(),
+  created_time: z.object({}),
 })
 
 // Created by property schema (read-only, auto-generated)
 export const CreatedByPropertySchemaSchema = z.object({
-  created_by: z.object({}).optional(),
+  created_by: z.object({}),
 })
 
 // Last edited time property schema (read-only, auto-generated)
 export const LastEditedTimePropertySchemaSchema = z.object({
-  last_edited_time: z.object({}).optional(),
+  last_edited_time: z.object({}),
 })
 
 // Last edited by property schema (read-only, auto-generated)
 export const LastEditedByPropertySchemaSchema = z.object({
-  last_edited_by: z.object({}).optional(),
+  last_edited_by: z.object({}),
 })
 
 // Combined database property schema
