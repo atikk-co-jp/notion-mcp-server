@@ -1,9 +1,8 @@
 name: Publish to npm
 
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [published]
 
 jobs:
   # まずCIを実行して品質を確認
@@ -86,7 +85,7 @@ jobs:
 
       - run: pnpm build
 
-      # タグとpackage.jsonのバージョンが一致することを確認
+      # リリースタグとpackage.jsonのバージョンが一致することを確認
       - name: Verify version
         run: |
           TAG_VERSION=${GITHUB_REF#refs/tags/v}
@@ -97,5 +96,4 @@ jobs:
           fi
 
       # Trusted Publishing（OIDC認証）で公開
-      # トークン不要、provenanceは自動付与
       - run: pnpm publish --access public --no-git-checks
