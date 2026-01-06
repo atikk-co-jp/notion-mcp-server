@@ -1,9 +1,9 @@
 // Main exports
 
-export { createNotionClient, type NotionClient } from "./notion-client.js";
+export { createNotionClient, type NotionClient } from './notion-client.js'
 // Schemas
-export * from "./schemas/index.js";
-export { startServer } from "./server.js";
+export * from './schemas/index.js'
+export { startServer } from './server.js'
 // Tool registration
 export {
   registerAllTools,
@@ -15,7 +15,7 @@ export {
   registerRetrievePage,
   registerSearch,
   registerUpdatePage,
-} from "./tools/index.js";
-export type { McpResponse, McpTextContent } from "./utils/index.js";
+} from './tools/index.js'
+export type { McpResponse, McpTextContent } from './utils/index.js'
 // Utils
-export { formatResponse, formatSuccessMessage, handleError } from "./utils/index.js";
+export { formatResponse, formatSuccessMessage, handleError } from './utils/index.js'

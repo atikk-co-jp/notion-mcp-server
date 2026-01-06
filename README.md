@@ -9,19 +9,20 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 ## Features
 
 - **Page Operations**: Create, retrieve, and update Notion pages
-- **Database Queries**: Query databases with filters and sorts
+- **Database Operations**: Create, update, and query databases with filters and sorts
 - **Block Operations**: Get and append block children
 - **Search**: Search across pages and databases
 - **Comments**: Add comments to pages
+- **Token-Efficient Output**: Markdown/simple format reduces token usage by ~96%
 
 ## Installation
 
 ```bash
-npm install notion-mcp-server
+npm install @atikk-co-jp/notion-mcp-server
 # or
-pnpm add notion-mcp-server
+pnpm add @atikk-co-jp/notion-mcp-server
 # or
-yarn add notion-mcp-server
+yarn add @atikk-co-jp/notion-mcp-server
 ```
 
 ## Usage
@@ -35,7 +36,7 @@ Add to your Claude Desktop configuration (`~/.config/claude/claude_desktop_confi
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["notion-mcp-server"],
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }
@@ -53,7 +54,7 @@ Add to your `.mcp.json`:
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["notion-mcp-server"],
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }
@@ -76,9 +77,18 @@ Add to your `.mcp.json`:
 
 Retrieve a Notion page by its ID.
 
+**Parameters:**
+- `page_id` (required): The ID of the page to retrieve
+- `format` (optional): Output format - `"simple"` (default) or `"json"`
+  - `simple`: Returns simplified property values with reduced token usage
+  - `json`: Returns raw Notion API response
+- `include_content` (optional): Include page content as markdown (default: true)
+
 ```json
 {
-  "page_id": "page-uuid-here"
+  "page_id": "page-uuid-here",
+  "format": "simple",
+  "include_content": true
 }
 ```
 
@@ -119,6 +129,16 @@ Update a page's properties.
 
 Query a database with optional filters and sorts.
 
+**Parameters:**
+- `database_id` (required): The ID of the database to query
+- `filter` (optional): Filter conditions as a JSON object
+- `sorts` (optional): Sort conditions as an array
+- `start_cursor` (optional): Cursor for pagination
+- `page_size` (optional): Number of results to return (1-100)
+- `format` (optional): Output format - `"simple"` (default) or `"json"`
+  - `simple`: Returns simplified property values with reduced token usage
+  - `json`: Returns raw Notion API response
+
 ```json
 {
   "database_id": "database-uuid-here",
@@ -128,7 +148,55 @@ Query a database with optional filters and sorts.
   },
   "sorts": [
     { "property": "Created", "direction": "descending" }
-  ]
+  ],
+  "format": "simple"
+}
+```
+
+### create-database
+
+Create a new database as a subpage of an existing page.
+
+**Parameters:**
+- `parent_page_id` (required): The ID of the parent page
+- `properties` (required): Database schema with at least one title property
+- `title` (optional): Database title as rich text array
+- `icon` (optional): Icon for the database
+- `cover` (optional): Cover image for the database
+- `is_inline` (optional): If true, creates an inline database
+
+```json
+{
+  "parent_page_id": "parent-page-uuid",
+  "properties": {
+    "Name": { "title": {} },
+    "Status": { "select": { "options": [{ "name": "Todo" }, { "name": "Done" }] } },
+    "Priority": { "number": {} }
+  },
+  "title": [{ "type": "text", "text": { "content": "Task Database" } }]
+}
+```
+
+### update-database
+
+Update an existing database's properties, title, or schema.
+
+**Parameters:**
+- `database_id` (required): The ID of the database to update
+- `title` (optional): New title as rich text array
+- `description` (optional): New description as rich text array
+- `properties` (optional): Properties to add, update, or delete (set to null)
+- `icon` (optional): Icon (set to null to remove)
+- `cover` (optional): Cover image (set to null to remove)
+- `archived` (optional): Set to true to archive
+
+```json
+{
+  "database_id": "database-uuid-here",
+  "properties": {
+    "NewColumn": { "rich_text": {} },
+    "OldColumn": null
+  }
 }
 ```
 
@@ -147,9 +215,20 @@ Search across all pages and databases.
 
 Get the child blocks of a page or block.
 
+**Parameters:**
+- `block_id` (required): The ID of the block or page to get children from
+- `start_cursor` (optional): Cursor for pagination
+- `page_size` (optional): Number of results to return (1-100)
+- `format` (optional): Output format - `"markdown"` (default) or `"json"`
+  - `markdown`: Returns human-readable markdown with significantly reduced token usage (~96% reduction)
+  - `json`: Returns raw Notion API response
+- `fetch_nested` (optional): When `format="markdown"`, fetch nested children blocks recursively (default: false)
+
 ```json
 {
-  "block_id": "page-or-block-uuid-here"
+  "block_id": "page-or-block-uuid-here",
+  "format": "markdown",
+  "fetch_nested": true
 }
 ```
 
@@ -196,6 +275,18 @@ pnpm build
 
 # Type check
 pnpm typecheck
+
+# Lint
+pnpm lint
+
+# Format code
+pnpm format
+
+# Run tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
 ```
 
 ## License

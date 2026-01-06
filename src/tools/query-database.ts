@@ -1,80 +1,107 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
-import type { NotionClient } from "../notion-client.js";
-import { formatPaginatedResponse, handleError } from "../utils/index.js";
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { z } from 'zod'
+import { type NotionProperty, pagesToSimple } from '../converters/index.js'
+import type { NotionClient } from '../notion-client.js'
+import { FilterSchema, type SortSchema, SortsSchema } from '../schemas/filter.js'
+import {
+  formatPaginatedResponse,
+  formatSimplePaginatedResponse,
+  handleError,
+} from '../utils/index.js'
+
+type Filter = z.infer<typeof FilterSchema>
+type Sort = z.infer<typeof SortSchema>
+
+interface PageResult {
+  id: string
+  url?: string
+  properties: Record<string, NotionProperty>
+  [key: string]: unknown
+}
 
 interface PaginatedResponse {
-  results: unknown[];
-  has_more: boolean;
-  next_cursor: string | null;
+  results: PageResult[]
+  has_more: boolean
+  next_cursor: string | null
 }
 
 const inputSchema = {
-  database_id: z.string().describe("The ID of the database to query"),
-  filter: z
-    .any()
-    .optional()
-    .describe(
-      "Filter conditions as a JSON object. " +
-        'Property filter example: { "property": "Status", "status": { "equals": "Done" } }. ' +
-        'Compound filter example: { "and": [{ "property": "Status", "status": { "equals": "Done" } }] }',
-    ),
-  sorts: z
-    .array(z.any())
-    .optional()
-    .describe(
-      "Sort conditions as an array. " +
-        'Example: [{ "property": "Created", "direction": "descending" }] or ' +
-        '[{ "timestamp": "created_time", "direction": "ascending" }]',
-    ),
+  database_id: z.string().describe('The ID of the database to query'),
+  filter: FilterSchema.optional().describe(
+    'Filter conditions. ' +
+      'Property filter: { "property": "Status", "status": { "equals": "Done" } }. ' +
+      'Compound filter: { "and": [...] } or { "or": [...] }. ' +
+      'Supported property types: title, rich_text, number, checkbox, select, multi_select, status, date, relation.',
+  ),
+  sorts: SortsSchema.optional().describe(
+    'Sort conditions array. ' +
+      'By property: { "property": "Name", "direction": "ascending" }. ' +
+      'By timestamp: { "timestamp": "created_time", "direction": "descending" }.',
+  ),
   start_cursor: z
     .string()
     .optional()
-    .describe("Cursor for pagination. Use the next_cursor from previous response."),
+    .describe('Cursor for pagination. Use the next_cursor from previous response.'),
   page_size: z
     .number()
     .min(1)
     .max(100)
     .optional()
-    .describe("Number of results to return (1-100). Default is 100."),
-};
+    .describe('Number of results to return (1-100). Default is 100.'),
+  format: z
+    .enum(['json', 'simple'])
+    .optional()
+    .default('simple')
+    .describe(
+      "Output format: 'simple' (default) returns simplified property values with reduced token usage, 'json' returns raw Notion API response",
+    ),
+}
 
 export function registerQueryDatabase(server: McpServer, notion: NotionClient): void {
-  server.tool(
-    "query-database",
-    "Query a Notion database with optional filters and sorts. Returns paginated results.",
-    inputSchema,
-    async ({ database_id, filter, sorts, start_cursor, page_size }) => {
+  server.registerTool(
+    'query-database',
+    {
+      description:
+        "Query a Notion database with optional filters and sorts. Returns paginated results. Use format='simple' (default) for human-readable output with reduced token usage.",
+      inputSchema,
+    },
+    async ({ database_id, filter, sorts, start_cursor, page_size, format }) => {
       try {
         const params: {
-          database_id: string;
-          filter?: unknown;
-          sorts?: unknown[];
-          start_cursor?: string;
-          page_size?: number;
-        } = { database_id };
+          database_id: string
+          filter?: Filter
+          sorts?: Sort[]
+          start_cursor?: string
+          page_size?: number
+        } = { database_id }
 
         if (filter) {
-          params.filter = filter;
+          params.filter = filter as Filter
         }
 
         if (sorts) {
-          params.sorts = sorts;
+          params.sorts = sorts as Sort[]
         }
 
         if (start_cursor) {
-          params.start_cursor = start_cursor;
+          params.start_cursor = start_cursor
         }
 
         if (page_size) {
-          params.page_size = page_size;
+          params.page_size = page_size
         }
 
-        const response = await notion.databases.query<PaginatedResponse>(params);
-        return formatPaginatedResponse(response.results, response.has_more, response.next_cursor);
+        const response = await notion.databases.query<PaginatedResponse>(params)
+
+        if (format === 'simple') {
+          const simplePages = pagesToSimple(response.results)
+          return formatSimplePaginatedResponse(simplePages, response.has_more, response.next_cursor)
+        }
+
+        return formatPaginatedResponse(response.results, response.has_more, response.next_cursor)
       } catch (error) {
-        return handleError(error);
+        return handleError(error)
       }
     },
-  );
+  )
 }
