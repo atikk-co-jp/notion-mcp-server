@@ -1,5 +1,21 @@
+import type { z } from 'zod'
+import type { Block } from './schemas/block.js'
+import type { CoverSchema, IconSchema, RichTextSchema } from './schemas/common.js'
+import type { DatabasePropertiesSchema } from './schemas/database.js'
+import type { FilterSchema, SortSchema } from './schemas/filter.js'
+import type { PropertyValueSchema } from './schemas/page.js'
+
 const NOTION_API_BASE = 'https://api.notion.com/v1'
 const NOTION_VERSION = '2022-06-28'
+
+// Infer types from schemas
+type RichText = z.infer<typeof RichTextSchema>
+type Icon = z.infer<typeof IconSchema>
+type Cover = z.infer<typeof CoverSchema>
+type PropertyValue = z.infer<typeof PropertyValueSchema>
+type DatabaseProperties = z.infer<typeof DatabasePropertiesSchema>
+type Filter = z.infer<typeof FilterSchema>
+type Sort = z.infer<typeof SortSchema>
 
 export interface NotionClientOptions {
   token: string
@@ -68,10 +84,10 @@ export class NotionClient {
   pages = {
     create: <T>(params: {
       parent: { database_id: string } | { page_id: string }
-      properties: Record<string, unknown>
-      children?: unknown[]
-      icon?: unknown
-      cover?: unknown
+      properties: Record<string, PropertyValue>
+      children?: Block[]
+      icon?: Icon
+      cover?: Cover
     }): Promise<T> => {
       return this.request<T>('/pages', { method: 'POST', body: params })
     },
@@ -82,10 +98,10 @@ export class NotionClient {
 
     update: <T>(params: {
       page_id: string
-      properties?: Record<string, unknown>
+      properties?: Record<string, PropertyValue>
       archived?: boolean
-      icon?: unknown
-      cover?: unknown
+      icon?: Icon | null
+      cover?: Cover | null
     }): Promise<T> => {
       const { page_id, ...body } = params
       return this.request<T>(`/pages/${page_id}`, { method: 'PATCH', body })
@@ -94,15 +110,44 @@ export class NotionClient {
 
   // Databases
   databases = {
+    create: <T>(params: {
+      parent: { page_id: string }
+      title?: RichText[]
+      properties: DatabaseProperties
+      icon?: Icon
+      cover?: Cover
+      is_inline?: boolean
+    }): Promise<T> => {
+      return this.request<T>('/databases', { method: 'POST', body: params })
+    },
+
     query: <T>(params: {
       database_id: string
-      filter?: unknown
-      sorts?: unknown[]
+      filter?: Filter
+      sorts?: Sort[]
       start_cursor?: string
       page_size?: number
     }): Promise<T> => {
       const { database_id, ...body } = params
       return this.request<T>(`/databases/${database_id}/query`, { method: 'POST', body })
+    },
+
+    retrieve: <T>(params: { database_id: string }): Promise<T> => {
+      return this.request<T>(`/databases/${params.database_id}`)
+    },
+
+    update: <T>(params: {
+      database_id: string
+      title?: RichText[]
+      description?: RichText[]
+      properties?: DatabaseProperties
+      icon?: Icon | null
+      cover?: Cover | null
+      is_inline?: boolean
+      archived?: boolean
+    }): Promise<T> => {
+      const { database_id, ...body } = params
+      return this.request<T>(`/databases/${database_id}`, { method: 'PATCH', body })
     },
   }
 
@@ -122,7 +167,7 @@ export class NotionClient {
 
       append: <T>(params: {
         block_id: string
-        children: unknown[]
+        children: Block[]
         after?: string
       }): Promise<T> => {
         const { block_id, ...body } = params
@@ -133,7 +178,7 @@ export class NotionClient {
 
   // Comments
   comments = {
-    create: <T>(params: { parent: { page_id: string }; rich_text: unknown[] }): Promise<T> => {
+    create: <T>(params: { parent: { page_id: string }; rich_text: RichText[] }): Promise<T> => {
       return this.request<T>('/comments', { method: 'POST', body: params })
     },
   }
@@ -141,8 +186,8 @@ export class NotionClient {
   // Search
   search = <T>(params?: {
     query?: string
-    filter?: unknown
-    sort?: unknown
+    filter?: { value: 'page' | 'database'; property: 'object' }
+    sort?: { direction: 'ascending' | 'descending'; timestamp: 'last_edited_time' }
     start_cursor?: string
     page_size?: number
   }): Promise<T> => {
