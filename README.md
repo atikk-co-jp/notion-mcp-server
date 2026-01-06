@@ -36,7 +36,7 @@ Add to your Claude Desktop configuration (`~/.config/claude/claude_desktop_confi
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
+      "args": ["-y", "atikk-notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }
@@ -54,7 +54,7 @@ Add to your `.mcp.json`:
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
+      "args": ["-y", "atikk-notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }

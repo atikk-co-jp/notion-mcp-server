@@ -36,7 +36,7 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
+      "args": ["-y", "atikk-notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }
@@ -54,7 +54,7 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
+      "args": ["-y", "atikk-notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "your-notion-integration-token"
       }
