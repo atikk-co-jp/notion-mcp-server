@@ -6,34 +6,34 @@
  * Notion APIのRichTextアイテムの型定義
  */
 export interface RichTextItem {
-  type?: string;
+  type?: string
   text?: {
-    content: string;
-    link?: { url: string } | null;
-  };
+    content: string
+    link?: { url: string } | null
+  }
   annotations?: {
-    bold?: boolean;
-    italic?: boolean;
-    strikethrough?: boolean;
-    underline?: boolean;
-    code?: boolean;
-    color?: string;
-  };
-  plain_text?: string;
-  href?: string | null;
+    bold?: boolean
+    italic?: boolean
+    strikethrough?: boolean
+    underline?: boolean
+    code?: boolean
+    color?: string
+  }
+  plain_text?: string
+  href?: string | null
   // Mention type support
   mention?: {
-    type: string;
-    user?: { name?: string; id: string };
-    page?: { id: string };
-    database?: { id: string };
-    date?: { start: string; end?: string | null };
-    link_preview?: { url: string };
-  };
+    type: string
+    user?: { name?: string; id: string }
+    page?: { id: string }
+    database?: { id: string }
+    date?: { start: string; end?: string | null }
+    link_preview?: { url: string }
+  }
   // Equation type support
   equation?: {
-    expression: string;
-  };
+    expression: string
+  }
 }
 
 /**
@@ -41,81 +41,81 @@ export interface RichTextItem {
  */
 function convertRichTextItem(item: RichTextItem): string {
   // テキスト内容を取得
-  let text = item.text?.content ?? item.plain_text ?? "";
+  let text = item.text?.content ?? item.plain_text ?? ''
 
   // Mention type の処理
-  if (item.type === "mention" && item.mention) {
-    const mention = item.mention;
+  if (item.type === 'mention' && item.mention) {
+    const mention = item.mention
     switch (mention.type) {
-      case "user":
-        text = `@${mention.user?.name ?? "user"}`;
-        break;
-      case "page":
-        text = item.plain_text ?? `[page](${mention.page?.id})`;
-        break;
-      case "database":
-        text = item.plain_text ?? `[database](${mention.database?.id})`;
-        break;
-      case "date":
-        text = mention.date?.start ?? "";
+      case 'user':
+        text = `@${mention.user?.name ?? 'user'}`
+        break
+      case 'page':
+        text = item.plain_text ?? `[page](${mention.page?.id})`
+        break
+      case 'database':
+        text = item.plain_text ?? `[database](${mention.database?.id})`
+        break
+      case 'date':
+        text = mention.date?.start ?? ''
         if (mention.date?.end) {
-          text += ` → ${mention.date.end}`;
+          text += ` → ${mention.date.end}`
         }
-        break;
-      case "link_preview":
-        text = mention.link_preview?.url ?? "";
-        break;
+        break
+      case 'link_preview':
+        text = mention.link_preview?.url ?? ''
+        break
       default:
-        text = item.plain_text ?? "";
+        text = item.plain_text ?? ''
     }
   }
 
   // Equation type の処理
-  if (item.type === "equation" && item.equation) {
-    return `$${item.equation.expression}$`;
+  if (item.type === 'equation' && item.equation) {
+    return `$${item.equation.expression}$`
   }
 
   // 空文字列の場合はそのまま返す
   if (!text) {
-    return "";
+    return ''
   }
 
-  const annotations = item.annotations;
+  const annotations = item.annotations
 
   // アノテーション適用（内側から外側へ）
   // code が最も内側
   if (annotations?.code) {
-    text = `\`${text}\``;
+    text = `\`${text}\``
   }
 
   // strikethrough
   if (annotations?.strikethrough) {
-    text = `~~${text}~~`;
+    text = `~~${text}~~`
   }
 
   // italic
   if (annotations?.italic) {
-    text = `*${text}*`;
+    text = `*${text}*`
   }
 
   // bold
   if (annotations?.bold) {
-    text = `**${text}**`;
+    text = `**${text}**`
   }
 
   // underline はマークダウンで標準サポートされていないため、HTMLタグを使用
   if (annotations?.underline) {
-    text = `<u>${text}</u>`;
+    text = `<u>${text}</u>`
   }
 
   // リンク処理（text.link または href）
-  const href = item.text?.link?.url ?? item.href;
+  const href = item.text?.link?.url ?? item.href
   if (href && !annotations?.code) {
     // コード内のリンクは無視
-    text = `[${text}](${href})`;
+    text = `[${text}](${href})`
   }
 
-  return text;
+  return text
 }
 
 /**
@@ -125,9 +125,9 @@ function convertRichTextItem(item: RichTextItem): string {
  */
 export function richTextToMarkdown(richTexts: RichTextItem[]): string {
   if (!richTexts || richTexts.length === 0) {
-    return "";
+    return ''
   }
-  return richTexts.map(convertRichTextItem).join("");
+  return richTexts.map(convertRichTextItem).join('')
 }
 
 /**
@@ -137,7 +137,7 @@ export function richTextToMarkdown(richTexts: RichTextItem[]): string {
  */
 export function richTextToPlain(richTexts: RichTextItem[]): string {
   if (!richTexts || richTexts.length === 0) {
-    return "";
+    return ''
   }
-  return richTexts.map((item) => item.plain_text ?? item.text?.content ?? "").join("");
+  return richTexts.map((item) => item.plain_text ?? item.text?.content ?? '').join('')
 }

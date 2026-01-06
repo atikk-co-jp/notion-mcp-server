@@ -10,7 +10,7 @@ export {
   blocksToMarkdownSync,
   type ConvertOptions,
   type NotionBlock,
-} from "./block-to-markdown.js";
+} from './block-to-markdown.js'
 // ページプロパティ変換
 export {
   type NotionProperty,
@@ -21,10 +21,10 @@ export {
   pageToSimple,
   type SimplePage,
   type SimpleProperty,
-} from "./page-to-markdown.js";
+} from './page-to-markdown.js'
 // RichText変換
 export {
   type RichTextItem,
   richTextToMarkdown,
   richTextToPlain,
-} from "./rich-text-to-markdown.js";
+} from './rich-text-to-markdown.js'

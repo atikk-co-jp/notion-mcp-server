@@ -1,4 +1,4 @@
-export { handleError, type McpResponse, type McpTextContent } from "./error-handler.js";
+export { handleError, type McpResponse, type McpTextContent } from './error-handler.js'
 export {
   formatMarkdownResponse,
   formatPaginatedResponse,
@@ -6,4 +6,4 @@ export {
   formatSimplePaginatedResponse,
   formatSimpleResponse,
   formatSuccessMessage,
-} from "./response-formatter.js";
+} from './response-formatter.js'
