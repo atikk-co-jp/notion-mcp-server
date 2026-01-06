@@ -2,15 +2,11 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { type NotionProperty, pagesToSimple } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
-import { FilterSchema, type SortSchema, SortsSchema } from '../schemas/filter.js'
 import {
   formatPaginatedResponse,
   formatSimplePaginatedResponse,
   handleError,
 } from '../utils/index.js'
-
-type Filter = z.infer<typeof FilterSchema>
-type Sort = z.infer<typeof SortSchema>
 
 interface PageResult {
   id: string
@@ -25,36 +21,14 @@ interface PaginatedResponse {
   next_cursor: string | null
 }
 
+// Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  database_id: z.string().describe('The ID of the database to query'),
-  filter: FilterSchema.optional().describe(
-    'Filter conditions. ' +
-      'Property filter: { "property": "Status", "status": { "equals": "Done" } }. ' +
-      'Compound filter: { "and": [...] } or { "or": [...] }. ' +
-      'Supported property types: title, rich_text, number, checkbox, select, multi_select, status, date, relation.',
-  ),
-  sorts: SortsSchema.optional().describe(
-    'Sort conditions array. ' +
-      'By property: { "property": "Name", "direction": "ascending" }. ' +
-      'By timestamp: { "timestamp": "created_time", "direction": "descending" }.',
-  ),
-  start_cursor: z
-    .string()
-    .optional()
-    .describe('Cursor for pagination. Use the next_cursor from previous response.'),
-  page_size: z
-    .number()
-    .min(1)
-    .max(100)
-    .optional()
-    .describe('Number of results to return (1-100). Default is 100.'),
-  format: z
-    .enum(['json', 'simple'])
-    .optional()
-    .default('simple')
-    .describe(
-      "Output format: 'simple' (default) returns simplified property values with reduced token usage, 'json' returns raw Notion API response",
-    ),
+  database_id: z.string().describe('Database ID'),
+  filter: z.any().optional().describe('Filter conditions'),
+  sorts: z.array(z.any()).optional().describe('Sort conditions'),
+  start_cursor: z.string().optional().describe('Pagination cursor'),
+  page_size: z.number().optional().describe('Results per page (1-100)'),
+  format: z.enum(['json', 'simple']).optional().describe('Output format (default: simple)'),
 }
 
 export function registerQueryDatabase(server: McpServer, notion: NotionClient): void {
@@ -69,18 +43,18 @@ export function registerQueryDatabase(server: McpServer, notion: NotionClient): 
       try {
         const params: {
           database_id: string
-          filter?: Filter
-          sorts?: Sort[]
+          filter?: Record<string, unknown>
+          sorts?: Array<{ property?: string; timestamp?: string; direction: string }>
           start_cursor?: string
           page_size?: number
         } = { database_id }
 
         if (filter) {
-          params.filter = filter as Filter
+          params.filter = filter as Record<string, unknown>
         }
 
         if (sorts) {
-          params.sorts = sorts as Sort[]
+          params.sorts = sorts as Array<{ property?: string; timestamp?: string; direction: string }>
         }
 
         if (start_cursor) {
@@ -91,7 +65,8 @@ export function registerQueryDatabase(server: McpServer, notion: NotionClient): 
           params.page_size = page_size
         }
 
-        const response = await notion.databases.query<PaginatedResponse>(params)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await notion.databases.query<PaginatedResponse>(params as any)
 
         if (format === 'simple') {
           const simplePages = pagesToSimple(response.results)

@@ -1,6 +1,6 @@
 {
   "name": "@atikk-co-jp/notion-mcp-server",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "MCP server for Notion API - Create, read, update pages and databases",
   "type": "module",
   "license": "MIT",
