@@ -95,5 +95,10 @@ jobs:
             exit 1
           fi
 
+      # npmを最新版に更新（OIDC Trusted Publishing には npm >= 11.5.1 が必要）
+      # pnpmはOIDCに未対応のためnpmを使用
+      - name: Update npm for OIDC support
+        run: npm install -g npm@latest
+
       # Trusted Publishing（OIDC認証）で公開
-      - run: pnpm publish --access public --no-git-checks --provenance
+      - run: npm publish --access public --provenance
