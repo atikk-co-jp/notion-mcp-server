@@ -2,7 +2,16 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { markdownToBlocks } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+
+interface DataSourceProperty {
+  type: string
+  [key: string]: unknown
+}
+
+interface DataSourceResponse {
+  properties: Record<string, DataSourceProperty>
+}
 
 // Minimal schema for MCP
 const inputSchema = {
@@ -26,6 +35,23 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
     },
     async ({ data_source_id, title, content, properties, icon }) => {
       try {
+        // Try to fetch data source schema to find the title property name
+        let titlePropertyName: string = 'Name' // Default fallback
+        try {
+          const schema = await notion.dataSources.retrieve<DataSourceResponse>({
+            data_source_id,
+          })
+          // Find the title property name from schema
+          const foundTitleProp = Object.entries(schema.properties).find(
+            ([, prop]) => prop.type === 'title',
+          )
+          if (foundTitleProp) {
+            titlePropertyName = foundTitleProp[0]
+          }
+        } catch {
+          // If schema fetch fails, fall back to 'Name'
+        }
+
         // Build properties with title
         const pageProperties: Record<string, unknown> = {
           ...properties,
@@ -37,9 +63,9 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
           (prop) => prop && typeof prop === 'object' && 'title' in (prop as object),
         )
 
-        // Only add Name if no title property exists
+        // Add title property if not already provided
         if (!hasTitleProperty) {
-          pageProperties.Name = {
+          pageProperties[titlePropertyName] = {
             title: [{ type: 'text', text: { content: title } }],
           }
         }
@@ -69,7 +95,11 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
         const response = await notion.pages.create(params as any)
         return formatResponse(response)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, data_source_id, {
+          hint:
+            'Hint: The "title" parameter automatically sets the title property. ' +
+            'Use "properties" for other fields like select or multi_select.',
+        })
       }
     },
   )
