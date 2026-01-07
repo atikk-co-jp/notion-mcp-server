@@ -238,6 +238,132 @@ describe('markdownToBlocks', () => {
     })
   })
 
+  describe('tables', () => {
+    it('should convert simple table to table block', () => {
+      const markdown = `| Name | Age |
+|------|-----|
+| Alice | 30 |
+| Bob | 25 |`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('table')
+
+      const table = result[0].table as {
+        table_width: number
+        has_column_header: boolean
+        has_row_header: boolean
+        children: Array<{
+          type: string
+          table_row: { cells: Array<Array<{ type: string; text: { content: string } }>> }
+        }>
+      }
+
+      expect(table.table_width).toBe(2)
+      expect(table.has_column_header).toBe(true)
+      expect(table.has_row_header).toBe(false)
+      expect(table.children).toHaveLength(3) // header + 2 data rows
+    })
+
+    it('should handle table without header separator', () => {
+      const markdown = `| Name | Age |
+| Alice | 30 |
+| Bob | 25 |`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('table')
+
+      const table = result[0].table as { has_column_header: boolean; children: unknown[] }
+      expect(table.has_column_header).toBe(false)
+      expect(table.children).toHaveLength(3)
+    })
+
+    it('should parse inline formatting in table cells', () => {
+      const markdown = `| Feature | Status |
+|---------|--------|
+| **Bold** | *italic* |
+| \`code\` | [link](https://example.com) |`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('table')
+
+      const table = result[0].table as {
+        children: Array<{
+          table_row: {
+            cells: Array<
+              Array<{
+                text: { content: string }
+                annotations?: { bold?: boolean; italic?: boolean; code?: boolean }
+              }>
+            >
+          }
+        }>
+      }
+
+      // Check first data row (index 1, after header)
+      const firstDataRow = table.children[1].table_row.cells
+      expect(firstDataRow[0][0].text.content).toBe('Bold')
+      expect(firstDataRow[0][0].annotations?.bold).toBe(true)
+      expect(firstDataRow[1][0].text.content).toBe('italic')
+      expect(firstDataRow[1][0].annotations?.italic).toBe(true)
+
+      // Check second data row
+      const secondDataRow = table.children[2].table_row.cells
+      expect(secondDataRow[0][0].text.content).toBe('code')
+      expect(secondDataRow[0][0].annotations?.code).toBe(true)
+    })
+
+    it('should handle table with 3+ columns', () => {
+      const markdown = `| エージェント名 | 目的 | プロンプトの特徴 |
+|--------------|------|----------------|
+| ResearchAgent | トピックのリサーチ | 5つの視点 |
+| ContentAgent | コンテンツ生成 | 品質ガイドライン |`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('table')
+
+      const table = result[0].table as { table_width: number; children: unknown[] }
+      expect(table.table_width).toBe(3)
+      expect(table.children).toHaveLength(3) // header + 2 data rows
+    })
+
+    it('should handle table with alignment indicators', () => {
+      const markdown = `| Left | Center | Right |
+|:-----|:------:|------:|
+| L | C | R |`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('table')
+
+      const table = result[0].table as { has_column_header: boolean }
+      expect(table.has_column_header).toBe(true)
+    })
+
+    it('should handle empty cells', () => {
+      const markdown = `| A | B |
+|---|---|
+|   | value |
+| value |  |`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+
+      const table = result[0].table as {
+        children: Array<{
+          table_row: { cells: Array<Array<{ text: { content: string } }>> }
+        }>
+      }
+
+      // Empty cells should have empty content
+      expect(table.children[1].table_row.cells[0]).toEqual([])
+      expect(table.children[2].table_row.cells[1]).toEqual([])
+    })
+  })
+
   describe('mixed content', () => {
     it('should handle complex markdown document', () => {
       const markdown = `# Title
@@ -270,6 +396,26 @@ const x = 1
       expect(result[6].type).toBe('quote')
       expect(result[7].type).toBe('divider')
       expect(result[8].type).toBe('image')
+    })
+
+    it('should handle document with tables among other content', () => {
+      const markdown = `## エージェント一覧
+
+以下のエージェントがあります：
+
+| Name | Purpose |
+|------|---------|
+| Agent1 | Research |
+| Agent2 | Generate |
+
+詳細は下記を参照。`
+
+      const result = markdownToBlocks(markdown)
+
+      expect(result[0].type).toBe('heading_2')
+      expect(result[1].type).toBe('paragraph')
+      expect(result[2].type).toBe('table')
+      expect(result[3].type).toBe('paragraph')
     })
   })
 })

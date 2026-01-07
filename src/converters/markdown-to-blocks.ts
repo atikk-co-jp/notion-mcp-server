@@ -289,6 +289,70 @@ export function markdownToBlocks(markdown: string): NotionBlock[] {
       continue
     }
 
+    // テーブル: | col1 | col2 | ... |
+    // テーブル行は | で始まり | で終わる
+    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+      const tableRows: string[][] = []
+      let hasHeaderSeparator = false
+      let headerSeparatorIndex = -1
+
+      // テーブル行を収集
+      while (i < lines.length) {
+        const currentLine = lines[i].trim()
+        if (!currentLine.startsWith('|') || !currentLine.endsWith('|')) {
+          break
+        }
+
+        // セパレーター行の検出: | --- | --- | or |:---|:---| etc.
+        if (
+          /^\|[\s:]*-{3,}[\s:]*\|/.test(currentLine) &&
+          /\|[\s:]*-{3,}[\s:]*\|$/.test(currentLine)
+        ) {
+          // すべてのセルがセパレーターパターンかチェック
+          const separatorCells = currentLine.slice(1, -1).split('|')
+          const isSeparator = separatorCells.every((cell) => /^[\s:]*-{3,}[\s:]*$/.test(cell))
+          if (isSeparator) {
+            hasHeaderSeparator = true
+            headerSeparatorIndex = tableRows.length
+            i++
+            continue
+          }
+        }
+
+        // セルを抽出 (先頭と末尾の | を除去してから分割)
+        const cells = currentLine
+          .slice(1, -1)
+          .split('|')
+          .map((cell) => cell.trim())
+        tableRows.push(cells)
+        i++
+      }
+
+      // テーブルブロックを生成
+      if (tableRows.length > 0) {
+        // 列数を最初の行から決定
+        const tableWidth = tableRows[0].length
+
+        // テーブルブロックを作成
+        const tableBlock: NotionBlock = {
+          type: 'table',
+          table: {
+            table_width: tableWidth,
+            has_column_header: hasHeaderSeparator && headerSeparatorIndex === 1,
+            has_row_header: false,
+            children: tableRows.map((row) => ({
+              type: 'table_row',
+              table_row: {
+                cells: row.map((cell) => parseInlineMarkdown(cell)),
+              },
+            })),
+          },
+        }
+        blocks.push(tableBlock)
+      }
+      continue
+    }
+
     // デフォルト: 段落
     blocks.push(createTextBlock('paragraph', line))
     i++

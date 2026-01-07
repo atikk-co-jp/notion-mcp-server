@@ -143,7 +143,10 @@ export class NotionClient {
       } else {
         parentWithType = { type: 'page_id', page_id: params.parent.page_id }
       }
-      return this.request<T>(`/pages/${params.page_id}/move`, { method: 'POST', body: { parent: parentWithType } })
+      return this.request<T>(`/pages/${params.page_id}/move`, {
+        method: 'POST',
+        body: { parent: parentWithType },
+      })
     },
   }
 

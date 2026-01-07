@@ -10,7 +10,12 @@ const inputSchema = {
   properties: z
     .record(z.string(), z.any())
     .describe('Property schema (must include one title property)'),
-  icon: z.any().optional().describe('Database icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }. Emoji must be an actual emoji character.'),
+  icon: z
+    .any()
+    .optional()
+    .describe(
+      'Database icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }. Emoji must be an actual emoji character.',
+    ),
   cover: z.any().optional().describe('Cover image'),
   is_inline: z.boolean().optional().describe('Inline database'),
 }

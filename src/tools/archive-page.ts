@@ -11,8 +11,7 @@ export function registerArchivePage(server: McpServer, notion: NotionClient): vo
   server.registerTool(
     'archive-page',
     {
-      description:
-        'Move a page to trash. Recoverable for 30 days via Notion UI.',
+      description: 'Move a page to trash. Recoverable for 30 days via Notion UI.',
       inputSchema,
     },
     async ({ page_id }) => {

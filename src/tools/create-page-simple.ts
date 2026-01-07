@@ -19,7 +19,10 @@ const inputSchema = {
   title: z.string().describe('Page title'),
   content: z.string().optional().describe('Page content in Markdown'),
   properties: z.record(z.string(), z.any()).optional().describe('Additional properties'),
-  icon: z.string().optional().describe('Emoji character (e.g. "📝", "🐛", "✅"). Must be an actual emoji, not a name.'),
+  icon: z
+    .string()
+    .optional()
+    .describe('Emoji character (e.g. "📝", "🐛", "✅"). Must be an actual emoji, not a name.'),
 }
 
 export function registerCreatePageSimple(server: McpServer, notion: NotionClient): void {

@@ -9,11 +9,21 @@ const inputSchema = {
   database_id: z.string().describe('Database ID'),
   title: z.array(z.any()).optional().describe('New title'),
   description: z.array(z.any()).optional().describe('New description'),
-  icon: z.any().optional().describe('Icon object { type: "emoji", emoji: "📝" } or null to remove. Emoji must be an actual emoji character.'),
+  icon: z
+    .any()
+    .optional()
+    .describe(
+      'Icon object { type: "emoji", emoji: "📝" } or null to remove. Emoji must be an actual emoji character.',
+    ),
   cover: z.any().optional().describe('Cover (null to remove)'),
   is_inline: z.boolean().optional().describe('Inline database'),
   archived: z.boolean().optional().describe('Archive status'),
-  is_locked: z.boolean().optional().describe('Lock the database to prevent edits in the UI. Set to true to lock, false to unlock.'),
+  is_locked: z
+    .boolean()
+    .optional()
+    .describe(
+      'Lock the database to prevent edits in the UI. Set to true to lock, false to unlock.',
+    ),
 }
 
 export function registerUpdateDatabase(server: McpServer, notion: NotionClient): void {

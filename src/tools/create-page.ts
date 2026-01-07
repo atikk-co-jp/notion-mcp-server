@@ -14,7 +14,12 @@ const inputSchema = {
   data_source_id: z.string().describe('Data source ID (required in API 2025-09-03)'),
   properties: z.record(z.string(), z.any()).describe('Notion properties object'),
   children: z.array(z.any()).optional().describe('Block objects array'),
-  icon: z.any().optional().describe('Page icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }. Emoji must be an actual emoji character.'),
+  icon: z
+    .any()
+    .optional()
+    .describe(
+      'Page icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }. Emoji must be an actual emoji character.',
+    ),
   cover: z.any().optional().describe('Cover image'),
 }
 

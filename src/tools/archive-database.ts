@@ -11,8 +11,7 @@ export function registerArchiveDatabase(server: McpServer, notion: NotionClient)
   server.registerTool(
     'archive-database',
     {
-      description:
-        'Move a database to trash. Recoverable for 30 days via Notion UI.',
+      description: 'Move a database to trash. Recoverable for 30 days via Notion UI.',
       inputSchema,
     },
     async ({ database_id }) => {

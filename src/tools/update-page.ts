@@ -13,9 +13,17 @@ const inputSchema = {
   page_id: z.string().describe('Page ID'),
   properties: z.record(z.string(), z.any()).optional().describe('Properties to update'),
   archived: z.boolean().optional().describe('Archive the page'),
-  icon: z.any().optional().describe('Page icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }, or null to remove. Emoji must be an actual emoji character.'),
+  icon: z
+    .any()
+    .optional()
+    .describe(
+      'Page icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }, or null to remove. Emoji must be an actual emoji character.',
+    ),
   cover: z.any().optional().describe('Cover image (null to remove)'),
-  is_locked: z.boolean().optional().describe('Lock the page to prevent edits in the UI. Set to true to lock, false to unlock.'),
+  is_locked: z
+    .boolean()
+    .optional()
+    .describe('Lock the page to prevent edits in the UI. Set to true to lock, false to unlock.'),
 }
 
 export function registerUpdatePage(server: McpServer, notion: NotionClient): void {
