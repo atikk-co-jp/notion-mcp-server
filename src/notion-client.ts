@@ -6,7 +6,7 @@ import type { FilterSchema, SortSchema } from './schemas/filter.js'
 import type { PropertyValueSchema } from './schemas/page.js'
 
 const NOTION_API_BASE = 'https://api.notion.com/v1'
-const NOTION_VERSION = '2022-06-28'
+const NOTION_VERSION = '2025-09-03'
 
 // Infer types from schemas
 type RichText = z.infer<typeof RichTextSchema>
@@ -83,13 +83,23 @@ export class NotionClient {
   // Pages
   pages = {
     create: <T>(params: {
-      parent: { database_id: string } | { page_id: string }
+      parent: { database_id: string } | { page_id: string } | { data_source_id: string }
       properties: Record<string, PropertyValue>
       children?: Block[]
       icon?: Icon
       cover?: Cover
     }): Promise<T> => {
-      return this.request<T>('/pages', { method: 'POST', body: params })
+      // API 2025-09-03 requires explicit type in parent
+      let parentWithType: { type: string; [key: string]: string }
+      if ('data_source_id' in params.parent) {
+        parentWithType = { type: 'data_source_id', data_source_id: params.parent.data_source_id }
+      } else if ('database_id' in params.parent) {
+        parentWithType = { type: 'database_id', database_id: params.parent.database_id }
+      } else {
+        parentWithType = { type: 'page_id', page_id: params.parent.page_id }
+      }
+      const body = { ...params, parent: parentWithType }
+      return this.request<T>('/pages', { method: 'POST', body })
     },
 
     retrieve: <T>(params: { page_id: string }): Promise<T> => {
@@ -121,35 +131,63 @@ export class NotionClient {
 
     move: <T>(params: {
       page_id: string
-      parent: { page_id: string } | { database_id: string }
+      parent: { page_id: string } | { database_id: string } | { data_source_id: string }
     }): Promise<T> => {
-      const { page_id, ...body } = params
-      return this.request<T>(`/pages/${page_id}/move`, { method: 'POST', body })
+      // API 2025-09-03 requires explicit type in parent
+      let parentWithType: { type: string; [key: string]: string }
+      if ('data_source_id' in params.parent) {
+        parentWithType = { type: 'data_source_id', data_source_id: params.parent.data_source_id }
+      } else if ('database_id' in params.parent) {
+        parentWithType = { type: 'database_id', database_id: params.parent.database_id }
+      } else {
+        parentWithType = { type: 'page_id', page_id: params.parent.page_id }
+      }
+      return this.request<T>(`/pages/${params.page_id}/move`, { method: 'POST', body: { parent: parentWithType } })
     },
   }
 
-  // Databases
-  databases = {
-    create: <T>(params: {
-      parent: { page_id: string }
-      title?: RichText[]
-      properties: DatabaseProperties
-      icon?: Icon
-      cover?: Cover
-      is_inline?: boolean
-    }): Promise<T> => {
-      return this.request<T>('/databases', { method: 'POST', body: params })
+  // Data Sources (new in 2025-09-03)
+  dataSources = {
+    retrieve: <T>(params: { data_source_id: string }): Promise<T> => {
+      return this.request<T>(`/data_sources/${params.data_source_id}`)
     },
 
     query: <T>(params: {
-      database_id: string
+      data_source_id: string
       filter?: Filter
       sorts?: Sort[]
       start_cursor?: string
       page_size?: number
     }): Promise<T> => {
-      const { database_id, ...body } = params
-      return this.request<T>(`/databases/${database_id}/query`, { method: 'POST', body })
+      const { data_source_id, ...body } = params
+      return this.request<T>(`/data_sources/${data_source_id}/query`, { method: 'POST', body })
+    },
+
+    update: <T>(params: {
+      data_source_id: string
+      properties?: DatabaseProperties
+    }): Promise<T> => {
+      const { data_source_id, ...body } = params
+      return this.request<T>(`/data_sources/${data_source_id}`, { method: 'PATCH', body })
+    },
+  }
+
+  // Databases (container operations only in 2025-09-03)
+  databases = {
+    create: <T>(params: {
+      parent: { page_id: string }
+      title?: RichText[]
+      initial_data_source?: { properties: DatabaseProperties }
+      icon?: Icon
+      cover?: Cover
+      is_inline?: boolean
+    }): Promise<T> => {
+      // API 2025-09-03 requires explicit type in parent
+      const body = {
+        ...params,
+        parent: { type: 'page_id' as const, page_id: params.parent.page_id },
+      }
+      return this.request<T>('/databases', { method: 'POST', body })
     },
 
     retrieve: <T>(params: { database_id: string }): Promise<T> => {
@@ -160,7 +198,6 @@ export class NotionClient {
       database_id: string
       title?: RichText[]
       description?: RichText[]
-      properties?: DatabaseProperties
       icon?: Icon | null
       cover?: Cover | null
       is_inline?: boolean
@@ -243,10 +280,10 @@ export class NotionClient {
     },
   }
 
-  // Search
+  // Search (filter value changed from 'database' to 'data_source' in 2025-09-03)
   search = <T>(params?: {
     query?: string
-    filter?: { value: 'page' | 'database'; property: 'object' }
+    filter?: { value: 'page' | 'data_source'; property: 'object' }
     sort?: { direction: 'ascending' | 'descending'; timestamp: 'last_edited_time' }
     start_cursor?: string
     page_size?: number

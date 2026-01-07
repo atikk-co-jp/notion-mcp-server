@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { formatPaginatedResponse, handleError } from '../utils/index.js'
 
-type SearchFilter = { value: 'page' | 'database'; property: 'object' }
+type SearchFilter = { value: 'page' | 'data_source'; property: 'object' }
 type SearchSort = { direction: 'ascending' | 'descending'; timestamp: 'last_edited_time' }
 
 interface PaginatedResponse {
@@ -16,12 +16,12 @@ const inputSchema = {
   query: z.string().optional().describe('Text to search for in page titles and content'),
   filter: z
     .object({
-      value: z.enum(['page', 'database']),
+      value: z.enum(['page', 'data_source']),
       property: z.literal('object'),
     })
     .optional()
     .describe(
-      'Filter to limit results to pages or databases. ' +
+      'Filter to limit results to pages or data sources. ' +
         'Example: { "value": "page", "property": "object" }',
     ),
   sort: z
@@ -51,10 +51,11 @@ export function registerSearch(server: McpServer, notion: NotionClient): void {
     'search',
     {
       description:
-        'Search across all pages and databases in the workspace by title and content. ' +
-        'Filter results by type (page or database) and sort by last edited time. ' +
+        'Search across all pages and data sources in the workspace by title and content. ' +
+        'Filter results by type (page or data_source) and sort by last edited time. ' +
         'Returns paginated results. ' +
-        'For querying a specific database with filters, use query-database instead.',
+        'For querying a specific data source with filters, use query-data-source instead. ' +
+        '(API version 2025-09-03)',
       inputSchema,
     },
     async ({ query, filter, sort, start_cursor, page_size }) => {

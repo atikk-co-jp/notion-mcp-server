@@ -6,11 +6,11 @@ import { formatResponse, handleError } from '../utils/index.js'
 
 // Minimal schema for MCP
 const inputSchema = {
-  database_id: z.string().describe('Database ID'),
+  data_source_id: z.string().describe('Data source ID (required in API 2025-09-03)'),
   title: z.string().describe('Page title'),
   content: z.string().optional().describe('Page content in Markdown'),
   properties: z.record(z.string(), z.any()).optional().describe('Additional properties'),
-  icon: z.string().optional().describe('Emoji icon (e.g. "bug")'),
+  icon: z.string().optional().describe('Emoji character (e.g. "📝", "🐛", "✅"). Must be an actual emoji, not a name.'),
 }
 
 export function registerCreatePageSimple(server: McpServer, notion: NotionClient): void {
@@ -20,10 +20,11 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
       description:
         'Create a Notion page with Markdown content. ' +
         'Simpler than create-page: just provide title and markdown text. ' +
-        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), images (![]()), bold (**), italic (*), links ([]()), etc.',
+        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), images (![]()), bold (**), italic (*), links ([]()), etc. ' +
+        '(API version 2025-09-03)',
       inputSchema,
     },
-    async ({ database_id, title, content, properties, icon }) => {
+    async ({ data_source_id, title, content, properties, icon }) => {
       try {
         // Build properties with title
         const pageProperties: Record<string, unknown> = {
@@ -45,12 +46,12 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
 
         // Build params
         const params: {
-          parent: { database_id: string }
+          parent: { data_source_id: string }
           properties: Record<string, unknown>
           children?: unknown[]
           icon?: { type: 'emoji'; emoji: string }
         } = {
-          parent: { database_id },
+          parent: { data_source_id },
           properties: pageProperties,
         }
 
