@@ -8,13 +8,50 @@ Notion API用のMCP（Model Context Protocol）サーバー。AIアシスタン�
 
 ## 特徴
 
-- **ページ操作**: Notionページの作成、取得、更新
-- **データベース操作**: データベースの作成、更新、フィルター/ソートを使ったクエリ
-- **ブロック操作**: ブロックの子要素の取得と追加
+- **ページ操作**: Notionページの作成、取得、更新、移動
+- **データベース操作**: データベースの作成、取得、更新、フィルター/ソートを使ったクエリ
+- **ブロック操作**: ブロックの取得、更新、削除、子要素の追加
 - **検索**: ページとデータベースの横断検索
-- **コメント**: ページへのコメント追加
+- **コメント**: コメントの作成・一覧取得
+- **ユーザー**: ユーザー一覧取得、ユーザー情報取得
 - **トークン効率化**: マークダウン/シンプル形式でトークン使用量を約96%削減
-- **Markdown入力対応**: Markdownでコンテンツを作成・追加（出力トークン80%削減）
+- **Markdown入力対応**: Markdownでコンテンツを作成・追加（入力トークン80%削減）
+
+## API対応表
+
+| カテゴリ | Notion API | MCPツール | 形式 |
+|---------|-----------|----------|------|
+| **ページ** | | | |
+| | [Create page](https://developers.notion.com/reference/post-page) | `create-page` | JSON |
+| | | `create-page-simple` ⭐ | Markdown |
+| | [Retrieve page](https://developers.notion.com/reference/retrieve-a-page) | `retrieve-page` | simple/json |
+| | [Update page](https://developers.notion.com/reference/patch-page) | `update-page` | JSON |
+| | [Retrieve page property](https://developers.notion.com/reference/retrieve-a-page-property-item) | `retrieve-page-property` | JSON |
+| | [Move page](https://developers.notion.com/reference/post-page-move) | `move-page` | JSON |
+| **データベース** | | | |
+| | [Create database](https://developers.notion.com/reference/create-a-database) | `create-database` | JSON |
+| | [Retrieve database](https://developers.notion.com/reference/retrieve-a-database) | `retrieve-database` | simple/json |
+| | [Update database](https://developers.notion.com/reference/update-a-database) | `update-database` | JSON |
+| | [Query database](https://developers.notion.com/reference/post-database-query) | `query-database` | simple/json |
+| **ブロック** | | | |
+| | [Retrieve block](https://developers.notion.com/reference/retrieve-a-block) | `retrieve-block` | markdown/json |
+| | [Update block](https://developers.notion.com/reference/update-a-block) | `update-block` | JSON |
+| | | `update-block-simple` ⭐ | Markdown |
+| | [Delete block](https://developers.notion.com/reference/delete-a-block) | `delete-block` | JSON |
+| | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | markdown/json |
+| | [Append block children](https://developers.notion.com/reference/patch-block-children) | `append-block-children` | JSON |
+| | | `append-blocks-simple` ⭐ | Markdown |
+| **コメント** | | | |
+| | [Create comment](https://developers.notion.com/reference/create-a-comment) | `create-comment` | JSON |
+| | [List comments](https://developers.notion.com/reference/retrieve-comments) | `list-comments` | JSON |
+| **ユーザー** | | | |
+| | [List users](https://developers.notion.com/reference/get-users) | `list-users` | JSON |
+| | [Retrieve user](https://developers.notion.com/reference/get-user) | `retrieve-user` | JSON |
+| | [Retrieve bot user](https://developers.notion.com/reference/get-self) | `retrieve-bot-user` | JSON |
+| **検索** | | | |
+| | [Search](https://developers.notion.com/reference/post-search) | `search` | JSON |
+
+⭐ = Markdown入力対応（入力トークン約80%削減）
 
 ## インストール
 

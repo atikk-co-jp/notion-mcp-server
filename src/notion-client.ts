@@ -106,6 +106,26 @@ export class NotionClient {
       const { page_id, ...body } = params
       return this.request<T>(`/pages/${page_id}`, { method: 'PATCH', body })
     },
+
+    retrieveProperty: <T>(params: {
+      page_id: string
+      property_id: string
+      start_cursor?: string
+      page_size?: number
+    }): Promise<T> => {
+      const { page_id, property_id, ...query } = params
+      return this.request<T>(`/pages/${page_id}/properties/${property_id}`, {
+        query: query as Record<string, string | number | undefined>,
+      })
+    },
+
+    move: <T>(params: {
+      page_id: string
+      parent: { page_id: string } | { database_id: string }
+    }): Promise<T> => {
+      const { page_id, ...body } = params
+      return this.request<T>(`/pages/${page_id}/move`, { method: 'POST', body })
+    },
   }
 
   // Databases
@@ -153,6 +173,19 @@ export class NotionClient {
 
   // Blocks
   blocks = {
+    retrieve: <T>(params: { block_id: string }): Promise<T> => {
+      return this.request<T>(`/blocks/${params.block_id}`)
+    },
+
+    update: <T>(params: { block_id: string; [key: string]: unknown }): Promise<T> => {
+      const { block_id, ...body } = params
+      return this.request<T>(`/blocks/${block_id}`, { method: 'PATCH', body })
+    },
+
+    delete: <T>(params: { block_id: string }): Promise<T> => {
+      return this.request<T>(`/blocks/${params.block_id}`, { method: 'DELETE' })
+    },
+
     children: {
       list: <T>(params: {
         block_id: string
@@ -174,8 +207,39 @@ export class NotionClient {
 
   // Comments
   comments = {
-    create: <T>(params: { parent: { page_id: string }; rich_text: RichText[] }): Promise<T> => {
+    create: <T>(params: {
+      parent: { page_id: string }
+      discussion_id?: string
+      rich_text: RichText[]
+    }): Promise<T> => {
       return this.request<T>('/comments', { method: 'POST', body: params })
+    },
+
+    list: <T>(params: {
+      block_id?: string
+      start_cursor?: string
+      page_size?: number
+    }): Promise<T> => {
+      return this.request<T>('/comments', {
+        query: params as Record<string, string | number | undefined>,
+      })
+    },
+  }
+
+  // Users
+  users = {
+    list: <T>(params?: { start_cursor?: string; page_size?: number }): Promise<T> => {
+      return this.request<T>('/users', {
+        query: params as Record<string, string | number | undefined>,
+      })
+    },
+
+    retrieve: <T>(params: { user_id: string }): Promise<T> => {
+      return this.request<T>(`/users/${params.user_id}`)
+    },
+
+    me: <T>(): Promise<T> => {
+      return this.request<T>('/users/me')
     },
   }
 

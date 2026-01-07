@@ -54,7 +54,11 @@ export function registerQueryDatabase(server: McpServer, notion: NotionClient): 
         }
 
         if (sorts) {
-          params.sorts = sorts as Array<{ property?: string; timestamp?: string; direction: string }>
+          params.sorts = sorts as Array<{
+            property?: string
+            timestamp?: string
+            direction: string
+          }>
         }
 
         if (start_cursor) {

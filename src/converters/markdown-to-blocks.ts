@@ -171,7 +171,8 @@ function createTextBlock(
  */
 export function markdownToBlocks(markdown: string): NotionBlock[] {
   // 入力長制限（ReDoS対策）
-  const safeMarkdown = markdown.length > MAX_INPUT_LENGTH ? markdown.slice(0, MAX_INPUT_LENGTH) : markdown
+  const safeMarkdown =
+    markdown.length > MAX_INPUT_LENGTH ? markdown.slice(0, MAX_INPUT_LENGTH) : markdown
 
   const blocks: NotionBlock[] = []
   const lines = safeMarkdown.split('\n')
@@ -191,7 +192,11 @@ export function markdownToBlocks(markdown: string): NotionBlock[] {
       const language = line.slice(3).trim() || 'plain text'
       const codeLines: string[] = []
       i++
-      while (i < lines.length && !lines[i].startsWith('```') && codeLines.length < MAX_CODE_BLOCK_LINES) {
+      while (
+        i < lines.length &&
+        !lines[i].startsWith('```') &&
+        codeLines.length < MAX_CODE_BLOCK_LINES
+      ) {
         codeLines.push(lines[i])
         i++
       }
@@ -277,9 +282,7 @@ export function markdownToBlocks(markdown: string): NotionBlock[] {
         image: {
           type: 'external',
           external: { url: imageMatch[2] },
-          caption: imageMatch[1]
-            ? [{ type: 'text', text: { content: imageMatch[1] } }]
-            : [],
+          caption: imageMatch[1] ? [{ type: 'text', text: { content: imageMatch[1] } }] : [],
         },
       })
       i++
