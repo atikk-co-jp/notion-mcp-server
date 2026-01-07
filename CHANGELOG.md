@@ -5,7 +5,85 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2025-01-07
+## [0.6.0] - 2026-01-07
+
+### Added
+
+- **Page Locking**: `update-page` now supports `is_locked` parameter
+  - Lock pages to prevent edits in the Notion UI
+  - Set `is_locked: true` to lock, `is_locked: false` to unlock
+- **Database Locking**: `update-database` now supports `is_locked` parameter
+  - Lock databases to prevent edits in the Notion UI
+  - Set `is_locked: true` to lock, `is_locked: false` to unlock
+
+## [0.5.0] - 2026-01-07
+
+### Added
+
+- **Notion API v2025-09-03 Migration**: Full support for the new API version
+  - New `data_source` concept replacing direct database queries
+  - `retrieve-data-source`: Get data source schema by ID
+  - `query-data-source`: Query a data source with filters and sorts
+  - `update-data-source`: Update data source schema (add/update/delete properties)
+- **Archive Tools**: New dedicated tools for archiving
+  - `archive-page`: Archive (delete) a page by moving it to trash
+  - `archive-database`: Archive (delete) a database by moving it to trash
+- **Page Movement**: `move-page` tool to move pages between parents
+
+### Changed
+
+- **API Version**: Upgraded to Notion API v2025-09-03
+- **Tool Updates**: Updated all tools to work with new data_source concept
+- **Icon Descriptions**: Clarified that emoji icons must be actual emoji characters (e.g., "📝"), not emoji names
+
+## [0.4.0] - 2026-01-07
+
+### Added
+
+- **11 New Tools**: Expanded Notion API coverage
+  - `retrieve-page-property`: Get paginated property values
+  - `append-block-children`: Append blocks to pages
+  - `append-blocks-simple`: Append blocks using Markdown
+  - `retrieve-block`: Get a single block
+  - `update-block`: Update block content (JSON)
+  - `update-block-simple`: Update block content (Markdown)
+  - `delete-block`: Delete/archive a block
+  - `create-comment`: Add comments to pages
+  - `list-comments`: List comments on pages/blocks
+  - `list-users`: List workspace users
+  - `retrieve-user`: Get user by ID
+  - `retrieve-bot-user`: Get current bot info
+- **Markdown Input Support**: Simplified content creation
+  - `create-page-simple`: Create pages with Markdown content
+  - `append-blocks-simple`: Append Markdown content to pages
+  - `update-block-simple`: Update blocks with Markdown
+
+### Changed
+
+- **Improved Documentation**: Enhanced tool descriptions for better AI understanding
+
+## [0.3.0] - 2026-01-07
+
+### Changed
+
+- **Token Optimization**: Minimized MCP tool schema token usage
+  - Reduced schema verbosity for lower API costs
+  - Optimized property descriptions
+
+## [0.2.2] - 2026-01-07
+
+### Fixed
+
+- **CI/CD**: Switch from pnpm to npm for Trusted Publishing compatibility
+- **CI/CD**: Add `--provenance` flag for npm Trusted Publishing
+
+## [0.2.1] - 2026-01-07
+
+### Fixed
+
+- **Documentation**: Fix npx command in usage examples
+
+## [0.2.0] - 2026-01-07
 
 ### Added
 
@@ -36,3 +114,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Better error handling with detailed error messages
 - Improved response formatting for paginated results
+
+## [0.1.0] - 2026-01-06
+
+### Added
+
+- Initial release
+- **Core Tools**:
+  - `search`: Search pages and databases
+  - `retrieve-page`: Get page properties and content
+  - `create-page`: Create new pages in databases
+  - `update-page`: Update page properties
+  - `retrieve-database`: Get database metadata
+  - `query-database`: Query database with filters and sorts
+  - `get-block-children`: Get child blocks of a page/block

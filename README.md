@@ -196,7 +196,15 @@ Create a new page using Markdown. **~80% fewer output tokens** compared to `crea
 
 ### update-page
 
-Update a page's properties.
+Update a page's properties, icon, cover, archive status, or lock status.
+
+**Parameters:**
+- `page_id` (required): The ID of the page to update
+- `properties` (optional): Properties to update
+- `icon` (optional): Icon (set to null to remove)
+- `cover` (optional): Cover image (set to null to remove)
+- `archived` (optional): Set to true to archive
+- `is_locked` (optional): Lock the page to prevent edits in the UI
 
 ```json
 {
@@ -205,7 +213,8 @@ Update a page's properties.
     "Status": {
       "status": { "name": "Done" }
     }
-  }
+  },
+  "is_locked": true
 }
 ```
 
@@ -275,11 +284,13 @@ Update an existing database container (title, description, icon, cover).
 - `cover` (optional): Cover image (set to null to remove)
 - `is_inline` (optional): If true, creates an inline database
 - `archived` (optional): Set to true to archive
+- `is_locked` (optional): Lock the database to prevent edits in the UI
 
 ```json
 {
   "database_id": "database-uuid-here",
-  "title": [{ "type": "text", "text": { "content": "New Title" } }]
+  "title": [{ "type": "text", "text": { "content": "New Title" } }],
+  "is_locked": true
 }
 ```
 
