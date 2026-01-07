@@ -11,6 +11,8 @@ export {
   type ConvertOptions,
   type NotionBlock,
 } from './block-to-markdown.js'
+// Markdown→ブロック変換
+export { markdownToBlocks, parseInlineMarkdown } from './markdown-to-blocks.js'
 // ページプロパティ変換
 export {
   type NotionProperty,
@@ -28,5 +30,3 @@ export {
   richTextToMarkdown,
   richTextToPlain,
 } from './rich-text-to-markdown.js'
-// Markdown→ブロック変換
-export { markdownToBlocks, parseInlineMarkdown } from './markdown-to-blocks.js'

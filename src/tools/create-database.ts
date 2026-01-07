@@ -7,7 +7,9 @@ import { formatResponse, handleError } from '../utils/index.js'
 const inputSchema = {
   parent_page_id: z.string().describe('Parent page ID'),
   title: z.array(z.any()).optional().describe('Database title'),
-  properties: z.record(z.string(), z.any()).describe('Property schema (must include one title property)'),
+  properties: z
+    .record(z.string(), z.any())
+    .describe('Property schema (must include one title property)'),
   icon: z.any().optional().describe('Database icon'),
   cover: z.any().optional().describe('Cover image'),
   is_inline: z.boolean().optional().describe('Inline database'),
