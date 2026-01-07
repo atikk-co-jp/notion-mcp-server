@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import type { Block } from '../schemas/block.js'
 import type { PropertyValueSchema } from '../schemas/page.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 
 type PropertyValue = z.infer<typeof PropertyValueSchema>
 type Icon = { type: 'emoji'; emoji: string } | { type: 'external'; external: { url: string } }
@@ -56,7 +56,7 @@ export function registerCreatePage(server: McpServer, notion: NotionClient): voi
         const response = await notion.pages.create(params)
         return formatResponse(response)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, data_source_id)
       }
     },
   )
