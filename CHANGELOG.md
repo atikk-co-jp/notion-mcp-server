@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **create-page-simple**: Fixed hardcoded "Name" title property bug
   - Now auto-detects the title property name from data source schema
   - Works with any title property name (e.g., "名前", "タイトル", "Title")
+- **create-comment / create-comment-simple**: Fixed API specification alignment
+  - `page_id` now optional (was incorrectly required)
+  - Added `block_id` for block comments
+  - `discussion_id` works without `page_id` for replies
+  - Validation: exactly one of page_id/block_id/discussion_id required
 
 ### Improved
 
