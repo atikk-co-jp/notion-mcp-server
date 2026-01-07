@@ -11,9 +11,11 @@ export {
   registerCreateComment,
   registerCreatePage,
   registerGetBlockChildren,
-  registerQueryDatabase,
+  registerQueryDataSource,
+  registerRetrieveDataSource,
   registerRetrievePage,
   registerSearch,
+  registerUpdateDataSource,
   registerUpdatePage,
 } from './tools/index.js'
 export type { McpResponse, McpTextContent } from './utils/index.js'

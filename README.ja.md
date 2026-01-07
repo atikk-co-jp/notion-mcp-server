@@ -6,6 +6,8 @@ Notion API用のMCP（Model Context Protocol）サーバー。AIアシスタン�
 
 > ⚠️ **注意**: これは初期リリースです。APIは変更される可能性があります。
 
+> **APIバージョン**: 2025-09-03（最新）
+
 ## 特徴
 
 - **ページ操作**: Notionページの作成、取得、更新、移動
@@ -34,7 +36,10 @@ Notion API用のMCP（Model Context Protocol）サーバー。AIアシスタン�
 | | [Retrieve database](https://developers.notion.com/reference/retrieve-a-database) | `retrieve-database` | simple/json |
 | | [Update database](https://developers.notion.com/reference/update-a-database) | `update-database` | JSON |
 | | [Archive database](https://developers.notion.com/reference/update-a-database) | `archive-database` | JSON |
-| | [Query database](https://developers.notion.com/reference/post-database-query) | `query-database` | simple/json |
+| **データソース** | | | |
+| | [Retrieve data source](https://developers.notion.com/reference/retrieve-a-data-source) | `retrieve-data-source` | simple/json |
+| | [Query data source](https://developers.notion.com/reference/post-data-source-query) | `query-data-source` | simple/json |
+| | [Update data source](https://developers.notion.com/reference/patch-data-source) | `update-data-source` | JSON |
 | **ブロック** | | | |
 | | [Retrieve block](https://developers.notion.com/reference/retrieve-a-block) | `retrieve-block` | markdown/json |
 | | [Update block](https://developers.notion.com/reference/update-a-block) | `update-block` | JSON |
@@ -134,11 +139,11 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
 
 ### create-page
 
-データベースに新しいページを作成します。
+データソースに新しいページを作成します。
 
 ```json
 {
-  "database_id": "データベースのUUID",
+  "data_source_id": "データソースのUUID",
   "properties": {
     "Name": {
       "title": [{ "text": { "content": "新しいページタイトル" } }]
@@ -155,7 +160,7 @@ Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_d
 Markdownを使ってページを作成します。`create-page`と比較して**出力トークン約80%削減**。
 
 **パラメータ:**
-- `database_id` (必須): ページを作成するデータベースのID
+- `data_source_id` (必須): ページを作成するデータソースのID
 - `title` (必須): ページタイトル（文字列）
 - `content` (任意): ページ本文（Markdown形式）
 - `properties` (任意): 追加のNotionプロパティ
@@ -173,7 +178,7 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 
 ```json
 {
-  "database_id": "データベースのUUID",
+  "data_source_id": "データソースのUUID",
   "title": "バグレポート",
   "content": "## 再現手順\n\n1. ログイン\n2. 設定を開く\n\n## 期待動作\n\n正常に表示される",
   "properties": {
@@ -204,12 +209,12 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 }
 ```
 
-### query-database
+### query-data-source
 
-フィルターやソートを使ってデータベースをクエリします。
+フィルターやソートを使ってデータソースをクエリします。
 
 **パラメータ:**
-- `database_id` (必須): クエリするデータベースのID
+- `data_source_id` (必須): クエリするデータソースのID
 - `filter` (任意): フィルター条件（JSONオブジェクト）
 - `sorts` (任意): ソート条件（配列）
 - `start_cursor` (任意): ページネーション用カーソル
@@ -220,7 +225,7 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 
 ```json
 {
-  "database_id": "データベースのUUID",
+  "data_source_id": "データソースのUUID",
   "filter": {
     "property": "Status",
     "status": { "equals": "進行中" }
@@ -258,20 +263,52 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 
 ### update-database
 
-既存のデータベースのプロパティ、タイトル、スキーマを更新します。
+既存のデータベースコンテナ（タイトル、説明、アイコン、カバー）を更新します。
+
+**注意:** スキーマ（プロパティ/カラム）の更新には `update-data-source` を使用してください。
 
 **パラメータ:**
 - `database_id` (必須): 更新するデータベースのID
 - `title` (任意): 新しいタイトル（リッチテキスト配列）
 - `description` (任意): 新しい説明（リッチテキスト配列）
-- `properties` (任意): 追加、更新、削除するプロパティ（nullで削除）
 - `icon` (任意): アイコン（nullで削除）
 - `cover` (任意): カバー画像（nullで削除）
+- `is_inline` (任意): trueの場合、インラインデータベースとして作成
 - `archived` (任意): trueでアーカイブ
 
 ```json
 {
   "database_id": "データベースのUUID",
+  "title": [{ "type": "text", "text": { "content": "新しいタイトル" } }]
+}
+```
+
+### retrieve-data-source
+
+データソーススキーマをIDで取得します。
+
+**パラメータ:**
+- `data_source_id` (必須): データソースのID
+- `format` (任意): 出力形式 - `"simple"` (デフォルト) または `"json"`
+
+```json
+{
+  "data_source_id": "データソースのUUID",
+  "format": "simple"
+}
+```
+
+### update-data-source
+
+データソーススキーマ（プロパティ/カラム）を更新します。
+
+**パラメータ:**
+- `data_source_id` (必須): 更新するデータソースのID
+- `properties` (任意): 追加、更新、削除するプロパティ（nullで削除）
+
+```json
+{
+  "data_source_id": "データソースのUUID",
   "properties": {
     "NewColumn": { "rich_text": {} },
     "OldColumn": null
@@ -281,7 +318,7 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 
 ### search
 
-すべてのページとデータベースを横断検索します。
+すべてのページとデータソースを横断検索します。
 
 ```json
 {
@@ -289,6 +326,8 @@ Markdownを使ってページを作成します。`create-page`と比較して**
   "filter": { "value": "page", "property": "object" }
 }
 ```
+
+**フィルター値:** `"page"` または `"data_source"`
 
 ### get-block-children
 

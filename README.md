@@ -6,6 +6,8 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 
 > ⚠️ **Note**: This is an early release. API may change.
 
+> **API Version**: 2025-09-03 (latest)
+
 ## Features
 
 - **Page Operations**: Create, retrieve, update, and move Notion pages
@@ -34,7 +36,10 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 | | [Retrieve database](https://developers.notion.com/reference/retrieve-a-database) | `retrieve-database` | simple/json |
 | | [Update database](https://developers.notion.com/reference/update-a-database) | `update-database` | JSON |
 | | [Archive database](https://developers.notion.com/reference/update-a-database) | `archive-database` | JSON |
-| | [Query database](https://developers.notion.com/reference/post-database-query) | `query-database` | simple/json |
+| **Data Sources** | | | |
+| | [Retrieve data source](https://developers.notion.com/reference/retrieve-a-data-source) | `retrieve-data-source` | simple/json |
+| | [Query data source](https://developers.notion.com/reference/post-data-source-query) | `query-data-source` | simple/json |
+| | [Update data source](https://developers.notion.com/reference/patch-data-source) | `update-data-source` | JSON |
 | **Blocks** | | | |
 | | [Retrieve block](https://developers.notion.com/reference/retrieve-a-block) | `retrieve-block` | markdown/json |
 | | [Update block](https://developers.notion.com/reference/update-a-block) | `update-block` | JSON |
@@ -134,11 +139,11 @@ Retrieve a Notion page by its ID.
 
 ### create-page
 
-Create a new page in a database.
+Create a new page in a data source.
 
 ```json
 {
-  "database_id": "database-uuid-here",
+  "data_source_id": "data-source-uuid-here",
   "properties": {
     "Name": {
       "title": [{ "text": { "content": "New Page Title" } }]
@@ -155,7 +160,7 @@ Create a new page in a database.
 Create a new page using Markdown. **~80% fewer output tokens** compared to `create-page`.
 
 **Parameters:**
-- `database_id` (required): The database ID to create the page in
+- `data_source_id` (required): The data source ID to create the page in
 - `title` (required): Page title as a simple string
 - `content` (optional): Page content in Markdown
 - `properties` (optional): Additional Notion properties
@@ -173,7 +178,7 @@ Create a new page using Markdown. **~80% fewer output tokens** compared to `crea
 
 ```json
 {
-  "database_id": "database-uuid-here",
+  "data_source_id": "data-source-uuid-here",
   "title": "Bug Report",
   "content": "## Steps to Reproduce\n\n1. Login\n2. Open settings\n\n## Expected Behavior\n\nShould display correctly",
   "properties": {
@@ -204,12 +209,12 @@ Update a page's properties.
 }
 ```
 
-### query-database
+### query-data-source
 
-Query a database with optional filters and sorts.
+Query a data source with optional filters and sorts.
 
 **Parameters:**
-- `database_id` (required): The ID of the database to query
+- `data_source_id` (required): The ID of the data source to query
 - `filter` (optional): Filter conditions as a JSON object
 - `sorts` (optional): Sort conditions as an array
 - `start_cursor` (optional): Cursor for pagination
@@ -220,7 +225,7 @@ Query a database with optional filters and sorts.
 
 ```json
 {
-  "database_id": "database-uuid-here",
+  "data_source_id": "data-source-uuid-here",
   "filter": {
     "property": "Status",
     "status": { "equals": "In Progress" }
@@ -258,20 +263,52 @@ Create a new database as a subpage of an existing page.
 
 ### update-database
 
-Update an existing database's properties, title, or schema.
+Update an existing database container (title, description, icon, cover).
+
+**Note:** For schema (properties/columns) updates, use `update-data-source` instead.
 
 **Parameters:**
 - `database_id` (required): The ID of the database to update
 - `title` (optional): New title as rich text array
 - `description` (optional): New description as rich text array
-- `properties` (optional): Properties to add, update, or delete (set to null)
 - `icon` (optional): Icon (set to null to remove)
 - `cover` (optional): Cover image (set to null to remove)
+- `is_inline` (optional): If true, creates an inline database
 - `archived` (optional): Set to true to archive
 
 ```json
 {
   "database_id": "database-uuid-here",
+  "title": [{ "type": "text", "text": { "content": "New Title" } }]
+}
+```
+
+### retrieve-data-source
+
+Retrieve a data source schema by its ID.
+
+**Parameters:**
+- `data_source_id` (required): The ID of the data source
+- `format` (optional): Output format - `"simple"` (default) or `"json"`
+
+```json
+{
+  "data_source_id": "data-source-uuid-here",
+  "format": "simple"
+}
+```
+
+### update-data-source
+
+Update a data source schema (properties/columns).
+
+**Parameters:**
+- `data_source_id` (required): The ID of the data source to update
+- `properties` (optional): Properties to add, update, or delete (set to null)
+
+```json
+{
+  "data_source_id": "data-source-uuid-here",
   "properties": {
     "NewColumn": { "rich_text": {} },
     "OldColumn": null
@@ -281,7 +318,7 @@ Update an existing database's properties, title, or schema.
 
 ### search
 
-Search across all pages and databases.
+Search across all pages and data sources.
 
 ```json
 {
@@ -289,6 +326,8 @@ Search across all pages and databases.
   "filter": { "value": "page", "property": "object" }
 }
 ```
+
+**Filter values:** `"page"` or `"data_source"`
 
 ### get-block-children
 

@@ -14,11 +14,12 @@ export interface Block {
   archived?: boolean
   in_trash?: boolean
   parent?: {
-    type: 'database_id' | 'page_id' | 'block_id' | 'workspace'
+    type: 'database_id' | 'page_id' | 'block_id' | 'workspace' | 'data_source_id'
     database_id?: string
     page_id?: string
     block_id?: string
     workspace?: boolean
+    data_source_id?: string
   }
   [key: string]: unknown
 }

@@ -13,10 +13,11 @@ import { registerGetBlockChildren } from './get-block-children.js'
 import { registerListComments } from './list-comments.js'
 import { registerListUsers } from './list-users.js'
 import { registerMovePage } from './move-page.js'
-import { registerQueryDatabase } from './query-database.js'
+import { registerQueryDataSource } from './query-data-source.js'
 import { registerRetrieveBlock } from './retrieve-block.js'
 import { registerRetrieveBotUser } from './retrieve-bot-user.js'
 import { registerRetrieveDatabase } from './retrieve-database.js'
+import { registerRetrieveDataSource } from './retrieve-data-source.js'
 import { registerRetrievePage } from './retrieve-page.js'
 import { registerRetrievePageProperty } from './retrieve-page-property.js'
 import { registerRetrieveUser } from './retrieve-user.js'
@@ -24,6 +25,7 @@ import { registerSearch } from './search.js'
 import { registerUpdateBlock } from './update-block.js'
 import { registerUpdateBlockSimple } from './update-block-simple.js'
 import { registerUpdateDatabase } from './update-database.js'
+import { registerUpdateDataSource } from './update-data-source.js'
 import { registerUpdatePage } from './update-page.js'
 
 export function registerAllTools(server: McpServer, notion: NotionClient): void {
@@ -40,8 +42,12 @@ export function registerAllTools(server: McpServer, notion: NotionClient): void 
   registerCreateDatabase(server, notion)
   registerUpdateDatabase(server, notion)
   registerArchiveDatabase(server, notion)
-  registerQueryDatabase(server, notion)
   registerRetrieveDatabase(server, notion)
+
+  // Data Source operations (API 2025-09-03)
+  registerRetrieveDataSource(server, notion)
+  registerQueryDataSource(server, notion)
+  registerUpdateDataSource(server, notion)
 
   // Search
   registerSearch(server, notion)
@@ -76,8 +82,10 @@ export {
   registerCreateDatabase,
   registerUpdateDatabase,
   registerArchiveDatabase,
-  registerQueryDatabase,
   registerRetrieveDatabase,
+  registerRetrieveDataSource,
+  registerQueryDataSource,
+  registerUpdateDataSource,
   registerSearch,
   registerGetBlockChildren,
   registerAppendBlockChildren,
