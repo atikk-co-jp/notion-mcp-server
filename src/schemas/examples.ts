@@ -6,17 +6,17 @@
 
 // Page property value examples (for create-page, update-page)
 export const PagePropertyExamples: Record<string, string> = {
-  title: '{"title":[{"text":{"content":"値"}}]}',
-  rich_text: '{"rich_text":[{"text":{"content":"値"}}]}',
+  title: '{"title":[{"text":{"content":"value"}}]}',
+  rich_text: '{"rich_text":[{"text":{"content":"value"}}]}',
   number: '{"number":123}',
-  select: '{"select":{"name":"名前"}}',
-  multi_select: '{"multi_select":[{"name":"名前"}]}',
-  status: '{"status":{"name":"名前"}}',
+  select: '{"select":{"name":"Option"}}',
+  multi_select: '{"multi_select":[{"name":"Option"}]}',
+  status: '{"status":{"name":"Status"}}',
   date: '{"date":{"start":"2024-01-01"}}',
   checkbox: '{"checkbox":true}',
   url: '{"url":"https://example.com"}',
   email: '{"email":"a@example.com"}',
-  phone_number: '{"phone_number":"03-1234-5678"}',
+  phone_number: '{"phone_number":"+1-234-567-8900"}',
   relation: '{"relation":[{"id":"page-id"}]}',
   people: '{"people":[{"id":"user-id"}]}',
   files: '{"files":[{"type":"external","name":"file","external":{"url":"https://..."}}]}',
@@ -27,8 +27,8 @@ export const SchemaPropertyExamples: Record<string, string> = {
   title: '{"title":{}}',
   rich_text: '{"rich_text":{}}',
   number: '{"number":{"format":"number"}}',
-  select: '{"select":{"options":[{"name":"名前"}]}}',
-  multi_select: '{"multi_select":{"options":[{"name":"名前"}]}}',
+  select: '{"select":{"options":[{"name":"Option"}]}}',
+  multi_select: '{"multi_select":{"options":[{"name":"Option"}]}}',
   status: '{"status":{}}',
   date: '{"date":{}}',
   checkbox: '{"checkbox":{}}',
@@ -43,25 +43,25 @@ export const SchemaPropertyExamples: Record<string, string> = {
 
 // Block examples (for append-block-children, update-block)
 export const BlockExamples: Record<string, string> = {
-  paragraph: '{"paragraph":{"rich_text":[{"text":{"content":"テキスト"}}]}}',
-  heading_1: '{"heading_1":{"rich_text":[{"text":{"content":"見出し"}}]}}',
-  heading_2: '{"heading_2":{"rich_text":[{"text":{"content":"見出し"}}]}}',
-  heading_3: '{"heading_3":{"rich_text":[{"text":{"content":"見出し"}}]}}',
-  bulleted_list_item: '{"bulleted_list_item":{"rich_text":[{"text":{"content":"項目"}}]}}',
-  numbered_list_item: '{"numbered_list_item":{"rich_text":[{"text":{"content":"項目"}}]}}',
-  to_do: '{"to_do":{"rich_text":[{"text":{"content":"タスク"}}],"checked":false}}',
+  paragraph: '{"paragraph":{"rich_text":[{"text":{"content":"Text"}}]}}',
+  heading_1: '{"heading_1":{"rich_text":[{"text":{"content":"Heading"}}]}}',
+  heading_2: '{"heading_2":{"rich_text":[{"text":{"content":"Heading"}}]}}',
+  heading_3: '{"heading_3":{"rich_text":[{"text":{"content":"Heading"}}]}}',
+  bulleted_list_item: '{"bulleted_list_item":{"rich_text":[{"text":{"content":"Item"}}]}}',
+  numbered_list_item: '{"numbered_list_item":{"rich_text":[{"text":{"content":"Item"}}]}}',
+  to_do: '{"to_do":{"rich_text":[{"text":{"content":"Task"}}],"checked":false}}',
   code: '{"code":{"rich_text":[{"text":{"content":"code"}}],"language":"javascript"}}',
-  quote: '{"quote":{"rich_text":[{"text":{"content":"引用"}}]}}',
+  quote: '{"quote":{"rich_text":[{"text":{"content":"Quote"}}]}}',
   divider: '{"divider":{}}',
 }
 
 // RichText array example (for create-comment, update-database title/description)
-export const RichTextArrayExample = '[{"text":{"content":"テキスト"}}]'
+export const RichTextArrayExample = '[{"text":{"content":"Text"}}]'
 
 // Filter examples (for query-data-source, search)
 export const FilterExamples: Record<string, string> = {
   select: '{"property":"Status","select":{"equals":"Done"}}',
-  text: '{"property":"Name","rich_text":{"contains":"検索語"}}',
+  text: '{"property":"Name","rich_text":{"contains":"keyword"}}',
   checkbox: '{"property":"Done","checkbox":{"equals":true}}',
   date: '{"property":"Date","date":{"on_or_after":"2024-01-01"}}',
   and: '{"and":[{"property":"Status","select":{"equals":"Done"}},{"property":"Date","date":{"on_or_after":"2024-01-01"}}]}',
