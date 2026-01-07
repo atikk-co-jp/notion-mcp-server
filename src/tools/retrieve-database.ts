@@ -11,23 +11,24 @@ const inputSchema = {
     .describe("Output format: 'simple' (default) or 'json'"),
 }
 
+interface DataSourceInfo {
+  id: string
+  name: string
+}
+
 interface DatabaseResponse {
   object: 'database'
   id: string
   title: Array<{ plain_text: string }>
   description: Array<{ plain_text: string }>
   url: string
-  properties: Record<string, { id: string; type: string; name: string; [key: string]: unknown }>
   created_time: string
   last_edited_time: string
   is_inline: boolean
-  archived: boolean
-}
-
-interface SimpleProperty {
-  id: string
-  type: string
-  options?: Array<{ name: string; color?: string }>
+  in_trash: boolean
+  data_sources: DataSourceInfo[]
+  icon: { type: string; emoji?: string } | null
+  cover: { type: string; external?: { url: string } } | null
 }
 
 export function registerRetrieveDatabase(server: McpServer, notion: NotionClient): void {
@@ -35,7 +36,8 @@ export function registerRetrieveDatabase(server: McpServer, notion: NotionClient
     'retrieve-database',
     {
       description:
-        'Retrieve a database schema by its ID. Returns database properties (columns) and their types. ' +
+        'Retrieve a database container by its ID. Returns database metadata and associated data sources. ' +
+        'Note: In API 2025-09-03, database properties/schema are retrieved via retrieve-data-source using data_source_id. ' +
         "Use format='simple' (default) for reduced token usage, 'json' for full Notion API response.",
       inputSchema,
     },
@@ -48,39 +50,17 @@ export function registerRetrieveDatabase(server: McpServer, notion: NotionClient
         }
 
         // Simple format: extract essential info
-        const simpleProperties: Record<string, SimpleProperty> = {}
-
-        for (const [name, prop] of Object.entries(response.properties)) {
-          const simpleProp: SimpleProperty = {
-            id: prop.id,
-            type: prop.type,
-          }
-
-          // Include options for select/multi_select/status
-          if (prop.type === 'select' && prop.select) {
-            const selectProp = prop.select as { options?: Array<{ name: string; color?: string }> }
-            simpleProp.options = selectProp.options
-          } else if (prop.type === 'multi_select' && prop.multi_select) {
-            const multiSelectProp = prop.multi_select as {
-              options?: Array<{ name: string; color?: string }>
-            }
-            simpleProp.options = multiSelectProp.options
-          } else if (prop.type === 'status' && prop.status) {
-            const statusProp = prop.status as { options?: Array<{ name: string; color?: string }> }
-            simpleProp.options = statusProp.options
-          }
-
-          simpleProperties[name] = simpleProp
-        }
-
         const simpleResponse = {
           id: response.id,
           title: response.title.map((t) => t.plain_text).join(''),
           description: response.description.map((t) => t.plain_text).join(''),
           url: response.url,
-          properties: simpleProperties,
           is_inline: response.is_inline,
-          archived: response.archived,
+          in_trash: response.in_trash,
+          data_sources: response.data_sources,
+          icon: response.icon,
+          created_time: response.created_time,
+          last_edited_time: response.last_edited_time,
         }
 
         return formatSimpleResponse(simpleResponse)

@@ -4,12 +4,12 @@ import type { NotionClient } from '../notion-client.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
+// Note: Properties (schema) updates should use update-data-source in API 2025-09-03
 const inputSchema = {
   database_id: z.string().describe('Database ID'),
   title: z.array(z.any()).optional().describe('New title'),
   description: z.array(z.any()).optional().describe('New description'),
-  properties: z.record(z.string(), z.any()).optional().describe('Properties to add/update/delete'),
-  icon: z.any().optional().describe('Icon (null to remove)'),
+  icon: z.any().optional().describe('Icon object { type: "emoji", emoji: "📝" } or null to remove. Emoji must be an actual emoji character.'),
   cover: z.any().optional().describe('Cover (null to remove)'),
   is_inline: z.boolean().optional().describe('Inline database'),
   archived: z.boolean().optional().describe('Archive status'),
@@ -20,17 +20,16 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
     'update-database',
     {
       description:
-        'Update an existing Notion database. Can modify title, description, properties (add/update/delete columns), icon, cover, inline status, and archive status. ' +
-        'Returns the updated database object.',
+        'Update a Notion database container. Can modify title, description, icon, cover, inline status, and archive status. ' +
+        'For schema (properties/columns) updates, use update-data-source instead. (API version 2025-09-03)',
       inputSchema,
     },
-    async ({ database_id, title, description, properties, icon, cover, is_inline, archived }) => {
+    async ({ database_id, title, description, icon, cover, is_inline, archived }) => {
       try {
         const params: {
           database_id: string
           title?: Array<{ type?: string; text: { content: string } }>
           description?: Array<{ type?: string; text: { content: string } }>
-          properties?: Record<string, unknown>
           icon?: { type: string; emoji?: string; external?: { url: string } } | null
           cover?: { type: string; external: { url: string } } | null
           is_inline?: boolean
@@ -45,10 +44,6 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
 
         if (description !== undefined) {
           params.description = description as Array<{ type?: string; text: { content: string } }>
-        }
-
-        if (properties !== undefined) {
-          params.properties = properties as Record<string, unknown>
         }
 
         if (icon !== undefined) {

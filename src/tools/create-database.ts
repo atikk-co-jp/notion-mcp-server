@@ -10,7 +10,7 @@ const inputSchema = {
   properties: z
     .record(z.string(), z.any())
     .describe('Property schema (must include one title property)'),
-  icon: z.any().optional().describe('Database icon'),
+  icon: z.any().optional().describe('Database icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }. Emoji must be an actual emoji character.'),
   cover: z.any().optional().describe('Cover image'),
   is_inline: z.boolean().optional().describe('Inline database'),
 }
@@ -22,7 +22,7 @@ export function registerCreateDatabase(server: McpServer, notion: NotionClient):
       description:
         'Create a new database as a subpage of an existing Notion page. ' +
         'Requires a parent_page_id and properties object defining the database schema. ' +
-        'Each database must have exactly one title property.',
+        'Each database must have exactly one title property. (API version 2025-09-03)',
       inputSchema,
     },
     async ({ parent_page_id, title, properties, icon, cover, is_inline }) => {
@@ -30,13 +30,13 @@ export function registerCreateDatabase(server: McpServer, notion: NotionClient):
         const params: {
           parent: { page_id: string }
           title?: Array<{ type?: string; text: { content: string } }>
-          properties: Record<string, unknown>
+          initial_data_source?: { properties: Record<string, unknown> }
           icon?: { type: string; emoji?: string; external?: { url: string } }
           cover?: { type: string; external: { url: string } }
           is_inline?: boolean
         } = {
           parent: { page_id: parent_page_id },
-          properties: properties as Record<string, unknown>,
+          initial_data_source: { properties: properties as Record<string, unknown> },
         }
 
         if (title) {
