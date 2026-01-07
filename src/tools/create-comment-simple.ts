@@ -1,28 +1,24 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
+import { parseInlineMarkdown } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
-// Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
   page_id: z.string().optional().describe('Page ID (for page comments)'),
   block_id: z.string().optional().describe('Block ID (for block comments)'),
   discussion_id: z.string().optional().describe('Discussion ID (for replies)'),
-  rich_text: z.array(z.any()).describe('Comment content as rich text'),
+  content: z.string().describe('Comment in Markdown (**bold**, *italic*, [link](url), `code`)'),
 }
 
-export function registerCreateComment(server: McpServer, notion: NotionClient): void {
+export function registerCreateCommentSimple(server: McpServer, notion: NotionClient): void {
   server.registerTool(
-    'create-comment',
+    'create-comment-simple',
     {
-      description:
-        'Add a comment to a Notion page. Creates a new discussion or adds to an existing one. ' +
-        'Comments support rich text formatting (bold, italic, links, etc.). ' +
-        'Use discussion_id to reply to an existing comment thread. ' +
-        'Returns the created comment with its ID.',
+      description: 'Add a comment using Markdown. Simpler than create-comment.',
       inputSchema,
     },
-    async ({ page_id, block_id, discussion_id, rich_text }) => {
+    async ({ page_id, block_id, discussion_id, content }) => {
       try {
         // Validate: exactly one of page_id, block_id, or discussion_id must be provided
         const providedCount = [page_id, block_id, discussion_id].filter(Boolean).length
@@ -37,6 +33,8 @@ export function registerCreateComment(server: McpServer, notion: NotionClient): 
             isError: true,
           }
         }
+
+        const rich_text = parseInlineMarkdown(content)
 
         // Build params based on which ID was provided
         const params: {

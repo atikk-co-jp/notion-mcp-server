@@ -12,8 +12,7 @@ export function registerArchivePage(server: McpServer, notion: NotionClient): vo
     'archive-page',
     {
       description:
-        'Archive (delete) a Notion page by moving it to trash. ' +
-        'This is equivalent to update-page with archived: true.',
+        'Move a page to trash. Recoverable for 30 days via Notion UI.',
       inputSchema,
     },
     async ({ page_id }) => {

@@ -5,6 +5,7 @@ import { registerAppendBlocksSimple } from './append-blocks-simple.js'
 import { registerArchiveDatabase } from './archive-database.js'
 import { registerArchivePage } from './archive-page.js'
 import { registerCreateComment } from './create-comment.js'
+import { registerCreateCommentSimple } from './create-comment-simple.js'
 import { registerCreateDatabase } from './create-database.js'
 import { registerCreatePage } from './create-page.js'
 import { registerCreatePageSimple } from './create-page-simple.js'
@@ -63,6 +64,7 @@ export function registerAllTools(server: McpServer, notion: NotionClient): void 
 
   // Comment operations
   registerCreateComment(server, notion)
+  registerCreateCommentSimple(server, notion)
   registerListComments(server, notion)
 
   // User operations
@@ -95,6 +97,7 @@ export {
   registerUpdateBlockSimple,
   registerDeleteBlock,
   registerCreateComment,
+  registerCreateCommentSimple,
   registerListComments,
   registerListUsers,
   registerRetrieveUser,

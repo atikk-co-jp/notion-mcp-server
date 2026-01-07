@@ -12,8 +12,7 @@ export function registerArchiveDatabase(server: McpServer, notion: NotionClient)
     'archive-database',
     {
       description:
-        'Archive (delete) a Notion database by moving it to trash. ' +
-        'This is equivalent to update-database with archived: true.',
+        'Move a database to trash. Recoverable for 30 days via Notion UI.',
       inputSchema,
     },
     async ({ database_id }) => {

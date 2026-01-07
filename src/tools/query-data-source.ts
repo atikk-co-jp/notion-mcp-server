@@ -24,8 +24,14 @@ interface PaginatedResponse {
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
   data_source_id: z.string().describe('Data source ID'),
-  filter: z.any().optional().describe('Filter conditions'),
-  sorts: z.array(z.any()).optional().describe('Sort conditions'),
+  filter: z
+    .any()
+    .optional()
+    .describe('Filter object. Example: {"property":"Status","select":{"equals":"Done"}}'),
+  sorts: z
+    .array(z.any())
+    .optional()
+    .describe('Sort array. Example: [{"property":"Date","direction":"descending"}]'),
   start_cursor: z.string().optional().describe('Pagination cursor'),
   page_size: z.number().optional().describe('Results per page (1-100)'),
   format: z.enum(['json', 'simple']).optional().describe('Output format (default: simple)'),

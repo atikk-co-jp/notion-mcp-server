@@ -1,3 +1,5 @@
+import type { NotionClient } from '../notion-client.js'
+
 export interface McpTextContent {
   type: 'text'
   text: string
@@ -12,6 +14,11 @@ export interface McpResponse {
 interface NotionApiError {
   code: string
   message: string
+}
+
+interface DataSourceProperty {
+  type: string
+  [key: string]: unknown
 }
 
 function isNotionApiError(error: unknown): error is Error & NotionApiError {
@@ -81,4 +88,58 @@ function formatNotionError(error: NotionApiError): string {
     default:
       return error.message
   }
+}
+
+function isValidationError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  // Check if error message contains validation_error code
+  return error.message.includes('validation_error')
+}
+
+function formatPropertyList(properties: Record<string, DataSourceProperty>): string {
+  return Object.entries(properties)
+    .map(([name, prop]) => `  - ${name} (${prop.type})`)
+    .join('\n')
+}
+
+interface DataSourceResponse {
+  properties: Record<string, DataSourceProperty>
+}
+
+interface HandleErrorOptions {
+  /** Additional hint to append after property list (e.g., usage examples) */
+  hint?: string
+}
+
+/**
+ * Enhanced error handler that includes available properties for validation errors.
+ * Use this for tools that operate on data sources (create-page, update-page, etc.)
+ */
+export async function handleErrorWithContext(
+  error: unknown,
+  notion: NotionClient,
+  dataSourceId?: string,
+  options?: HandleErrorOptions,
+): Promise<McpResponse> {
+  const baseResponse = handleError(error)
+
+  // For validation errors with a data source ID, append available properties
+  if (isValidationError(error) && dataSourceId) {
+    try {
+      const schema = await notion.dataSources.retrieve<DataSourceResponse>({
+        data_source_id: dataSourceId,
+      })
+      const propList = formatPropertyList(schema.properties)
+      baseResponse.content[0].text += `\n\nAvailable properties:\n${propList}`
+
+      // Add optional hint
+      if (options?.hint) {
+        baseResponse.content[0].text += `\n\n${options.hint}`
+      }
+    } catch {
+      // Ignore schema fetch errors - keep the original error message
+    }
+  }
+
+  return baseResponse
 }

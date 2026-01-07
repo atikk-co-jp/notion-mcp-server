@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import type { PropertyValueSchema } from '../schemas/page.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 
 type PropertyValue = z.infer<typeof PropertyValueSchema>
 type Icon = { type: 'emoji'; emoji: string } | { type: 'external'; external: { url: string } }
@@ -64,7 +64,9 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
         const response = await notion.pages.update(params)
         return formatResponse(response)
       } catch (error) {
-        return handleError(error)
+        // Note: update-page uses page_id, not data_source_id,
+        // so we can't show available properties without additional API call
+        return handleErrorWithContext(error, notion)
       }
     },
   )
