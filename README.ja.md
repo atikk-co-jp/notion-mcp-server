@@ -28,10 +28,12 @@ Notion API用のMCP（Model Context Protocol）サーバー。AIアシスタン�
 | | [Update page](https://developers.notion.com/reference/patch-page) | `update-page` | JSON |
 | | [Retrieve page property](https://developers.notion.com/reference/retrieve-a-page-property-item) | `retrieve-page-property` | JSON |
 | | [Move page](https://developers.notion.com/reference/post-page-move) | `move-page` | JSON |
+| | [Archive page](https://developers.notion.com/reference/patch-page) | `archive-page` | JSON |
 | **データベース** | | | |
 | | [Create database](https://developers.notion.com/reference/create-a-database) | `create-database` | JSON |
 | | [Retrieve database](https://developers.notion.com/reference/retrieve-a-database) | `retrieve-database` | simple/json |
 | | [Update database](https://developers.notion.com/reference/update-a-database) | `update-database` | JSON |
+| | [Archive database](https://developers.notion.com/reference/update-a-database) | `archive-database` | JSON |
 | | [Query database](https://developers.notion.com/reference/post-database-query) | `query-database` | simple/json |
 | **ブロック** | | | |
 | | [Retrieve block](https://developers.notion.com/reference/retrieve-a-block) | `retrieve-block` | markdown/json |
