@@ -15,6 +15,7 @@ const inputSchema = {
   archived: z.boolean().optional().describe('Archive the page'),
   icon: z.any().optional().describe('Page icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }, or null to remove. Emoji must be an actual emoji character.'),
   cover: z.any().optional().describe('Cover image (null to remove)'),
+  is_locked: z.boolean().optional().describe('Lock the page to prevent edits in the UI. Set to true to lock, false to unlock.'),
 }
 
 export function registerUpdatePage(server: McpServer, notion: NotionClient): void {
@@ -22,13 +23,14 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
     'update-page',
     {
       description:
-        "Update a Notion page's properties, icon, cover, or archive status. " +
+        "Update a Notion page's properties, icon, cover, archive status, or lock status. " +
         'Partial updates are supported - only provide the fields you want to change. ' +
         'Set icon or cover to null to remove them. ' +
-        'Set archived to true to move the page to trash.',
+        'Set archived to true to move the page to trash. ' +
+        'Set is_locked to true to lock the page in the UI.',
       inputSchema,
     },
-    async ({ page_id, properties, archived, icon, cover }) => {
+    async ({ page_id, properties, archived, icon, cover, is_locked }) => {
       try {
         const params: {
           page_id: string
@@ -36,6 +38,7 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
           archived?: boolean
           icon?: Icon | null
           cover?: Cover | null
+          is_locked?: boolean
         } = { page_id }
 
         if (properties !== undefined) {
@@ -52,6 +55,10 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
 
         if (cover !== undefined) {
           params.cover = cover as Cover | null
+        }
+
+        if (is_locked !== undefined) {
+          params.is_locked = is_locked
         }
 
         const response = await notion.pages.update(params)

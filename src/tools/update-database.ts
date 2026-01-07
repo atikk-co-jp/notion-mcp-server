@@ -13,6 +13,7 @@ const inputSchema = {
   cover: z.any().optional().describe('Cover (null to remove)'),
   is_inline: z.boolean().optional().describe('Inline database'),
   archived: z.boolean().optional().describe('Archive status'),
+  is_locked: z.boolean().optional().describe('Lock the database to prevent edits in the UI. Set to true to lock, false to unlock.'),
 }
 
 export function registerUpdateDatabase(server: McpServer, notion: NotionClient): void {
@@ -20,11 +21,11 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
     'update-database',
     {
       description:
-        'Update a Notion database container. Can modify title, description, icon, cover, inline status, and archive status. ' +
+        'Update a Notion database container. Can modify title, description, icon, cover, inline status, archive status, and lock status. ' +
         'For schema (properties/columns) updates, use update-data-source instead. (API version 2025-09-03)',
       inputSchema,
     },
-    async ({ database_id, title, description, icon, cover, is_inline, archived }) => {
+    async ({ database_id, title, description, icon, cover, is_inline, archived, is_locked }) => {
       try {
         const params: {
           database_id: string
@@ -34,6 +35,7 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
           cover?: { type: string; external: { url: string } } | null
           is_inline?: boolean
           archived?: boolean
+          is_locked?: boolean
         } = {
           database_id,
         }
@@ -60,6 +62,10 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
 
         if (archived !== undefined) {
           params.archived = archived
+        }
+
+        if (is_locked !== undefined) {
+          params.is_locked = is_locked
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

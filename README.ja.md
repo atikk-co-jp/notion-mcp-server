@@ -196,7 +196,15 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 
 ### update-page
 
-ページのプロパティを更新します。
+ページのプロパティ、アイコン、カバー、アーカイブ状態、ロック状態を更新します。
+
+**パラメータ:**
+- `page_id` (必須): 更新するページのID
+- `properties` (任意): 更新するプロパティ
+- `icon` (任意): アイコン（nullで削除）
+- `cover` (任意): カバー画像（nullで削除）
+- `archived` (任意): trueでアーカイブ
+- `is_locked` (任意): ページをロックしてUI上での編集を防止
 
 ```json
 {
@@ -205,7 +213,8 @@ Markdownを使ってページを作成します。`create-page`と比較して**
     "Status": {
       "status": { "name": "完了" }
     }
-  }
+  },
+  "is_locked": true
 }
 ```
 
@@ -275,11 +284,13 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 - `cover` (任意): カバー画像（nullで削除）
 - `is_inline` (任意): trueの場合、インラインデータベースとして作成
 - `archived` (任意): trueでアーカイブ
+- `is_locked` (任意): データベースをロックしてUI上での編集を防止
 
 ```json
 {
   "database_id": "データベースのUUID",
-  "title": [{ "type": "text", "text": { "content": "新しいタイトル" } }]
+  "title": [{ "type": "text", "text": { "content": "新しいタイトル" } }],
+  "is_locked": true
 }
 ```
 
