@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { markdownToBlocks } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
+import type { Block } from '../schemas/block.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 // Minimal schema for MCP
@@ -18,30 +19,19 @@ export function registerAppendBlocksSimple(server: McpServer, notion: NotionClie
       description:
         'Append blocks to a page using Markdown. ' +
         'Simpler than append-block-children: just provide markdown text. ' +
-        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), images (![]()), bold (**), italic (*), links ([]()), etc.',
+        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), tables (| |), images (![]()), bold (**), italic (*), links ([]()), etc.',
       inputSchema,
     },
     async ({ block_id, content, after }) => {
       try {
         // Convert markdown to blocks
-        const children = markdownToBlocks(content)
+        const children = markdownToBlocks(content) as Block[]
 
-        // Build params
-        const params: {
-          block_id: string
-          children: unknown[]
-          after?: string
-        } = {
+        const response = await notion.blocks.children.append({
           block_id,
           children,
-        }
-
-        if (after) {
-          params.after = after
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await notion.blocks.children.append(params as any)
+          ...(after && { after }),
+        })
         return formatResponse(response)
       } catch (error) {
         return handleError(error)

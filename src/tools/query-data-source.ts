@@ -2,10 +2,11 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { type NotionProperty, pagesToSimple } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
+import { FilterSchema, SortSchema } from '../schemas/filter.js'
 import {
   formatPaginatedResponse,
   formatSimplePaginatedResponse,
-  handleError,
+  handleErrorWithContext,
 } from '../utils/index.js'
 
 interface PageResult {
@@ -21,15 +22,17 @@ interface PaginatedResponse {
   next_cursor: string | null
 }
 
+type Filter = z.infer<typeof FilterSchema>
+type Sort = z.infer<typeof SortSchema>
+
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
   data_source_id: z.string().describe('Data source ID'),
-  filter: z
-    .any()
-    .optional()
-    .describe('Filter object. Example: {"property":"Status","select":{"equals":"Done"}}'),
+  filter: FilterSchema.optional().describe(
+    'Filter object. Example: {"property":"Status","select":{"equals":"Done"}}',
+  ),
   sorts: z
-    .array(z.any())
+    .array(SortSchema)
     .optional()
     .describe('Sort array. Example: [{"property":"Date","direction":"descending"}]'),
   start_cursor: z.string().optional().describe('Pagination cursor'),
@@ -49,36 +52,13 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
     },
     async ({ data_source_id, filter, sorts, start_cursor, page_size, format }) => {
       try {
-        const params: {
-          data_source_id: string
-          filter?: Record<string, unknown>
-          sorts?: Array<{ property?: string; timestamp?: string; direction: string }>
-          start_cursor?: string
-          page_size?: number
-        } = { data_source_id }
-
-        if (filter) {
-          params.filter = filter as Record<string, unknown>
-        }
-
-        if (sorts) {
-          params.sorts = sorts as Array<{
-            property?: string
-            timestamp?: string
-            direction: string
-          }>
-        }
-
-        if (start_cursor) {
-          params.start_cursor = start_cursor
-        }
-
-        if (page_size) {
-          params.page_size = page_size
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await notion.dataSources.query<PaginatedResponse>(params as any)
+        const response = await notion.dataSources.query<PaginatedResponse>({
+          data_source_id,
+          ...(filter && { filter: filter as Filter }),
+          ...(sorts && { sorts: sorts as Sort[] }),
+          ...(start_cursor && { start_cursor }),
+          ...(page_size && { page_size }),
+        })
 
         if (format === 'simple') {
           const simplePages = pagesToSimple(response.results)
@@ -87,7 +67,9 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
 
         return formatPaginatedResponse(response.results, response.has_more, response.next_cursor)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'filter',
+        })
       }
     },
   )

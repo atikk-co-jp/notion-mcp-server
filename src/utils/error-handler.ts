@@ -1,4 +1,10 @@
 import type { NotionClient } from '../notion-client.js'
+import {
+  type ExampleType,
+  PagePropertyExamples,
+  SchemaPropertyExamples,
+  getExamplesByType,
+} from '../schemas/examples.js'
 
 export interface McpTextContent {
   type: 'text'
@@ -92,54 +98,90 @@ function formatNotionError(error: NotionApiError): string {
 
 function isValidationError(error: unknown): boolean {
   if (!(error instanceof Error)) return false
-  // Check if error message contains validation_error code
   return error.message.includes('validation_error')
 }
 
-function formatPropertyList(properties: Record<string, DataSourceProperty>): string {
-  return Object.entries(properties)
+function formatPropertyList(
+  properties: Record<string, DataSourceProperty>,
+  exampleType: 'page' | 'schema',
+): string {
+  const propList = Object.entries(properties)
     .map(([name, prop]) => `  - ${name} (${prop.type})`)
     .join('\n')
+
+  // Get unique property types and their examples based on exampleType
+  const examples = exampleType === 'page' ? PagePropertyExamples : SchemaPropertyExamples
+  const uniqueTypes = [...new Set(Object.values(properties).map((p) => p.type))]
+  const exampleLines = uniqueTypes
+    .filter((type) => examples[type])
+    .slice(0, 5) // Limit to 5 examples to save tokens
+    .map((type) => `  ${type}: ${examples[type]}`)
+    .join('\n')
+
+  if (exampleLines) {
+    const label = exampleType === 'page' ? 'Page property' : 'Schema property'
+    return `${propList}\n\n${label} format examples:\n${exampleLines}`
+  }
+  return propList
 }
 
 interface DataSourceResponse {
   properties: Record<string, DataSourceProperty>
 }
 
-interface HandleErrorOptions {
-  /** Additional hint to append after property list (e.g., usage examples) */
+export interface HandleErrorOptions {
+  /** Data source ID to fetch schema for property list */
+  dataSourceId?: string
+  /** Type of examples to show */
+  exampleType?: ExampleType
+  /** Additional hint to append (e.g., usage examples) */
   hint?: string
 }
 
 /**
- * Enhanced error handler that includes available properties for validation errors.
- * Use this for tools that operate on data sources (create-page, update-page, etc.)
+ * Enhanced error handler that includes contextual help for validation errors.
+ *
+ * Usage:
+ * - Page tools: handleErrorWithContext(error, notion, { dataSourceId, exampleType: 'page' })
+ * - Schema tools: handleErrorWithContext(error, notion, { dataSourceId, exampleType: 'schema' })
+ * - Block tools: handleErrorWithContext(error, notion, { exampleType: 'block' })
+ * - Filter tools: handleErrorWithContext(error, notion, { exampleType: 'filter' })
  */
 export async function handleErrorWithContext(
   error: unknown,
   notion: NotionClient,
-  dataSourceId?: string,
   options?: HandleErrorOptions,
 ): Promise<McpResponse> {
   const baseResponse = handleError(error)
 
-  // For validation errors with a data source ID, append available properties
-  if (isValidationError(error) && dataSourceId) {
+  if (!isValidationError(error)) {
+    return baseResponse
+  }
+
+  // For data source related errors, fetch and show property list
+  if (options?.dataSourceId && (options.exampleType === 'page' || options.exampleType === 'schema')) {
     try {
       const schema = await notion.dataSources.retrieve<DataSourceResponse>({
-        data_source_id: dataSourceId,
+        data_source_id: options.dataSourceId,
       })
-      const propList = formatPropertyList(schema.properties)
+      const propList = formatPropertyList(schema.properties, options.exampleType)
       baseResponse.content[0].text += `\n\nAvailable properties:\n${propList}`
-
-      // Add optional hint
-      if (options?.hint) {
-        baseResponse.content[0].text += `\n\n${options.hint}`
-      }
     } catch {
-      // Ignore schema fetch errors - keep the original error message
+      // Ignore schema fetch errors - still show examples below
     }
+  }
+
+  // For other types (block, richTextArray, filter), show examples directly
+  if (options?.exampleType && options.exampleType !== 'page' && options.exampleType !== 'schema') {
+    const examples = getExamplesByType(options.exampleType)
+    baseResponse.content[0].text += `\n\n${examples}`
+  }
+
+  // Add optional hint
+  if (options?.hint) {
+    baseResponse.content[0].text += `\n\n${options.hint}`
   }
 
   return baseResponse
 }
+

@@ -73,8 +73,10 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
         return formatResponse(response)
       } catch (error) {
         // Note: update-page uses page_id, not data_source_id,
-        // so we can't show available properties without additional API call
-        return handleErrorWithContext(error, notion)
+        // so we can't fetch property list, but we can still show format examples
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'page',
+        })
       }
     },
   )

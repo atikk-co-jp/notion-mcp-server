@@ -1,7 +1,10 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
+import type { DatabasePropertiesSchema } from '../schemas/database.js'
 import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+
+type DatabaseProperties = z.infer<typeof DatabasePropertiesSchema>
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
@@ -26,18 +29,20 @@ export function registerUpdateDataSource(server: McpServer, notion: NotionClient
       try {
         const params: {
           data_source_id: string
-          properties?: Record<string, unknown>
+          properties?: DatabaseProperties
         } = { data_source_id }
 
         if (properties !== undefined) {
-          params.properties = properties as Record<string, unknown>
+          params.properties = properties as DatabaseProperties
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await notion.dataSources.update(params as any)
+        const response = await notion.dataSources.update(params)
         return formatResponse(response)
       } catch (error) {
-        return handleErrorWithContext(error, notion, data_source_id)
+        return handleErrorWithContext(error, notion, {
+          dataSourceId: data_source_id,
+          exampleType: 'schema',
+        })
       }
     },
   )

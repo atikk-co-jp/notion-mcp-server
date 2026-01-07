@@ -1,22 +1,26 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { CoverSchema, IconSchema, RichTextArraySchema } from '../schemas/common.js'
+import type { DatabasePropertiesSchema } from '../schemas/database.js'
+import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+
+type RichText = z.infer<typeof RichTextArraySchema>[number]
+type Icon = z.infer<typeof IconSchema>
+type Cover = z.infer<typeof CoverSchema>
+type DatabaseProperties = z.infer<typeof DatabasePropertiesSchema>
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
   parent_page_id: z.string().describe('Parent page ID'),
-  title: z.array(z.any()).optional().describe('Database title'),
+  title: RichTextArraySchema.optional().describe('Database title'),
   properties: z
     .record(z.string(), z.any())
     .describe('Property schema (must include one title property)'),
-  icon: z
-    .any()
-    .optional()
-    .describe(
-      'Database icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }. Emoji must be an actual emoji character.',
-    ),
-  cover: z.any().optional().describe('Cover image'),
+  icon: IconSchema.optional().describe(
+    'Database icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }. Emoji must be an actual emoji character.',
+  ),
+  cover: CoverSchema.optional().describe('Cover image'),
   is_inline: z.boolean().optional().describe('Inline database'),
 }
 
@@ -34,37 +38,38 @@ export function registerCreateDatabase(server: McpServer, notion: NotionClient):
       try {
         const params: {
           parent: { page_id: string }
-          title?: Array<{ type?: string; text: { content: string } }>
-          initial_data_source?: { properties: Record<string, unknown> }
-          icon?: { type: string; emoji?: string; external?: { url: string } }
-          cover?: { type: string; external: { url: string } }
+          title?: RichText[]
+          initial_data_source?: { properties: DatabaseProperties }
+          icon?: Icon
+          cover?: Cover
           is_inline?: boolean
         } = {
           parent: { page_id: parent_page_id },
-          initial_data_source: { properties: properties as Record<string, unknown> },
+          initial_data_source: { properties: properties as DatabaseProperties },
         }
 
-        if (title) {
-          params.title = title as Array<{ type?: string; text: { content: string } }>
+        if (title !== undefined) {
+          params.title = title as RichText[]
         }
 
-        if (icon) {
-          params.icon = icon as { type: string; emoji?: string; external?: { url: string } }
+        if (icon !== undefined) {
+          params.icon = icon as Icon
         }
 
-        if (cover) {
-          params.cover = cover as { type: string; external: { url: string } }
+        if (cover !== undefined) {
+          params.cover = cover as Cover
         }
 
         if (is_inline !== undefined) {
           params.is_inline = is_inline
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await notion.databases.create(params as any)
+        const response = await notion.databases.create(params)
         return formatResponse(response)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'schema',
+        })
       }
     },
   )

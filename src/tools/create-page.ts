@@ -61,7 +61,10 @@ export function registerCreatePage(server: McpServer, notion: NotionClient): voi
         const response = await notion.pages.create(params)
         return formatResponse(response)
       } catch (error) {
-        return handleErrorWithContext(error, notion, data_source_id)
+        return handleErrorWithContext(error, notion, {
+          dataSourceId: data_source_id,
+          exampleType: 'page',
+        })
       }
     },
   )

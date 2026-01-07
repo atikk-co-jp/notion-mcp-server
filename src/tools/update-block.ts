@@ -1,7 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 
 const inputSchema = {
   block_id: z.string().describe('Block ID to update'),
@@ -33,7 +33,9 @@ export function registerUpdateBlock(server: McpServer, notion: NotionClient): vo
         const response = await notion.blocks.update(params)
         return formatResponse(response)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'block',
+        })
       }
     },
   )

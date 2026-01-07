@@ -2,6 +2,8 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { markdownToBlocks } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
+import type { Block } from '../schemas/block.js'
+import type { PropertyValueSchema } from '../schemas/page.js'
 import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 
 interface DataSourceProperty {
@@ -12,6 +14,8 @@ interface DataSourceProperty {
 interface DataSourceResponse {
   properties: Record<string, DataSourceProperty>
 }
+
+type PropertyValue = z.infer<typeof PropertyValueSchema>
 
 // Minimal schema for MCP
 const inputSchema = {
@@ -31,7 +35,7 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
     {
       description:
         'Create a page with Markdown. Title is auto-mapped to the database title property. ' +
-        'Supports: # headings, - lists, - [ ] checkboxes, ``` code, > quotes, **bold**, *italic*, [links]().',
+        'Supports: # headings, - lists, - [ ] checkboxes, ``` code, > quotes, | tables |, **bold**, *italic*, [links]().',
       inputSchema,
     },
     async ({ data_source_id, title, content, properties, icon }) => {
@@ -54,8 +58,8 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
         }
 
         // Build properties with title
-        const pageProperties: Record<string, unknown> = {
-          ...properties,
+        const pageProperties: Record<string, PropertyValue> = {
+          ...(properties as Record<string, PropertyValue>),
         }
 
         // Check if any title property is already provided
@@ -71,32 +75,17 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
           }
         }
 
-        // Build params
-        const params: {
-          parent: { data_source_id: string }
-          properties: Record<string, unknown>
-          children?: unknown[]
-          icon?: { type: 'emoji'; emoji: string }
-        } = {
+        const response = await notion.pages.create({
           parent: { data_source_id },
           properties: pageProperties,
-        }
-
-        // Convert markdown to blocks if content provided
-        if (content) {
-          params.children = markdownToBlocks(content)
-        }
-
-        // Add icon if provided
-        if (icon) {
-          params.icon = { type: 'emoji', emoji: icon }
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await notion.pages.create(params as any)
+          ...(content && { children: markdownToBlocks(content) as Block[] }),
+          ...(icon && { icon: { type: 'emoji' as const, emoji: icon } }),
+        })
         return formatResponse(response)
       } catch (error) {
-        return handleErrorWithContext(error, notion, data_source_id, {
+        return handleErrorWithContext(error, notion, {
+          dataSourceId: data_source_id,
+          exampleType: 'page',
           hint:
             'Hint: The "title" parameter automatically sets the title property. ' +
             'Use "properties" for other fields like select or multi_select.',

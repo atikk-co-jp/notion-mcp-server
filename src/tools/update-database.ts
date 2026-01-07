@@ -1,21 +1,21 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { CoverSchema, IconSchema, RichTextArraySchema } from '../schemas/common.js'
+import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 // Note: Properties (schema) updates should use update-data-source in API 2025-09-03
 const inputSchema = {
   database_id: z.string().describe('Database ID'),
-  title: z.array(z.any()).optional().describe('New title'),
-  description: z.array(z.any()).optional().describe('New description'),
-  icon: z
-    .any()
+  title: RichTextArraySchema.optional().describe('New title'),
+  description: RichTextArraySchema.optional().describe('New description'),
+  icon: IconSchema.nullable()
     .optional()
     .describe(
       'Icon object { type: "emoji", emoji: "📝" } or null to remove. Emoji must be an actual emoji character.',
     ),
-  cover: z.any().optional().describe('Cover (null to remove)'),
+  cover: CoverSchema.nullable().optional().describe('Cover (null to remove)'),
   is_inline: z.boolean().optional().describe('Inline database'),
   archived: z.boolean().optional().describe('Archive status'),
   is_locked: z
@@ -25,6 +25,10 @@ const inputSchema = {
       'Lock the database to prevent edits in the UI. Set to true to lock, false to unlock.',
     ),
 }
+
+type RichText = z.infer<typeof RichTextArraySchema>[number]
+type Icon = z.infer<typeof IconSchema>
+type Cover = z.infer<typeof CoverSchema>
 
 export function registerUpdateDatabase(server: McpServer, notion: NotionClient): void {
   server.registerTool(
@@ -39,10 +43,10 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
       try {
         const params: {
           database_id: string
-          title?: Array<{ type?: string; text: { content: string } }>
-          description?: Array<{ type?: string; text: { content: string } }>
-          icon?: { type: string; emoji?: string; external?: { url: string } } | null
-          cover?: { type: string; external: { url: string } } | null
+          title?: RichText[]
+          description?: RichText[]
+          icon?: Icon | null
+          cover?: Cover | null
           is_inline?: boolean
           archived?: boolean
           is_locked?: boolean
@@ -51,19 +55,19 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
         }
 
         if (title !== undefined) {
-          params.title = title as Array<{ type?: string; text: { content: string } }>
+          params.title = title as RichText[]
         }
 
         if (description !== undefined) {
-          params.description = description as Array<{ type?: string; text: { content: string } }>
+          params.description = description as RichText[]
         }
 
         if (icon !== undefined) {
-          params.icon = icon as { type: string; emoji?: string; external?: { url: string } } | null
+          params.icon = icon as Icon | null
         }
 
         if (cover !== undefined) {
-          params.cover = cover as { type: string; external: { url: string } } | null
+          params.cover = cover as Cover | null
         }
 
         if (is_inline !== undefined) {
@@ -78,11 +82,12 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
           params.is_locked = is_locked
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await notion.databases.update(params as any)
+        const response = await notion.databases.update(params)
         return formatResponse(response)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'richTextArray',
+        })
       }
     },
   )

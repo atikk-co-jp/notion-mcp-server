@@ -1,7 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { formatPaginatedResponse, handleError } from '../utils/index.js'
+import { formatPaginatedResponse, handleErrorWithContext } from '../utils/index.js'
 
 type SearchFilter = { value: 'page' | 'data_source'; property: 'object' }
 type SearchSort = { direction: 'ascending' | 'descending'; timestamp: 'last_edited_time' }
@@ -91,7 +91,9 @@ export function registerSearch(server: McpServer, notion: NotionClient): void {
         const response = await notion.search<PaginatedResponse>(params)
         return formatPaginatedResponse(response.results, response.has_more, response.next_cursor)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'filter',
+        })
       }
     },
   )

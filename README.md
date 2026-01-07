@@ -175,6 +175,7 @@ Create a new page using Markdown. **~80% fewer output tokens** compared to `crea
 - Quotes: `> `
 - Dividers: `---`
 - Images: `![alt](url)`
+- Tables: `| col1 | col2 |` with header separator `|---|---|`
 - Inline: `**bold**`, `*italic*`, `~~strike~~`, `` `code` ``, `[link](url)`
 
 ```json

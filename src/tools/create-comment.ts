@@ -1,7 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
@@ -60,7 +60,9 @@ export function registerCreateComment(server: McpServer, notion: NotionClient): 
         )
         return formatResponse(response)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'richTextArray',
+        })
       }
     },
   )
