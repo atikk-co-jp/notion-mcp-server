@@ -14,6 +14,7 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 - **Search**: Search across pages and databases
 - **Comments**: Add comments to pages
 - **Token-Efficient Output**: Markdown/simple format reduces token usage by ~96%
+- **Markdown Input**: Create and append content using Markdown (80% fewer output tokens)
 
 ## Installation
 
@@ -109,6 +110,45 @@ Create a new page in a database.
   }
 }
 ```
+
+### create-page-simple ⭐
+
+Create a new page using Markdown. **~80% fewer output tokens** compared to `create-page`.
+
+**Parameters:**
+- `database_id` (required): The database ID to create the page in
+- `title` (required): Page title as a simple string
+- `content` (optional): Page content in Markdown
+- `properties` (optional): Additional Notion properties
+- `icon` (optional): Emoji icon (e.g., "🐛")
+
+**Supported Markdown:**
+- Headings: `# ## ###` (#### and beyond → heading_3)
+- Lists: `- ` or `* ` (bulleted), `1. ` (numbered)
+- Checkboxes: `- [ ]` / `- [x]`
+- Code blocks: ` ``` ` with language
+- Quotes: `> `
+- Dividers: `---`
+- Images: `![alt](url)`
+- Inline: `**bold**`, `*italic*`, `~~strike~~`, `` `code` ``, `[link](url)`
+
+```json
+{
+  "database_id": "database-uuid-here",
+  "title": "Bug Report",
+  "content": "## Steps to Reproduce\n\n1. Login\n2. Open settings\n\n## Expected Behavior\n\nShould display correctly",
+  "properties": {
+    "Status": { "status": { "name": "Open" } }
+  },
+  "icon": "🐛"
+}
+```
+
+**Token Comparison:**
+| Method | Tokens | Reduction |
+|--------|--------|-----------|
+| create-page (blocks) | ~152 | - |
+| create-page-simple (markdown) | ~26 | **83%** |
 
 ### update-page
 
@@ -249,6 +289,30 @@ Append new blocks to a page or block.
   ]
 }
 ```
+
+### append-blocks-simple ⭐
+
+Append blocks using Markdown. **~80% fewer output tokens** compared to `append-block-children`.
+
+**Parameters:**
+- `block_id` (required): The page or block ID to append to
+- `content` (required): Content in Markdown
+- `after` (optional): Insert after this block ID
+
+Same Markdown support as `create-page-simple`.
+
+```json
+{
+  "block_id": "page-or-block-uuid-here",
+  "content": "# New Section\n\nThis is **important** content with a [link](https://example.com).\n\n- Item 1\n- Item 2\n\n```javascript\nconst x = 1;\n```"
+}
+```
+
+**Token Comparison:**
+| Method | Tokens | Reduction |
+|--------|--------|-----------|
+| append-block-children (blocks) | ~201 | - |
+| append-blocks-simple (markdown) | ~42 | **79%** |
 
 ### create-comment
 

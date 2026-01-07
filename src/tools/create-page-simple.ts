@@ -1,0 +1,75 @@
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { z } from 'zod'
+import { markdownToBlocks } from '../converters/index.js'
+import type { NotionClient } from '../notion-client.js'
+import { formatResponse, handleError } from '../utils/index.js'
+
+// Minimal schema for MCP
+const inputSchema = {
+  database_id: z.string().describe('Database ID'),
+  title: z.string().describe('Page title'),
+  content: z.string().optional().describe('Page content in Markdown'),
+  properties: z.record(z.string(), z.any()).optional().describe('Additional properties'),
+  icon: z.string().optional().describe('Emoji icon (e.g. "bug")'),
+}
+
+export function registerCreatePageSimple(server: McpServer, notion: NotionClient): void {
+  server.registerTool(
+    'create-page-simple',
+    {
+      description:
+        'Create a Notion page with Markdown content. ' +
+        'Simpler than create-page: just provide title and markdown text. ' +
+        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), images (![]()), bold (**), italic (*), links ([]()), etc.',
+      inputSchema,
+    },
+    async ({ database_id, title, content, properties, icon }) => {
+      try {
+        // Build properties with title
+        const pageProperties: Record<string, unknown> = {
+          ...properties,
+        }
+
+        // Check if any title property is already provided
+        // Title properties have the structure: { title: [...] }
+        const hasTitleProperty = Object.values(pageProperties).some(
+          (prop) => prop && typeof prop === 'object' && 'title' in (prop as object),
+        )
+
+        // Only add Name if no title property exists
+        if (!hasTitleProperty) {
+          pageProperties.Name = {
+            title: [{ type: 'text', text: { content: title } }],
+          }
+        }
+
+        // Build params
+        const params: {
+          parent: { database_id: string }
+          properties: Record<string, unknown>
+          children?: unknown[]
+          icon?: { type: 'emoji'; emoji: string }
+        } = {
+          parent: { database_id },
+          properties: pageProperties,
+        }
+
+        // Convert markdown to blocks if content provided
+        if (content) {
+          params.children = markdownToBlocks(content)
+        }
+
+        // Add icon if provided
+        if (icon) {
+          params.icon = { type: 'emoji', emoji: icon }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await notion.pages.create(params as any)
+        return formatResponse(response)
+      } catch (error) {
+        return handleError(error)
+      }
+    },
+  )
+}

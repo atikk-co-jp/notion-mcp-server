@@ -28,3 +28,5 @@ export {
   richTextToMarkdown,
   richTextToPlain,
 } from './rich-text-to-markdown.js'
+// Markdown→ブロック変換
+export { markdownToBlocks, parseInlineMarkdown } from './markdown-to-blocks.js'
