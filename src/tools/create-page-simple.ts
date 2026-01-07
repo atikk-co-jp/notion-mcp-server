@@ -27,10 +27,8 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
     'create-page-simple',
     {
       description:
-        'Create a Notion page with Markdown content. ' +
-        'Simpler than create-page: just provide title and markdown text. ' +
-        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), images (![]()), bold (**), italic (*), links ([]()), etc. ' +
-        '(API version 2025-09-03)',
+        'Create a page with Markdown. Title is auto-mapped to the database title property. ' +
+        'Supports: # headings, - lists, - [ ] checkboxes, ``` code, > quotes, **bold**, *italic*, [links]().',
       inputSchema,
     },
     async ({ data_source_id, title, content, properties, icon }) => {

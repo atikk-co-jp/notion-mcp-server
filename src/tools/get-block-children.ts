@@ -34,7 +34,7 @@ const inputSchema = {
     .optional()
     .default(false)
     .describe(
-      "When format='markdown', fetch nested children blocks recursively (toggle, list items with children, etc.). Default is false.",
+      'Fetch nested children recursively. Default false. WARNING: causes many API calls for deep structures.',
     ),
 }
 

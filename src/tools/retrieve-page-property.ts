@@ -24,8 +24,7 @@ export function registerRetrievePageProperty(server: McpServer, notion: NotionCl
     'retrieve-page-property',
     {
       description:
-        'Retrieve a specific property value from a page. Supports pagination for properties with many values (e.g., rollup, relation). ' +
-        'Use the property_id from the page properties object.',
+        'Get a property with pagination (for relation/rollup with many items). For simple properties, use retrieve-page instead.',
       inputSchema,
     },
     async ({ page_id, property_id, start_cursor, page_size }) => {
