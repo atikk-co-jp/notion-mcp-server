@@ -5,9 +5,10 @@ import { formatResponse, handleError } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  page_id: z.string().describe('Page ID'),
+  page_id: z.string().optional().describe('Page ID (for page comments)'),
+  block_id: z.string().optional().describe('Block ID (for block comments)'),
+  discussion_id: z.string().optional().describe('Discussion ID (for replies)'),
   rich_text: z.array(z.any()).describe('Comment content as rich text'),
-  discussion_id: z.string().optional().describe('Reply to existing discussion'),
 }
 
 export function registerCreateComment(server: McpServer, notion: NotionClient): void {
@@ -21,11 +22,25 @@ export function registerCreateComment(server: McpServer, notion: NotionClient): 
         'Returns the created comment with its ID.',
       inputSchema,
     },
-    async ({ page_id, rich_text, discussion_id }) => {
+    async ({ page_id, block_id, discussion_id, rich_text }) => {
       try {
-        // The Notion API requires either parent or discussion_id
+        // Validate: exactly one of page_id, block_id, or discussion_id must be provided
+        const providedCount = [page_id, block_id, discussion_id].filter(Boolean).length
+        if (providedCount !== 1) {
+          return {
+            content: [
+              {
+                type: 'text' as const,
+                text: 'Error: Provide exactly one of page_id, block_id, or discussion_id.',
+              },
+            ],
+            isError: true,
+          }
+        }
+
+        // Build params based on which ID was provided
         const params: {
-          parent?: { page_id: string }
+          parent?: { page_id: string } | { block_id: string }
           discussion_id?: string
           rich_text: unknown[]
         } = {
@@ -34,8 +49,10 @@ export function registerCreateComment(server: McpServer, notion: NotionClient): 
 
         if (discussion_id) {
           params.discussion_id = discussion_id
-        } else {
+        } else if (page_id) {
           params.parent = { page_id }
+        } else if (block_id) {
+          params.parent = { block_id }
         }
 
         const response = await notion.comments.create(
