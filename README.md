@@ -21,6 +21,8 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 
 ## API Coverage
 
+> ⭐ = Markdown input supported (reduces input tokens by ~80%)
+
 | Category | Notion API | MCP Tool | Format |
 |----------|-----------|----------|--------|
 | **Pages** | | | |
@@ -50,6 +52,7 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 | | | `append-blocks-simple` ⭐ | Markdown |
 | **Comments** | | | |
 | | [Create comment](https://developers.notion.com/reference/create-a-comment) | `create-comment` | JSON |
+| | | `create-comment-simple` ⭐ | Markdown |
 | | [List comments](https://developers.notion.com/reference/retrieve-comments) | `list-comments` | JSON |
 | **Users** | | | |
 | | [List users](https://developers.notion.com/reference/get-users) | `list-users` | JSON |
@@ -57,8 +60,6 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 | | [Retrieve bot user](https://developers.notion.com/reference/get-self) | `retrieve-bot-user` | JSON |
 | **Search** | | | |
 | | [Search](https://developers.notion.com/reference/post-search) | `search` | JSON |
-
-⭐ = Markdown input supported (reduces input tokens by ~80%)
 
 ## Installation
 
@@ -411,6 +412,22 @@ Add a comment to a page.
 {
   "page_id": "page-uuid-here",
   "rich_text": [{ "type": "text", "text": { "content": "This is a comment" } }]
+}
+```
+
+### create-comment-simple ⭐
+
+Add a comment using Markdown. Simpler than `create-comment`.
+
+**Parameters:**
+- `page_id` (required): The ID of the page
+- `content` (required): Comment in Markdown
+- `discussion_id` (optional): Reply to existing thread
+
+```json
+{
+  "page_id": "page-uuid-here",
+  "content": "This is **important** with a [link](https://example.com)"
 }
 ```
 

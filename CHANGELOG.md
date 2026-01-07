@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-01-07
+
+### Added
+
+- **Comment Markdown Input**: `create-comment-simple` tool for adding comments with Markdown
+  - Supports **bold**, *italic*, [links](url), `code`
+  - Simpler alternative to `create-comment`
+- **Enhanced Error Messages**: Validation errors now show available properties
+  - Helps identify correct property names when creating/updating pages
+  - Only property names and types shown (token-efficient)
+
+### Fixed
+
+- **create-page-simple**: Fixed hardcoded "Name" title property bug
+  - Now auto-detects the title property name from data source schema
+  - Works with any title property name (e.g., "名前", "タイトル", "Title")
+
+### Improved
+
+- **Tool Descriptions**: Enhanced clarity for several tools
+  - `query-data-source`: Added filter/sorts examples in description
+  - `archive-page`/`archive-database`: Clarified 30-day recovery period
+  - `get-block-children`: Added warning about API calls for `fetch_nested`
+  - `retrieve-page-property`: Clarified when to use vs `retrieve-page`
+
 ## [0.6.0] - 2026-01-07
 
 ### Added
