@@ -112,6 +112,7 @@ export class NotionClient {
       archived?: boolean
       icon?: Icon | null
       cover?: Cover | null
+      is_locked?: boolean
     }): Promise<T> => {
       const { page_id, ...body } = params
       return this.request<T>(`/pages/${page_id}`, { method: 'PATCH', body })
@@ -202,6 +203,7 @@ export class NotionClient {
       cover?: Cover | null
       is_inline?: boolean
       archived?: boolean
+      is_locked?: boolean
     }): Promise<T> => {
       const { database_id, ...body } = params
       return this.request<T>(`/databases/${database_id}`, { method: 'PATCH', body })
