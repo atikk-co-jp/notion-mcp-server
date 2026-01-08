@@ -1,22 +1,14 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatPaginatedResponse, formatResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  page_id: z.string().describe('Page ID'),
-  property_id: z.string().describe('Property ID (from page properties)'),
-  start_cursor: z.string().optional().describe('Pagination cursor'),
-  page_size: z.number().optional().describe('Number of results (1-100)'),
-}
-
-interface PropertyItemResponse {
-  object: 'property_item' | 'list'
-  type: string
-  results?: Array<unknown>
-  next_cursor?: string | null
-  has_more?: boolean
-  [key: string]: unknown
+  page_id: z.string().describe(F.page_id),
+  property_id: z.string().describe(F.property_id),
+  start_cursor: z.string().optional().describe(F.start_cursor),
+  page_size: z.number().optional().describe(F.page_size),
 }
 
 export function registerRetrievePageProperty(server: McpServer, notion: NotionClient): void {
@@ -29,7 +21,7 @@ export function registerRetrievePageProperty(server: McpServer, notion: NotionCl
     },
     async ({ page_id, property_id, start_cursor, page_size }) => {
       try {
-        const response = await notion.pages.retrieveProperty<PropertyItemResponse>({
+        const response = await notion.pages.properties.retrieve({
           page_id,
           property_id,
           start_cursor,

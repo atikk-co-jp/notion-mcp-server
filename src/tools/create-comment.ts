@@ -1,14 +1,15 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  page_id: z.string().optional().describe('Page ID (for page comments)'),
-  block_id: z.string().optional().describe('Block ID (for block comments)'),
-  discussion_id: z.string().optional().describe('Discussion ID (for replies)'),
-  rich_text: z.array(z.any()).describe('Comment content as rich text'),
+  page_id: z.string().optional().describe(F.page_id),
+  block_id: z.string().optional().describe(F.block_id),
+  discussion_id: z.string().optional().describe(F.discussion_id),
+  rich_text: z.array(z.any()).describe(F.rich_text),
 }
 
 export function registerCreateComment(server: McpServer, notion: NotionClient): void {

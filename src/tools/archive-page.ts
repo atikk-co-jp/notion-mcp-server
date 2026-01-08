@@ -1,10 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  page_id: z.string().describe('Page ID to archive'),
+  page_id: z.string().describe(F.page_id),
 }
 
 export function registerArchivePage(server: McpServer, notion: NotionClient): void {

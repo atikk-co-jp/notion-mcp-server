@@ -1,10 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  user_id: z.string().describe('User ID'),
+  user_id: z.string().describe(F.user_id),
 }
 
 export function registerRetrieveUser(server: McpServer, notion: NotionClient): void {

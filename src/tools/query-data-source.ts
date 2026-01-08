@@ -1,43 +1,23 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { type NotionProperty, pagesToSimple } from '../converters/index.js'
-import type { NotionClient } from '../notion-client.js'
-import { FilterSchema, SortSchema } from '../schemas/filter.js'
+import { pagesToSimple } from '../converters/index.js'
+import { isFullPage, type NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import {
   formatPaginatedResponse,
   formatSimplePaginatedResponse,
   handleErrorWithContext,
 } from '../utils/index.js'
 
-interface PageResult {
-  id: string
-  url?: string
-  properties: Record<string, NotionProperty>
-  [key: string]: unknown
-}
-
-interface PaginatedResponse {
-  results: PageResult[]
-  has_more: boolean
-  next_cursor: string | null
-}
-
-type Filter = z.infer<typeof FilterSchema>
-type Sort = z.infer<typeof SortSchema>
-
 // Minimal schema for MCP (full validation by Notion API)
+// Uses z.any() for filter/sorts to reduce context size (~8,000 tokens saved)
 const inputSchema = {
-  data_source_id: z.string().describe('Data source ID'),
-  filter: FilterSchema.optional().describe(
-    'Filter object. Example: {"property":"Status","select":{"equals":"Done"}}',
-  ),
-  sorts: z
-    .array(SortSchema)
-    .optional()
-    .describe('Sort array. Example: [{"property":"Date","direction":"descending"}]'),
-  start_cursor: z.string().optional().describe('Pagination cursor'),
-  page_size: z.number().optional().describe('Results per page (1-100)'),
-  format: z.enum(['json', 'simple']).optional().describe('Output format (default: simple)'),
+  data_source_id: z.string().describe(F.data_source_id),
+  filter: z.any().optional().describe(F.filter),
+  sorts: z.array(z.any()).optional().describe(F.sorts),
+  start_cursor: z.string().optional().describe(F.start_cursor),
+  page_size: z.number().optional().describe(F.page_size),
+  format: z.enum(['json', 'simple']).optional().describe(F.format),
 }
 
 export function registerQueryDataSource(server: McpServer, notion: NotionClient): void {
@@ -52,16 +32,18 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
     },
     async ({ data_source_id, filter, sorts, start_cursor, page_size, format }) => {
       try {
-        const response = await notion.dataSources.query<PaginatedResponse>({
+        const response = await notion.dataSources.query({
           data_source_id,
-          ...(filter && { filter: filter as Filter }),
-          ...(sorts && { sorts: sorts as Sort[] }),
+          ...(filter && { filter }),
+          ...(sorts && { sorts }),
           ...(start_cursor && { start_cursor }),
           ...(page_size && { page_size }),
         })
 
         if (format === 'simple') {
-          const simplePages = pagesToSimple(response.results)
+          // Filter to full pages and cast for pagesToSimple converter
+          const fullPages = response.results.filter(isFullPage)
+          const simplePages = pagesToSimple(fullPages as unknown as Parameters<typeof pagesToSimple>[0])
           return formatSimplePaginatedResponse(simplePages, response.has_more, response.next_cursor)
         }
 

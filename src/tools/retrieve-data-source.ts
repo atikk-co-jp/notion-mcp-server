@@ -1,27 +1,15 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import type { NotionClient } from '../notion-client.js'
+import { isFullDataSource, type NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, formatSimpleResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  data_source_id: z.string().describe('Data source ID'),
-  format: z
-    .enum(['json', 'simple'])
-    .optional()
-    .describe("Output format: 'simple' (default) or 'json'"),
+  data_source_id: z.string().describe(F.data_source_id),
+  format: z.enum(['json', 'simple']).optional().describe(F.format),
 }
 
-interface DataSourceResponse {
-  object: 'data_source'
-  id: string
-  parent: { type: 'database_id'; database_id: string }
-  database_parent: { type: 'page_id' | 'workspace'; page_id?: string }
-  properties: Record<string, { id: string; type: string; name: string; [key: string]: unknown }>
-  created_time: string
-  last_edited_time: string
-}
-
-interface SimpleProperty {
+interface SimpleSchemaProperty {
   id: string
   type: string
   options?: Array<{ name: string; color?: string }>
@@ -39,32 +27,38 @@ export function registerRetrieveDataSource(server: McpServer, notion: NotionClie
     },
     async ({ data_source_id, format = 'simple' }) => {
       try {
-        const response = await notion.dataSources.retrieve<DataSourceResponse>({ data_source_id })
+        const response = await notion.dataSources.retrieve({ data_source_id })
 
         if (format === 'json') {
           return formatResponse(response)
         }
 
+        // Need full data source for simple format
+        if (!isFullDataSource(response)) {
+          return formatResponse(response)
+        }
+
         // Simple format: extract essential info
-        const simpleProperties: Record<string, SimpleProperty> = {}
+        const simpleProperties: Record<string, SimpleSchemaProperty> = {}
 
         for (const [name, prop] of Object.entries(response.properties)) {
-          const simpleProp: SimpleProperty = {
+          const simpleProp: SimpleSchemaProperty = {
             id: prop.id,
             type: prop.type,
           }
 
           // Include options for select/multi_select/status
-          if (prop.type === 'select' && prop.select) {
-            const selectProp = prop.select as { options?: Array<{ name: string; color?: string }> }
+          const propAny = prop as Record<string, unknown>
+          if (prop.type === 'select' && propAny.select) {
+            const selectProp = propAny.select as { options?: Array<{ name: string; color?: string }> }
             simpleProp.options = selectProp.options
-          } else if (prop.type === 'multi_select' && prop.multi_select) {
-            const multiSelectProp = prop.multi_select as {
+          } else if (prop.type === 'multi_select' && propAny.multi_select) {
+            const multiSelectProp = propAny.multi_select as {
               options?: Array<{ name: string; color?: string }>
             }
             simpleProp.options = multiSelectProp.options
-          } else if (prop.type === 'status' && prop.status) {
-            const statusProp = prop.status as { options?: Array<{ name: string; color?: string }> }
+          } else if (prop.type === 'status' && propAny.status) {
+            const statusProp = propAny.status as { options?: Array<{ name: string; color?: string }> }
             simpleProp.options = statusProp.options
           }
 

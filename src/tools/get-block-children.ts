@@ -1,41 +1,16 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { blocksToMarkdown, blocksToMarkdownSync, type NotionBlock } from '../converters/index.js'
-import type { NotionClient } from '../notion-client.js'
+import { blocksToMarkdown, blocksToMarkdownSync } from '../converters/index.js'
+import { type BlockObjectResponse, isFullBlock, type NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatMarkdownResponse, formatPaginatedResponse, handleError } from '../utils/index.js'
 
-interface PaginatedResponse {
-  results: NotionBlock[]
-  has_more: boolean
-  next_cursor: string | null
-}
-
 const inputSchema = {
-  block_id: z.string().describe('The ID of the block or page to get children from'),
-  start_cursor: z
-    .string()
-    .optional()
-    .describe('Cursor for pagination. Use the next_cursor from previous response.'),
-  page_size: z
-    .number()
-    .min(1)
-    .max(100)
-    .optional()
-    .describe('Number of results to return (1-100). Default is 100.'),
-  format: z
-    .enum(['json', 'markdown'])
-    .optional()
-    .default('markdown')
-    .describe(
-      "Output format: 'markdown' (default) returns human-readable text with significantly reduced token usage, 'json' returns raw Notion API response",
-    ),
-  fetch_nested: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      'Fetch nested children recursively. Default false. WARNING: causes many API calls for deep structures.',
-    ),
+  block_id: z.string().describe(F.block_id),
+  start_cursor: z.string().optional().describe(F.start_cursor),
+  page_size: z.number().min(1).max(100).optional().describe(F.page_size),
+  format: z.enum(['json', 'markdown']).optional().default('markdown').describe(F.format),
+  fetch_nested: z.boolean().optional().default(false).describe(F.fetch_nested),
 }
 
 export function registerGetBlockChildren(server: McpServer, notion: NotionClient): void {
@@ -48,27 +23,28 @@ export function registerGetBlockChildren(server: McpServer, notion: NotionClient
     },
     async ({ block_id, start_cursor, page_size, format, fetch_nested }) => {
       try {
-        const response = await notion.blocks.children.list<PaginatedResponse>({
+        const response = await notion.blocks.children.list({
           block_id,
           start_cursor,
           page_size,
         })
+
+        // Filter to full blocks
+        const blocks = response.results.filter(isFullBlock)
 
         if (format === 'markdown') {
           let markdown: string
 
           if (fetch_nested) {
             // 子ブロックを再帰的に取得
-            const fetchChildren = async (blockId: string): Promise<NotionBlock[]> => {
-              const res = await notion.blocks.children.list<PaginatedResponse>({
-                block_id: blockId,
-              })
-              return res.results
+            const fetchChildren = async (blockId: string): Promise<BlockObjectResponse[]> => {
+              const res = await notion.blocks.children.list({ block_id: blockId })
+              return res.results.filter(isFullBlock)
             }
-            markdown = await blocksToMarkdown(response.results, { fetchChildren })
+            markdown = await blocksToMarkdown(blocks, { fetchChildren })
           } else {
             // 子ブロック取得なし（同期版）
-            markdown = blocksToMarkdownSync(response.results)
+            markdown = blocksToMarkdownSync(blocks)
           }
 
           return formatMarkdownResponse(markdown, response.has_more, response.next_cursor)

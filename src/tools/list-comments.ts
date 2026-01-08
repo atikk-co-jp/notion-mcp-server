@@ -1,32 +1,14 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import type { NotionClient } from '../notion-client.js'
+import { isFullComment, type NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatPaginatedResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  block_id: z.string().optional().describe('Block ID to get comments from'),
-  page_id: z
-    .string()
-    .optional()
-    .describe('Page ID to get comments from (use either block_id or page_id)'),
-  start_cursor: z.string().optional().describe('Pagination cursor'),
-  page_size: z.number().optional().describe('Number of results (1-100)'),
-}
-
-interface CommentResponse {
-  object: 'list'
-  results: Array<{
-    object: 'comment'
-    id: string
-    discussion_id: string
-    created_time: string
-    last_edited_time: string
-    created_by: { id: string }
-    rich_text: Array<{ plain_text: string }>
-    parent: { type: 'page_id' | 'block_id'; page_id?: string; block_id?: string }
-  }>
-  next_cursor: string | null
-  has_more: boolean
+  block_id: z.string().optional().describe(F.block_id),
+  page_id: z.string().optional().describe(F.page_id),
+  start_cursor: z.string().optional().describe(F.start_cursor),
+  page_size: z.number().optional().describe(F.page_size),
 }
 
 export function registerListComments(server: McpServer, notion: NotionClient): void {
@@ -53,14 +35,15 @@ export function registerListComments(server: McpServer, notion: NotionClient): v
         }
 
         // Notion API only accepts block_id (page_id works as block_id since pages are blocks)
-        const response = await notion.comments.list<CommentResponse>({
-          block_id: block_id || page_id,
+        // Safe to assert non-null since we checked above that at least one is defined
+        const response = await notion.comments.list({
+          block_id: (block_id || page_id)!,
           start_cursor,
           page_size,
         })
 
-        // Format comments with essential info
-        const comments = response.results.map((comment) => ({
+        // Format comments with essential info (filter to full comments only)
+        const comments = response.results.filter(isFullComment).map((comment) => ({
           id: comment.id,
           discussion_id: comment.discussion_id,
           text: comment.rich_text.map((t) => t.plain_text).join(''),

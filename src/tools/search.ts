@@ -1,50 +1,33 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatPaginatedResponse, handleErrorWithContext } from '../utils/index.js'
 
-type SearchFilter = { value: 'page' | 'data_source'; property: 'object' }
-type SearchSort = { direction: 'ascending' | 'descending'; timestamp: 'last_edited_time' }
-
-interface PaginatedResponse {
-  results: unknown[]
-  has_more: boolean
-  next_cursor: string | null
-}
-
 const inputSchema = {
-  query: z.string().optional().describe('Text to search for in page titles and content'),
+  query: z.string().optional().describe(F.query),
   filter: z
     .object({
       value: z.enum(['page', 'data_source']),
       property: z.literal('object'),
     })
     .optional()
-    .describe(
-      'Filter to limit results to pages or data sources. ' +
-        'Example: { "value": "page", "property": "object" }',
-    ),
+    .describe(F.filter_search),
   sort: z
     .object({
       direction: z.enum(['ascending', 'descending']),
       timestamp: z.literal('last_edited_time'),
     })
     .optional()
-    .describe(
-      'Sort order for results. ' +
-        'Example: { "direction": "descending", "timestamp": "last_edited_time" }',
-    ),
-  start_cursor: z
-    .string()
-    .optional()
-    .describe('Cursor for pagination. Use the next_cursor from previous response.'),
-  page_size: z
-    .number()
-    .min(1)
-    .max(100)
-    .optional()
-    .describe('Number of results to return (1-100). Default is 100.'),
+    .describe(F.sort),
+  start_cursor: z.string().optional().describe(F.start_cursor),
+  page_size: z.number().min(1).max(100).optional().describe(F.page_size),
 }
+
+// Types derived from inputSchema - guaranteed to match
+type Input = { [K in keyof typeof inputSchema]: z.infer<(typeof inputSchema)[K]> }
+type Filter = NonNullable<Input['filter']>
+type Sort = NonNullable<Input['sort']>
 
 export function registerSearch(server: McpServer, notion: NotionClient): void {
   server.registerTool(
@@ -62,8 +45,8 @@ export function registerSearch(server: McpServer, notion: NotionClient): void {
       try {
         const params: {
           query?: string
-          filter?: SearchFilter
-          sort?: SearchSort
+          filter?: Filter
+          sort?: Sort
           start_cursor?: string
           page_size?: number
         } = {}
@@ -73,11 +56,11 @@ export function registerSearch(server: McpServer, notion: NotionClient): void {
         }
 
         if (filter) {
-          params.filter = filter as SearchFilter
+          params.filter = filter as Filter
         }
 
         if (sort) {
-          params.sort = sort as SearchSort
+          params.sort = sort as Sort
         }
 
         if (start_cursor) {
@@ -88,7 +71,7 @@ export function registerSearch(server: McpServer, notion: NotionClient): void {
           params.page_size = page_size
         }
 
-        const response = await notion.search<PaginatedResponse>(params)
+        const response = await notion.search(params)
         return formatPaginatedResponse(response.results, response.has_more, response.next_cursor)
       } catch (error) {
         return handleErrorWithContext(error, notion, {

@@ -1,34 +1,12 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import type { NotionClient } from '../notion-client.js'
+import { isFullDatabase, type NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, formatSimpleResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  database_id: z.string().describe('Database ID'),
-  format: z
-    .enum(['json', 'simple'])
-    .optional()
-    .describe("Output format: 'simple' (default) or 'json'"),
-}
-
-interface DataSourceInfo {
-  id: string
-  name: string
-}
-
-interface DatabaseResponse {
-  object: 'database'
-  id: string
-  title: Array<{ plain_text: string }>
-  description: Array<{ plain_text: string }>
-  url: string
-  created_time: string
-  last_edited_time: string
-  is_inline: boolean
-  in_trash: boolean
-  data_sources: DataSourceInfo[]
-  icon: { type: string; emoji?: string } | null
-  cover: { type: string; external?: { url: string } } | null
+  database_id: z.string().describe(F.database_id),
+  format: z.enum(['json', 'simple']).optional().describe(F.format),
 }
 
 export function registerRetrieveDatabase(server: McpServer, notion: NotionClient): void {
@@ -43,17 +21,22 @@ export function registerRetrieveDatabase(server: McpServer, notion: NotionClient
     },
     async ({ database_id, format = 'simple' }) => {
       try {
-        const response = await notion.databases.retrieve<DatabaseResponse>({ database_id })
+        const response = await notion.databases.retrieve({ database_id })
 
         if (format === 'json') {
+          return formatResponse(response)
+        }
+
+        // Need full database for simple format
+        if (!isFullDatabase(response)) {
           return formatResponse(response)
         }
 
         // Simple format: extract essential info
         const simpleResponse = {
           id: response.id,
-          title: response.title.map((t) => t.plain_text).join(''),
-          description: response.description.map((t) => t.plain_text).join(''),
+          title: response.title.map((t: { plain_text: string }) => t.plain_text).join(''),
+          description: response.description.map((t: { plain_text: string }) => t.plain_text).join(''),
           url: response.url,
           is_inline: response.is_inline,
           in_trash: response.in_trash,

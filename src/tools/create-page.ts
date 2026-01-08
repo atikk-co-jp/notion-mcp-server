@@ -1,27 +1,24 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import type { Block } from '../schemas/block.js'
-import type { PropertyValueSchema } from '../schemas/page.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleErrorWithContext } from '../utils/index.js'
-
-type PropertyValue = z.infer<typeof PropertyValueSchema>
-type Icon = { type: 'emoji'; emoji: string } | { type: 'external'; external: { url: string } }
-type Cover = { type: 'external'; external: { url: string } }
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  data_source_id: z.string().describe('Data source ID (required in API 2025-09-03)'),
-  properties: z.record(z.string(), z.any()).describe('Notion properties object'),
-  children: z.array(z.any()).optional().describe('Block objects array'),
-  icon: z
-    .any()
-    .optional()
-    .describe(
-      'Page icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }. Emoji must be an actual emoji character.',
-    ),
-  cover: z.any().optional().describe('Cover image'),
+  data_source_id: z.string().describe(F.data_source_id),
+  properties: z.record(z.string(), z.any()).describe(F.properties),
+  children: z.array(z.any()).optional().describe(F.children),
+  icon: z.any().optional().describe(F.icon),
+  cover: z.any().optional().describe(F.cover),
 }
+
+// Types derived from inputSchema - guaranteed to match
+type Input = { [K in keyof typeof inputSchema]: z.infer<(typeof inputSchema)[K]> }
+type Properties = Input['properties']
+type Children = NonNullable<Input['children']>
+type Icon = NonNullable<Input['icon']>
+type Cover = NonNullable<Input['cover']>
 
 export function registerCreatePage(server: McpServer, notion: NotionClient): void {
   server.registerTool(
@@ -37,17 +34,17 @@ export function registerCreatePage(server: McpServer, notion: NotionClient): voi
       try {
         const params: {
           parent: { data_source_id: string }
-          properties: Record<string, PropertyValue>
-          children?: Block[]
+          properties: Properties
+          children?: Children
           icon?: Icon
           cover?: Cover
         } = {
           parent: { data_source_id },
-          properties: properties as Record<string, PropertyValue>,
+          properties: properties as Properties,
         }
 
         if (children) {
-          params.children = children as Block[]
+          params.children = children as Children
         }
 
         if (icon) {
