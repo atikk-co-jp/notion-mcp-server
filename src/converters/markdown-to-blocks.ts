@@ -2,7 +2,7 @@
  * Markdown文字列をNotionブロック配列に変換するモジュール
  */
 
-import type { RichTextItem } from './rich-text-to-markdown.js'
+import type { BlockObjectRequest } from '../notion-client.js'
 
 // 安全性のための制限値
 const MAX_INPUT_LENGTH = 100_000 // 100KB
@@ -10,22 +10,33 @@ const MAX_LINE_LENGTH = 10_000 // 10KB per line
 const MAX_CODE_BLOCK_LINES = 1000
 
 /**
- * Notionブロックの型定義（簡易版）
+ * RichTextリクエストの型（SDK内部型に準拠）
  */
-export interface NotionBlock {
-  type: string
-  [key: string]: unknown
+interface RichTextRequest {
+  type: 'text'
+  text: {
+    content: string
+    link?: { url: string } | null
+  }
+  annotations?: {
+    bold?: boolean
+    italic?: boolean
+    strikethrough?: boolean
+    underline?: boolean
+    code?: boolean
+    color?: string
+  }
 }
 
 /**
  * インラインMarkdown記法をRichText配列に変換
  * サポート: **bold**, *italic*, ~~strike~~, `code`, [text](url)
  */
-export function parseInlineMarkdown(text: string): RichTextItem[] {
+export function parseInlineMarkdown(text: string): RichTextRequest[] {
   // 行長制限（ReDoS対策）
   const safeText = text.length > MAX_LINE_LENGTH ? text.slice(0, MAX_LINE_LENGTH) : text
 
-  const result: RichTextItem[] = []
+  const result: RichTextRequest[] = []
 
   // 正規表現パターン（優先順位順）
   const patterns = [
@@ -97,7 +108,7 @@ export function parseInlineMarkdown(text: string): RichTextItem[] {
     }
 
     // マッチしたテキスト
-    const richText: RichTextItem = {
+    const richText: RichTextRequest = {
       type: 'text',
       text: { content: match.content },
       annotations: {},
@@ -156,25 +167,25 @@ function createTextBlock(
   type: string,
   text: string,
   extra: Record<string, unknown> = {},
-): NotionBlock {
+): BlockObjectRequest {
   return {
     type,
     [type]: {
       rich_text: parseInlineMarkdown(text),
       ...extra,
     },
-  }
+  } as BlockObjectRequest
 }
 
 /**
  * Markdown文字列をNotionブロック配列に変換
  */
-export function markdownToBlocks(markdown: string): NotionBlock[] {
+export function markdownToBlocks(markdown: string): BlockObjectRequest[] {
   // 入力長制限（ReDoS対策）
   const safeMarkdown =
     markdown.length > MAX_INPUT_LENGTH ? markdown.slice(0, MAX_INPUT_LENGTH) : markdown
 
-  const blocks: NotionBlock[] = []
+  const blocks: BlockObjectRequest[] = []
   const lines = safeMarkdown.split('\n')
 
   let i = 0
@@ -210,14 +221,14 @@ export function markdownToBlocks(markdown: string): NotionBlock[] {
           rich_text: [{ type: 'text', text: { content: codeLines.join('\n') } }],
           language,
         },
-      })
+      } as BlockObjectRequest)
       i++ // closing ```
       continue
     }
 
     // 水平線: ---
     if (/^-{3,}$/.test(line.trim())) {
-      blocks.push({ type: 'divider', divider: {} })
+      blocks.push({ type: 'divider', divider: {} } as BlockObjectRequest)
       i++
       continue
     }
@@ -284,7 +295,7 @@ export function markdownToBlocks(markdown: string): NotionBlock[] {
           external: { url: imageMatch[2] },
           caption: imageMatch[1] ? [{ type: 'text', text: { content: imageMatch[1] } }] : [],
         },
-      })
+      } as BlockObjectRequest)
       i++
       continue
     }
@@ -334,7 +345,7 @@ export function markdownToBlocks(markdown: string): NotionBlock[] {
         const tableWidth = tableRows[0].length
 
         // テーブルブロックを作成
-        const tableBlock: NotionBlock = {
+        const tableBlock = {
           type: 'table',
           table: {
             table_width: tableWidth,
@@ -347,7 +358,7 @@ export function markdownToBlocks(markdown: string): NotionBlock[] {
               },
             })),
           },
-        }
+        } as BlockObjectRequest
         blocks.push(tableBlock)
       }
       continue

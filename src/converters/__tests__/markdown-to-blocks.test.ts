@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
+import type { BlockObjectRequest } from '../../notion-client.js'
 import { markdownToBlocks, parseInlineMarkdown } from '../markdown-to-blocks.js'
+
+/**
+ * BlockObjectRequestから特定のプロパティにアクセスするヘルパー
+ * SDK型は discriminated union なので、直接プロパティアクセスできない
+ */
+const getBlockProp = <T>(block: BlockObjectRequest, prop: string): T =>
+  (block as unknown as Record<string, T>)[prop]
 
 describe('parseInlineMarkdown', () => {
   describe('plain text', () => {
@@ -83,7 +91,7 @@ describe('markdownToBlocks', () => {
       const result = markdownToBlocks('Hello world')
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('paragraph')
-      expect(result[0].paragraph).toEqual({
+      expect(getBlockProp(result[0], 'paragraph')).toEqual({
         rich_text: [{ type: 'text', text: { content: 'Hello world' } }],
       })
     })
@@ -101,7 +109,7 @@ describe('markdownToBlocks', () => {
       const result = markdownToBlocks('# Heading 1')
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('heading_1')
-      expect(result[0].heading_1).toEqual({
+      expect(getBlockProp(result[0], 'heading_1')).toEqual({
         rich_text: [{ type: 'text', text: { content: 'Heading 1' } }],
       })
     })
@@ -146,7 +154,7 @@ describe('markdownToBlocks', () => {
       const result = markdownToBlocks('- [ ] Task')
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('to_do')
-      expect(result[0].to_do).toEqual({
+      expect(getBlockProp(result[0], 'to_do')).toEqual({
         rich_text: [{ type: 'text', text: { content: 'Task' } }],
         checked: false,
       })
@@ -156,12 +164,12 @@ describe('markdownToBlocks', () => {
       const result = markdownToBlocks('- [x] Done')
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('to_do')
-      expect((result[0].to_do as { checked: boolean }).checked).toBe(true)
+      expect((getBlockProp(result[0], 'to_do') as { checked: boolean }).checked).toBe(true)
     })
 
     it('should handle - [X] (uppercase)', () => {
       const result = markdownToBlocks('- [X] Done')
-      expect((result[0].to_do as { checked: boolean }).checked).toBe(true)
+      expect((getBlockProp(result[0], 'to_do') as { checked: boolean }).checked).toBe(true)
     })
   })
 
@@ -170,7 +178,7 @@ describe('markdownToBlocks', () => {
       const result = markdownToBlocks('```\nconst x = 1\n```')
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('code')
-      expect(result[0].code).toEqual({
+      expect(getBlockProp(result[0], 'code')).toEqual({
         rich_text: [{ type: 'text', text: { content: 'const x = 1' } }],
         language: 'plain text',
       })
@@ -178,12 +186,12 @@ describe('markdownToBlocks', () => {
 
     it('should parse language from code fence', () => {
       const result = markdownToBlocks('```typescript\nconst x: number = 1\n```')
-      expect((result[0].code as { language: string }).language).toBe('typescript')
+      expect((getBlockProp(result[0], 'code') as { language: string }).language).toBe('typescript')
     })
 
     it('should handle multi-line code', () => {
       const result = markdownToBlocks('```js\nline1\nline2\nline3\n```')
-      const code = result[0].code as { rich_text: Array<{ text: { content: string } }> }
+      const code = getBlockProp(result[0], 'code') as { rich_text: Array<{ text: { content: string } }> }
       expect(code.rich_text[0].text.content).toBe('line1\nline2\nline3')
     })
   })
@@ -193,7 +201,7 @@ describe('markdownToBlocks', () => {
       const result = markdownToBlocks('> This is a quote')
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('quote')
-      expect(result[0].quote).toEqual({
+      expect(getBlockProp(result[0], 'quote')).toEqual({
         rich_text: [{ type: 'text', text: { content: 'This is a quote' } }],
       })
     })
@@ -201,7 +209,7 @@ describe('markdownToBlocks', () => {
     it('should combine consecutive quote lines', () => {
       const result = markdownToBlocks('> Line 1\n> Line 2')
       expect(result).toHaveLength(1)
-      const quote = result[0].quote as { rich_text: Array<{ text: { content: string } }> }
+      const quote = getBlockProp(result[0], 'quote') as { rich_text: Array<{ text: { content: string } }> }
       expect(quote.rich_text[0].text.content).toBe('Line 1\nLine 2')
     })
   })
@@ -211,7 +219,7 @@ describe('markdownToBlocks', () => {
       const result = markdownToBlocks('---')
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('divider')
-      expect(result[0].divider).toEqual({})
+      expect(getBlockProp(result[0], 'divider')).toEqual({})
     })
 
     it('should handle ---- (multiple dashes)', () => {
@@ -225,7 +233,7 @@ describe('markdownToBlocks', () => {
       const result = markdownToBlocks('![Alt text](https://example.com/image.png)')
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('image')
-      expect(result[0].image).toEqual({
+      expect(getBlockProp(result[0], 'image')).toEqual({
         type: 'external',
         external: { url: 'https://example.com/image.png' },
         caption: [{ type: 'text', text: { content: 'Alt text' } }],
@@ -234,7 +242,7 @@ describe('markdownToBlocks', () => {
 
     it('should handle image without alt text', () => {
       const result = markdownToBlocks('![](https://example.com/image.png)')
-      expect((result[0].image as { caption: unknown[] }).caption).toEqual([])
+      expect((getBlockProp(result[0], 'image') as { caption: unknown[] }).caption).toEqual([])
     })
   })
 
@@ -249,7 +257,7 @@ describe('markdownToBlocks', () => {
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('table')
 
-      const table = result[0].table as {
+      const table = (result[0] as unknown as { table: unknown }).table as {
         table_width: number
         has_column_header: boolean
         has_row_header: boolean
@@ -274,7 +282,7 @@ describe('markdownToBlocks', () => {
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('table')
 
-      const table = result[0].table as { has_column_header: boolean; children: unknown[] }
+      const table = (result[0] as unknown as { table: unknown }).table as { has_column_header: boolean; children: unknown[] }
       expect(table.has_column_header).toBe(false)
       expect(table.children).toHaveLength(3)
     })
@@ -289,7 +297,7 @@ describe('markdownToBlocks', () => {
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('table')
 
-      const table = result[0].table as {
+      const table = (result[0] as unknown as { table: unknown }).table as {
         children: Array<{
           table_row: {
             cells: Array<
@@ -325,7 +333,7 @@ describe('markdownToBlocks', () => {
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('table')
 
-      const table = result[0].table as { table_width: number; children: unknown[] }
+      const table = (result[0] as unknown as { table: unknown }).table as { table_width: number; children: unknown[] }
       expect(table.table_width).toBe(3)
       expect(table.children).toHaveLength(3) // header + 2 data rows
     })
@@ -339,7 +347,7 @@ describe('markdownToBlocks', () => {
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('table')
 
-      const table = result[0].table as { has_column_header: boolean }
+      const table = (result[0] as unknown as { table: unknown }).table as { has_column_header: boolean }
       expect(table.has_column_header).toBe(true)
     })
 
@@ -352,7 +360,7 @@ describe('markdownToBlocks', () => {
       const result = markdownToBlocks(markdown)
       expect(result).toHaveLength(1)
 
-      const table = result[0].table as {
+      const table = (result[0] as unknown as { table: unknown }).table as {
         children: Array<{
           table_row: { cells: Array<Array<{ text: { content: string } }>> }
         }>

@@ -2,7 +2,8 @@
  * Notionページプロパティをシンプルな形式に変換するモジュール
  */
 
-import { type RichTextItem, richTextToPlain } from './rich-text-to-markdown.js'
+import type { PageObjectResponse, RichTextItemResponse } from '../notion-client.js'
+import { richTextToPlain } from './rich-text-to-markdown.js'
 
 /**
  * シンプル化されたプロパティの型
@@ -19,51 +20,43 @@ export interface SimpleProperty {
 export type PropertyValue = string | number | boolean | string[] | null | Record<string, unknown>
 
 /**
- * Notionプロパティオブジェクトの型
+ * ページプロパティの型（SDK型から抽出）
  */
-export interface NotionProperty {
-  id?: string
-  type: string
-  [key: string]: unknown
-}
+type PageProperty = PageObjectResponse['properties'][string]
 
 /**
  * 単一のプロパティから値を抽出
  */
-function extractPropertyValue(prop: NotionProperty): PropertyValue {
+function extractPropertyValue(prop: PageProperty): PropertyValue {
   const type = prop.type
-  const data = prop[type]
 
   switch (type) {
     case 'title': {
-      return richTextToPlain(data as RichTextItem[])
+      return richTextToPlain(prop.title as RichTextItemResponse[])
     }
 
     case 'rich_text': {
-      return richTextToPlain(data as RichTextItem[])
+      return richTextToPlain(prop.rich_text as RichTextItemResponse[])
     }
 
     case 'number': {
-      return (data as number) ?? null
+      return prop.number ?? null
     }
 
     case 'select': {
-      const select = data as { name: string } | null
-      return select?.name ?? null
+      return prop.select?.name ?? null
     }
 
     case 'multi_select': {
-      const multiSelect = data as { name: string }[]
-      return multiSelect?.map((item) => item.name) ?? []
+      return prop.multi_select?.map((item) => item.name) ?? []
     }
 
     case 'status': {
-      const status = data as { name: string } | null
-      return status?.name ?? null
+      return prop.status?.name ?? null
     }
 
     case 'date': {
-      const date = data as { start: string; end?: string | null } | null
+      const date = prop.date
       if (!date) return null
       if (date.end) {
         return `${date.start} → ${date.end}`
@@ -72,29 +65,23 @@ function extractPropertyValue(prop: NotionProperty): PropertyValue {
     }
 
     case 'checkbox': {
-      return data as boolean
+      return prop.checkbox
     }
 
     case 'url': {
-      return (data as string) ?? null
+      return prop.url ?? null
     }
 
     case 'email': {
-      return (data as string) ?? null
+      return prop.email ?? null
     }
 
     case 'phone_number': {
-      return (data as string) ?? null
+      return prop.phone_number ?? null
     }
 
     case 'formula': {
-      const formula = data as {
-        type: string
-        string?: string
-        number?: number
-        boolean?: boolean
-        date?: { start: string }
-      }
+      const formula = prop.formula
       if (!formula) return null
       switch (formula.type) {
         case 'string':
@@ -111,17 +98,11 @@ function extractPropertyValue(prop: NotionProperty): PropertyValue {
     }
 
     case 'relation': {
-      const relations = data as { id: string }[]
-      return relations?.map((item) => item.id) ?? []
+      return prop.relation?.map((item) => item.id) ?? []
     }
 
     case 'rollup': {
-      const rollup = data as {
-        type: string
-        number?: number
-        date?: { start: string }
-        array?: unknown[]
-      }
+      const rollup = prop.rollup
       if (!rollup) return null
       switch (rollup.type) {
         case 'number':
@@ -136,47 +117,61 @@ function extractPropertyValue(prop: NotionProperty): PropertyValue {
     }
 
     case 'people': {
-      const people = data as { name?: string; id: string }[]
-      return people?.map((person) => person.name ?? person.id) ?? []
+      return prop.people?.map((person) => {
+        if ('name' in person && person.name) {
+          return person.name
+        }
+        return person.id
+      }) ?? []
     }
 
     case 'files': {
-      const files = data as { name?: string; external?: { url: string }; file?: { url: string } }[]
-      return (
-        files?.map((f) => {
-          const url = f.external?.url ?? f.file?.url
-          return f.name ?? url ?? 'file'
-        }) ?? []
-      )
+      return prop.files?.map((f) => {
+        if (f.type === 'external') {
+          return f.name ?? f.external.url ?? 'file'
+        }
+        if (f.type === 'file') {
+          return f.name ?? f.file.url ?? 'file'
+        }
+        // 未知のファイルタイプの場合は name または 'file'
+        return (f as { name?: string }).name ?? 'file'
+      }) ?? []
     }
 
     case 'created_time': {
-      return (data as string) ?? null
+      return prop.created_time ?? null
     }
 
     case 'created_by': {
-      const user = data as { name?: string; id: string } | null
-      return user?.name ?? user?.id ?? null
+      const user = prop.created_by
+      if (!user) return null
+      if ('name' in user && user.name) {
+        return user.name
+      }
+      return user.id
     }
 
     case 'last_edited_time': {
-      return (data as string) ?? null
+      return prop.last_edited_time ?? null
     }
 
     case 'last_edited_by': {
-      const user = data as { name?: string; id: string } | null
-      return user?.name ?? user?.id ?? null
+      const user = prop.last_edited_by
+      if (!user) return null
+      if ('name' in user && user.name) {
+        return user.name
+      }
+      return user.id
     }
 
     case 'unique_id': {
-      const uniqueId = data as { prefix?: string; number: number } | null
+      const uniqueId = prop.unique_id
       if (!uniqueId) return null
       return uniqueId.prefix ? `${uniqueId.prefix}-${uniqueId.number}` : String(uniqueId.number)
     }
 
     case 'verification': {
-      const verification = data as { state: string } | null
-      return verification?.state ?? null
+      return prop.verification?.state ?? null
     }
 
     case 'button': {
@@ -185,9 +180,6 @@ function extractPropertyValue(prop: NotionProperty): PropertyValue {
 
     default: {
       // 未知のプロパティタイプ
-      if (data !== undefined && data !== null) {
-        return JSON.stringify(data)
-      }
       return null
     }
   }
@@ -199,7 +191,7 @@ function extractPropertyValue(prop: NotionProperty): PropertyValue {
  * @returns シンプル化されたプロパティの配列
  */
 export function pagePropertiesToSimple(
-  properties: Record<string, NotionProperty>,
+  properties: PageObjectResponse['properties'],
 ): SimpleProperty[] {
   if (!properties) {
     return []
@@ -218,7 +210,7 @@ export function pagePropertiesToSimple(
  * @returns シンプル化されたプロパティオブジェクト
  */
 export function pagePropertiesToObject(
-  properties: Record<string, NotionProperty>,
+  properties: PageObjectResponse['properties'],
 ): Record<string, PropertyValue> {
   if (!properties) {
     return {}
@@ -245,11 +237,7 @@ export interface SimplePage {
  * @param page - Notion APIから取得したページオブジェクト
  * @returns シンプル化されたページオブジェクト
  */
-export function pageToSimple(page: {
-  id: string
-  url?: string
-  properties: Record<string, NotionProperty>
-}): SimplePage {
+export function pageToSimple(page: PageObjectResponse): SimplePage {
   return {
     id: page.id,
     url: page.url ?? '',
@@ -262,9 +250,7 @@ export function pageToSimple(page: {
  * @param pages - Notion APIから取得したページ配列
  * @returns シンプル化されたページ配列
  */
-export function pagesToSimple(
-  pages: { id: string; url?: string; properties: Record<string, NotionProperty> }[],
-): SimplePage[] {
+export function pagesToSimple(pages: PageObjectResponse[]): SimplePage[] {
   if (!pages) {
     return []
   }
