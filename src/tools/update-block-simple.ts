@@ -1,12 +1,13 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { parseInlineMarkdown } from '../converters/index.js'
-import type { NotionClient } from '../notion-client.js'
+import { isFullBlock, type NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  block_id: z.string().describe('Block ID to update'),
-  content: z.string().describe('New content in Markdown format'),
+  block_id: z.string().describe(F.block_id),
+  content: z.string().describe(F.content),
 }
 
 // Supported block types for simple update
@@ -38,10 +39,16 @@ export function registerUpdateBlockSimple(server: McpServer, notion: NotionClien
     async ({ block_id, content }) => {
       try {
         // First, retrieve the block to get its type
-        const existingBlock = await notion.blocks.retrieve<{
-          type: string
-          to_do?: { checked: boolean }
-        }>({ block_id })
+        const existingBlock = await notion.blocks.retrieve({ block_id })
+
+        if (!isFullBlock(existingBlock)) {
+          return {
+            content: [
+              { type: 'text' as const, text: 'Error: Could not retrieve full block details.' },
+            ],
+            isError: true,
+          }
+        }
 
         const blockType = existingBlock.type as SupportedBlockType
 
@@ -65,11 +72,11 @@ export function registerUpdateBlockSimple(server: McpServer, notion: NotionClien
           block_id,
         }
 
-        if (blockType === 'to_do') {
+        if (blockType === 'to_do' && existingBlock.type === 'to_do') {
           // Preserve the checked state for to_do blocks
           params[blockType] = {
             rich_text: richText,
-            checked: existingBlock.to_do?.checked ?? false,
+            checked: existingBlock.to_do.checked ?? false,
           }
         } else {
           params[blockType] = {

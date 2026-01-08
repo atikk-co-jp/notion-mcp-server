@@ -1,43 +1,19 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
+import { blocksToMarkdown, pageToSimple } from '../converters/index.js'
 import {
-  blocksToMarkdown,
-  type NotionBlock,
-  type NotionProperty,
-  pageToSimple,
-} from '../converters/index.js'
-import type { NotionClient } from '../notion-client.js'
+  type BlockObjectResponse,
+  isFullBlock,
+  isFullPage,
+  type NotionClient,
+} from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, formatSimpleResponse, handleError } from '../utils/index.js'
 
-interface PageResponse {
-  id: string
-  url?: string
-  properties: Record<string, NotionProperty>
-  [key: string]: unknown
-}
-
-interface PaginatedBlockResponse {
-  results: NotionBlock[]
-  has_more: boolean
-  next_cursor: string | null
-}
-
 const inputSchema = {
-  page_id: z.string().describe('The ID of the page to retrieve'),
-  format: z
-    .enum(['json', 'simple'])
-    .optional()
-    .default('simple')
-    .describe(
-      "Output format: 'simple' (default) returns simplified property values with reduced token usage, 'json' returns raw Notion API response",
-    ),
-  include_content: z
-    .boolean()
-    .optional()
-    .default(true)
-    .describe(
-      'Include page content (blocks) as markdown. Default is true. Set to false to only retrieve page properties.',
-    ),
+  page_id: z.string().describe(F.page_id),
+  format: z.enum(['json', 'simple']).optional().default('simple').describe(F.format),
+  include_content: z.boolean().optional().default(true).describe(F.include_content),
 }
 
 export function registerRetrievePage(server: McpServer, notion: NotionClient): void {
@@ -50,28 +26,30 @@ export function registerRetrievePage(server: McpServer, notion: NotionClient): v
     },
     async ({ page_id, format, include_content }) => {
       try {
-        const response = await notion.pages.retrieve<PageResponse>({ page_id })
+        const response = await notion.pages.retrieve({ page_id })
 
         // コンテンツを取得
         let content: string | undefined
         if (include_content) {
-          const blocksResponse = await notion.blocks.children.list<PaginatedBlockResponse>({
-            block_id: page_id,
-          })
+          const blocksResponse = await notion.blocks.children.list({ block_id: page_id })
+
+          // Filter to full blocks
+          const blocks = blocksResponse.results.filter(isFullBlock)
 
           // 子ブロックを再帰的に取得するヘルパー
-          const fetchChildren = async (blockId: string): Promise<NotionBlock[]> => {
-            const res = await notion.blocks.children.list<PaginatedBlockResponse>({
-              block_id: blockId,
-            })
-            return res.results
+          const fetchChildren = async (blockId: string): Promise<BlockObjectResponse[]> => {
+            const res = await notion.blocks.children.list({ block_id: blockId })
+            return res.results.filter(isFullBlock)
           }
 
-          content = await blocksToMarkdown(blocksResponse.results, { fetchChildren })
+          content = await blocksToMarkdown(blocks, { fetchChildren })
         }
 
         if (format === 'simple') {
-          const simple = pageToSimple(response)
+          if (!isFullPage(response)) {
+            return formatResponse(response)
+          }
+          const simple = pageToSimple(response as unknown as Parameters<typeof pageToSimple>[0])
           if (content !== undefined) {
             return formatSimpleResponse({ ...simple, content })
           }

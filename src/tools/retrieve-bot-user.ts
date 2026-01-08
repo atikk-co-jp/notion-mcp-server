@@ -13,7 +13,7 @@ export function registerRetrieveBotUser(server: McpServer, notion: NotionClient)
     },
     async () => {
       try {
-        const response = await notion.users.me()
+        const response = await notion.users.me({})
         return formatResponse(response)
       } catch (error) {
         return handleError(error)

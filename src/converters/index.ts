@@ -5,17 +5,11 @@
  */
 
 // ブロック変換
-export {
-  blocksToMarkdown,
-  blocksToMarkdownSync,
-  type ConvertOptions,
-  type NotionBlock,
-} from './block-to-markdown.js'
+export { blocksToMarkdown, blocksToMarkdownSync, type ConvertOptions } from './block-to-markdown.js'
 // Markdown→ブロック変換
 export { markdownToBlocks, parseInlineMarkdown } from './markdown-to-blocks.js'
 // ページプロパティ変換
 export {
-  type NotionProperty,
   type PropertyValue,
   pagePropertiesToObject,
   pagePropertiesToSimple,
@@ -26,7 +20,6 @@ export {
 } from './page-to-markdown.js'
 // RichText変換
 export {
-  type RichTextItem,
   richTextToMarkdown,
   richTextToPlain,
 } from './rich-text-to-markdown.js'

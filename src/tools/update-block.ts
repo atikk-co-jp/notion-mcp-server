@@ -1,12 +1,13 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { F } from '../schemas/descriptions/index.js'
+import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 
 const inputSchema = {
-  block_id: z.string().describe('Block ID to update'),
-  block: z.record(z.string(), z.any()).describe('Block data with type-specific properties'),
-  archived: z.boolean().optional().describe('Set to true to archive the block'),
+  block_id: z.string().describe(F.block_id),
+  block: z.record(z.string(), z.any()).describe(F.block),
+  archived: z.boolean().optional().describe(F.archived),
 }
 
 export function registerUpdateBlock(server: McpServer, notion: NotionClient): void {
@@ -33,7 +34,9 @@ export function registerUpdateBlock(server: McpServer, notion: NotionClient): vo
         const response = await notion.blocks.update(params)
         return formatResponse(response)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'block',
+        })
       }
     },
   )
