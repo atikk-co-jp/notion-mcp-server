@@ -94,8 +94,10 @@ export {
   isFullUser,
   isNotionClientError,
   iteratePaginatedAPI,
-  NotionClientError,
 } from '@notionhq/client'
+
+// NotionClientErrorは型としてのみエクスポート（ランタイムには存在しない）
+export type { NotionClientError } from '@notionhq/client'
 
 export interface NotionClientOptions {
   token: string
