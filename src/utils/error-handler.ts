@@ -1,10 +1,15 @@
-import type { NotionClient } from '../notion-client.js'
+import { isFullDataSource, type NotionClient } from '../notion-client.js'
 import {
   type ExampleType,
   PagePropertyExamples,
   SchemaPropertyExamples,
   getExamplesByType,
-} from '../schemas/examples.js'
+} from '../schemas/descriptions/index.js'
+
+interface DataSourceProperty {
+  type: string
+  [key: string]: unknown
+}
 
 export interface McpTextContent {
   type: 'text'
@@ -20,11 +25,6 @@ export interface McpResponse {
 interface NotionApiError {
   code: string
   message: string
-}
-
-interface DataSourceProperty {
-  type: string
-  [key: string]: unknown
 }
 
 function isNotionApiError(error: unknown): error is Error & NotionApiError {
@@ -125,10 +125,6 @@ function formatPropertyList(
   return propList
 }
 
-interface DataSourceResponse {
-  properties: Record<string, DataSourceProperty>
-}
-
 export interface HandleErrorOptions {
   /** Data source ID to fetch schema for property list */
   dataSourceId?: string
@@ -161,11 +157,14 @@ export async function handleErrorWithContext(
   // For data source related errors, fetch and show property list
   if (options?.dataSourceId && (options.exampleType === 'page' || options.exampleType === 'schema')) {
     try {
-      const schema = await notion.dataSources.retrieve<DataSourceResponse>({
-        data_source_id: options.dataSourceId,
-      })
-      const propList = formatPropertyList(schema.properties, options.exampleType)
-      baseResponse.content[0].text += `\n\nAvailable properties:\n${propList}`
+      const schema = await notion.dataSources.retrieve({ data_source_id: options.dataSourceId })
+      if (isFullDataSource(schema)) {
+        const propList = formatPropertyList(
+          schema.properties as unknown as Record<string, DataSourceProperty>,
+          options.exampleType
+        )
+        baseResponse.content[0].text += `\n\nAvailable properties:\n${propList}`
+      }
     } catch {
       // Ignore schema fetch errors - still show examples below
     }
