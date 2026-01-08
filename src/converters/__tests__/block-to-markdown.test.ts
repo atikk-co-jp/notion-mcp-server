@@ -17,7 +17,9 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'paragraph',
           paragraph: {
-            rich_text: [{ type: 'text', text: { content: 'Hello World' }, plain_text: 'Hello World' }],
+            rich_text: [
+              { type: 'text', text: { content: 'Hello World' }, plain_text: 'Hello World' },
+            ],
             color: 'default',
           },
         },
@@ -50,7 +52,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'heading_1',
           heading_1: {
-            rich_text: [{ type: 'text', text: { content: 'Heading 1' }, plain_text: 'Heading 1', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Heading 1' },
+                plain_text: 'Heading 1',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -62,7 +79,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'heading_2',
           heading_2: {
-            rich_text: [{ type: 'text', text: { content: 'Heading 2' }, plain_text: 'Heading 2', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Heading 2' },
+                plain_text: 'Heading 2',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -74,7 +106,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'heading_3',
           heading_3: {
-            rich_text: [{ type: 'text', text: { content: 'Heading 3' }, plain_text: 'Heading 3', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Heading 3' },
+                plain_text: 'Heading 3',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -88,13 +135,43 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'bulleted_list_item',
           bulleted_list_item: {
-            rich_text: [{ type: 'text', text: { content: 'Item 1' }, plain_text: 'Item 1', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Item 1' },
+                plain_text: 'Item 1',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
         {
           type: 'bulleted_list_item',
           bulleted_list_item: {
-            rich_text: [{ type: 'text', text: { content: 'Item 2' }, plain_text: 'Item 2', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Item 2' },
+                plain_text: 'Item 2',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -106,19 +183,64 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'numbered_list_item',
           numbered_list_item: {
-            rich_text: [{ type: 'text', text: { content: 'First' }, plain_text: 'First', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'First' },
+                plain_text: 'First',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
         {
           type: 'numbered_list_item',
           numbered_list_item: {
-            rich_text: [{ type: 'text', text: { content: 'Second' }, plain_text: 'Second', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Second' },
+                plain_text: 'Second',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
         {
           type: 'numbered_list_item',
           numbered_list_item: {
-            rich_text: [{ type: 'text', text: { content: 'Third' }, plain_text: 'Third', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Third' },
+                plain_text: 'Third',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -130,19 +252,64 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'numbered_list_item',
           numbered_list_item: {
-            rich_text: [{ type: 'text', text: { content: 'First' }, plain_text: 'First', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'First' },
+                plain_text: 'First',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
         {
           type: 'paragraph',
           paragraph: {
-            rich_text: [{ type: 'text', text: { content: 'Break' }, plain_text: 'Break', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Break' },
+                plain_text: 'Break',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
         {
           type: 'numbered_list_item',
           numbered_list_item: {
-            rich_text: [{ type: 'text', text: { content: 'New First' }, plain_text: 'New First', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'New First' },
+                plain_text: 'New First',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -156,7 +323,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'to_do',
           to_do: {
-            rich_text: [{ type: 'text', text: { content: 'Task' }, plain_text: 'Task', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Task' },
+                plain_text: 'Task',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
             checked: false,
           },
         },
@@ -169,7 +351,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'to_do',
           to_do: {
-            rich_text: [{ type: 'text', text: { content: 'Done Task' }, plain_text: 'Done Task', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Done Task' },
+                plain_text: 'Done Task',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
             checked: true,
           },
         },
@@ -184,7 +381,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'code',
           code: {
-            rich_text: [{ type: 'text', text: { content: "console.log('hello')" }, plain_text: "console.log('hello')", annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: "console.log('hello')" },
+                plain_text: "console.log('hello')",
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
             language: 'javascript',
           },
         },
@@ -197,7 +409,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'code',
           code: {
-            rich_text: [{ type: 'text', text: { content: 'plain code' }, plain_text: 'plain code', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'plain code' },
+                plain_text: 'plain code',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
             language: '',
           },
         },
@@ -212,7 +439,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'quote',
           quote: {
-            rich_text: [{ type: 'text', text: { content: 'A wise quote' }, plain_text: 'A wise quote', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'A wise quote' },
+                plain_text: 'A wise quote',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -224,7 +466,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'quote',
           quote: {
-            rich_text: [{ type: 'text', text: { content: 'Line 1\nLine 2' }, plain_text: 'Line 1\nLine 2', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Line 1\nLine 2' },
+                plain_text: 'Line 1\nLine 2',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -236,7 +493,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'callout',
           callout: {
-            rich_text: [{ type: 'text', text: { content: 'Important info' }, plain_text: 'Important info', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Important info' },
+                plain_text: 'Important info',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
             icon: { type: 'emoji', emoji: '💡' },
           },
         },
@@ -249,7 +521,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'callout',
           callout: {
-            rich_text: [{ type: 'text', text: { content: 'Info' }, plain_text: 'Info', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Info' },
+                plain_text: 'Info',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
             icon: null,
           },
         },
@@ -285,7 +572,22 @@ describe('blocksToMarkdownSync', () => {
           type: 'bookmark',
           bookmark: {
             url: 'https://example.com',
-            caption: [{ type: 'text', text: { content: 'Example Site' }, plain_text: 'Example Site', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            caption: [
+              {
+                type: 'text',
+                text: { content: 'Example Site' },
+                plain_text: 'Example Site',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -329,7 +631,22 @@ describe('blocksToMarkdownSync', () => {
           image: {
             type: 'external',
             external: { url: 'https://example.com/image.png' },
-            caption: [{ type: 'text', text: { content: 'My Image' }, plain_text: 'My Image', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            caption: [
+              {
+                type: 'text',
+                text: { content: 'My Image' },
+                plain_text: 'My Image',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -426,7 +743,22 @@ describe('blocksToMarkdownSync', () => {
         {
           type: 'toggle',
           toggle: {
-            rich_text: [{ type: 'text', text: { content: 'Click to expand' }, plain_text: 'Click to expand', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'Click to expand' },
+                plain_text: 'Click to expand',
+                annotations: {
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  underline: false,
+                  code: false,
+                  color: 'default',
+                },
+                href: null,
+              },
+            ],
           },
         },
       ])
@@ -617,7 +949,22 @@ describe('blocksToMarkdown (async)', () => {
       {
         type: 'paragraph',
         paragraph: {
-          rich_text: [{ type: 'text', text: { content: 'Hello' }, plain_text: 'Hello', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+          rich_text: [
+            {
+              type: 'text',
+              text: { content: 'Hello' },
+              plain_text: 'Hello',
+              annotations: {
+                bold: false,
+                italic: false,
+                strikethrough: false,
+                underline: false,
+                code: false,
+                color: 'default',
+              },
+              href: null,
+            },
+          ],
         },
       },
     ])
@@ -630,7 +977,9 @@ describe('blocksToMarkdown (async)', () => {
       {
         type: 'paragraph',
         paragraph: {
-          rich_text: [{ type: 'text', text: { content: 'Nested content' }, plain_text: 'Nested content' }],
+          rich_text: [
+            { type: 'text', text: { content: 'Nested content' }, plain_text: 'Nested content' },
+          ],
         },
       },
     ])
@@ -642,7 +991,9 @@ describe('blocksToMarkdown (async)', () => {
         type: 'bulleted_list_item',
         has_children: true,
         bulleted_list_item: {
-          rich_text: [{ type: 'text', text: { content: 'Parent item' }, plain_text: 'Parent item' }],
+          rich_text: [
+            { type: 'text', text: { content: 'Parent item' }, plain_text: 'Parent item' },
+          ],
         },
       },
     ])
@@ -659,7 +1010,9 @@ describe('blocksToMarkdown (async)', () => {
       {
         type: 'paragraph',
         paragraph: {
-          rich_text: [{ type: 'text', text: { content: 'Toggle content' }, plain_text: 'Toggle content' }],
+          rich_text: [
+            { type: 'text', text: { content: 'Toggle content' }, plain_text: 'Toggle content' },
+          ],
         },
       },
     ])

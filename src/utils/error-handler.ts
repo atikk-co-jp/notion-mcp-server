@@ -1,9 +1,9 @@
 import { isFullDataSource, type NotionClient } from '../notion-client.js'
 import {
   type ExampleType,
+  getExamplesByType,
   PagePropertyExamples,
   SchemaPropertyExamples,
-  getExamplesByType,
 } from '../schemas/descriptions/index.js'
 
 interface DataSourceProperty {
@@ -155,13 +155,16 @@ export async function handleErrorWithContext(
   }
 
   // For data source related errors, fetch and show property list
-  if (options?.dataSourceId && (options.exampleType === 'page' || options.exampleType === 'schema')) {
+  if (
+    options?.dataSourceId &&
+    (options.exampleType === 'page' || options.exampleType === 'schema')
+  ) {
     try {
       const schema = await notion.dataSources.retrieve({ data_source_id: options.dataSourceId })
       if (isFullDataSource(schema)) {
         const propList = formatPropertyList(
           schema.properties as unknown as Record<string, DataSourceProperty>,
-          options.exampleType
+          options.exampleType,
         )
         baseResponse.content[0].text += `\n\nAvailable properties:\n${propList}`
       }
@@ -183,4 +186,3 @@ export async function handleErrorWithContext(
 
   return baseResponse
 }
-

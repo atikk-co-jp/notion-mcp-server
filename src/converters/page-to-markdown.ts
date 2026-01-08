@@ -117,25 +117,29 @@ function extractPropertyValue(prop: PageProperty): PropertyValue {
     }
 
     case 'people': {
-      return prop.people?.map((person) => {
-        if ('name' in person && person.name) {
-          return person.name
-        }
-        return person.id
-      }) ?? []
+      return (
+        prop.people?.map((person) => {
+          if ('name' in person && person.name) {
+            return person.name
+          }
+          return person.id
+        }) ?? []
+      )
     }
 
     case 'files': {
-      return prop.files?.map((f) => {
-        if (f.type === 'external') {
-          return f.name ?? f.external.url ?? 'file'
-        }
-        if (f.type === 'file') {
-          return f.name ?? f.file.url ?? 'file'
-        }
-        // 未知のファイルタイプの場合は name または 'file'
-        return (f as { name?: string }).name ?? 'file'
-      }) ?? []
+      return (
+        prop.files?.map((f) => {
+          if (f.type === 'external') {
+            return f.name ?? f.external.url ?? 'file'
+          }
+          if (f.type === 'file') {
+            return f.name ?? f.file.url ?? 'file'
+          }
+          // 未知のファイルタイプの場合は name または 'file'
+          return (f as { name?: string }).name ?? 'file'
+        }) ?? []
+      )
     }
 
     case 'created_time': {

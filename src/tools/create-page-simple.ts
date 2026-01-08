@@ -1,6 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { z } from 'zod'
 import type { BlockObjectRequest } from '@notionhq/client'
+import { z } from 'zod'
 import { markdownToBlocks } from '../converters/index.js'
 import { isFullDataSource, type NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
@@ -66,7 +66,9 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
         }
 
         // Cast markdownToBlocks output to SDK's BlockObjectRequest type
-        const children = content ? markdownToBlocks(content) as unknown as BlockObjectRequest[] : undefined
+        const children = content
+          ? (markdownToBlocks(content) as unknown as BlockObjectRequest[])
+          : undefined
 
         const response = await notion.pages.create({
           parent: { data_source_id },

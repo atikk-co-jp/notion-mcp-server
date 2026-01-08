@@ -25,7 +25,10 @@ const TOTAL_TOOLS_WARNING_TOKENS = 35000 // Warning threshold
 // NOTE: query-data-source, update-database, create-database were optimized using
 // z.any() with FieldDescriptions, reducing ~13,500 tokens. All tools now fit within
 // the standard SINGLE_TOOL_MAX_TOKENS threshold.
-const KNOWN_LARGE_TOOLS: Record<string, { reason: string; actualTokens: number; maxAllowed: number }> = {
+const KNOWN_LARGE_TOOLS: Record<
+  string,
+  { reason: string; actualTokens: number; maxAllowed: number }
+> = {
   // Currently empty - all tools have been optimized
 }
 
@@ -44,7 +47,7 @@ interface JsonSchema {
 
 // Access internal registered tools from McpServer
 function getRegisteredTools(server: McpServer): Record<string, RegisteredTool> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // biome-ignore lint/suspicious/noExplicitAny: Internal API access required for testing
   return (server as any)._registeredTools as Record<string, RegisteredTool>
 }
 
@@ -160,7 +163,9 @@ describe('Tool context size', () => {
         console.warn(
           `\n⚠️  WARNING: Total tokens (~${totalTokens}) exceeds warning threshold (${TOTAL_TOOLS_WARNING_TOKENS})`,
         )
-        console.warn('   Consider optimizing known large tools by replacing complex schemas with z.any()')
+        console.warn(
+          '   Consider optimizing known large tools by replacing complex schemas with z.any()',
+        )
       }
     })
   })

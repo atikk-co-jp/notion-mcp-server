@@ -28,7 +28,11 @@ interface ToolErrorConfig {
 const toolErrorConfigs: ToolErrorConfig[] = [
   // Tools using handleErrorWithContext
   { toolFile: 'append-block-children.ts', handler: 'handleErrorWithContext', exampleType: 'block' },
-  { toolFile: 'create-comment.ts', handler: 'handleErrorWithContext', exampleType: 'richTextArray' },
+  {
+    toolFile: 'create-comment.ts',
+    handler: 'handleErrorWithContext',
+    exampleType: 'richTextArray',
+  },
   { toolFile: 'create-database.ts', handler: 'handleErrorWithContext', exampleType: 'schema' },
   {
     toolFile: 'create-page.ts',
@@ -79,42 +83,44 @@ const toolErrorConfigs: ToolErrorConfig[] = [
 ]
 
 describe('Tool error handlers', () => {
-  describe.each(toolErrorConfigs)(
-    '$toolFile',
-    ({ toolFile, handler, exampleType, hasDataSourceId }) => {
-      const filePath = resolve(toolsDir, toolFile)
-      const content = readFileSync(filePath, 'utf-8')
+  describe.each(toolErrorConfigs)('$toolFile', ({
+    toolFile,
+    handler,
+    exampleType,
+    hasDataSourceId,
+  }) => {
+    const filePath = resolve(toolsDir, toolFile)
+    const content = readFileSync(filePath, 'utf-8')
 
-      it(`should import ${handler}`, () => {
-        const importRegex = new RegExp(`import\\s+\\{[^}]*\\b${handler}\\b[^}]*\\}`)
-        expect(content).toMatch(importRegex)
+    it(`should import ${handler}`, () => {
+      const importRegex = new RegExp(`import\\s+\\{[^}]*\\b${handler}\\b[^}]*\\}`)
+      expect(content).toMatch(importRegex)
+    })
+
+    it(`should call ${handler} in catch block`, () => {
+      const callRegex = new RegExp(`return\\s+${handler}\\(error`)
+      expect(content).toMatch(callRegex)
+    })
+
+    if (handler === 'handleErrorWithContext') {
+      it(`should use exampleType: '${exampleType}'`, () => {
+        const exampleTypeRegex = new RegExp(`exampleType:\\s*['"]${exampleType}['"]`)
+        expect(content).toMatch(exampleTypeRegex)
       })
 
-      it(`should call ${handler} in catch block`, () => {
-        const callRegex = new RegExp(`return\\s+${handler}\\(error`)
-        expect(content).toMatch(callRegex)
+      if (hasDataSourceId) {
+        it('should pass dataSourceId option', () => {
+          expect(content).toMatch(/dataSourceId:\s*\w+/)
+        })
+      }
+    }
+
+    if (handler === 'handleError') {
+      it('should not use handleErrorWithContext', () => {
+        expect(content).not.toMatch(/handleErrorWithContext/)
       })
-
-      if (handler === 'handleErrorWithContext') {
-        it(`should use exampleType: '${exampleType}'`, () => {
-          const exampleTypeRegex = new RegExp(`exampleType:\\s*['"]${exampleType}['"]`)
-          expect(content).toMatch(exampleTypeRegex)
-        })
-
-        if (hasDataSourceId) {
-          it('should pass dataSourceId option', () => {
-            expect(content).toMatch(/dataSourceId:\s*\w+/)
-          })
-        }
-      }
-
-      if (handler === 'handleError') {
-        it('should not use handleErrorWithContext', () => {
-          expect(content).not.toMatch(/handleErrorWithContext/)
-        })
-      }
-    },
-  )
+    }
+  })
 })
 
 describe('All tool files are covered', () => {

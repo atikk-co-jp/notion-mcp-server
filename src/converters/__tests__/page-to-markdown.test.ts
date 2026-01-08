@@ -17,14 +17,12 @@ const asProperties = (props: unknown): PageObjectResponse['properties'] =>
 /**
  * テスト用のページをPageObjectResponseにキャストするヘルパー
  */
-const asPage = (page: unknown): PageObjectResponse =>
-  page as unknown as PageObjectResponse
+const asPage = (page: unknown): PageObjectResponse => page as unknown as PageObjectResponse
 
 /**
  * テスト用のページ配列をPageObjectResponse[]にキャストするヘルパー
  */
-const asPages = (pages: unknown[]): PageObjectResponse[] =>
-  pages as unknown as PageObjectResponse[]
+const asPages = (pages: unknown[]): PageObjectResponse[] => pages as unknown as PageObjectResponse[]
 
 describe('pagePropertiesToObject', () => {
   describe('text properties', () => {
@@ -430,7 +428,9 @@ describe('pagePropertiesToObject', () => {
     })
 
     it('handles null properties', () => {
-      expect(pagePropertiesToObject(null as unknown as PageObjectResponse['properties'])).toEqual({})
+      expect(pagePropertiesToObject(null as unknown as PageObjectResponse['properties'])).toEqual(
+        {},
+      )
     })
   })
 })

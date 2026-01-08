@@ -36,7 +36,9 @@ export function registerRetrieveDatabase(server: McpServer, notion: NotionClient
         const simpleResponse = {
           id: response.id,
           title: response.title.map((t: { plain_text: string }) => t.plain_text).join(''),
-          description: response.description.map((t: { plain_text: string }) => t.plain_text).join(''),
+          description: response.description
+            .map((t: { plain_text: string }) => t.plain_text)
+            .join(''),
           url: response.url,
           is_inline: response.is_inline,
           in_trash: response.in_trash,

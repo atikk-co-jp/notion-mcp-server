@@ -43,7 +43,9 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
         if (format === 'simple') {
           // Filter to full pages and cast for pagesToSimple converter
           const fullPages = response.results.filter(isFullPage)
-          const simplePages = pagesToSimple(fullPages as unknown as Parameters<typeof pagesToSimple>[0])
+          const simplePages = pagesToSimple(
+            fullPages as unknown as Parameters<typeof pagesToSimple>[0],
+          )
           return formatSimplePaginatedResponse(simplePages, response.has_more, response.next_cursor)
         }
 

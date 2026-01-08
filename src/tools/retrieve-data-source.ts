@@ -50,7 +50,9 @@ export function registerRetrieveDataSource(server: McpServer, notion: NotionClie
           // Include options for select/multi_select/status
           const propAny = prop as Record<string, unknown>
           if (prop.type === 'select' && propAny.select) {
-            const selectProp = propAny.select as { options?: Array<{ name: string; color?: string }> }
+            const selectProp = propAny.select as {
+              options?: Array<{ name: string; color?: string }>
+            }
             simpleProp.options = selectProp.options
           } else if (prop.type === 'multi_select' && propAny.multi_select) {
             const multiSelectProp = propAny.multi_select as {
@@ -58,7 +60,9 @@ export function registerRetrieveDataSource(server: McpServer, notion: NotionClie
             }
             simpleProp.options = multiSelectProp.options
           } else if (prop.type === 'status' && propAny.status) {
-            const statusProp = propAny.status as { options?: Array<{ name: string; color?: string }> }
+            const statusProp = propAny.status as {
+              options?: Array<{ name: string; color?: string }>
+            }
             simpleProp.options = statusProp.options
           }
 

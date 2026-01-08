@@ -191,7 +191,9 @@ describe('markdownToBlocks', () => {
 
     it('should handle multi-line code', () => {
       const result = markdownToBlocks('```js\nline1\nline2\nline3\n```')
-      const code = getBlockProp(result[0], 'code') as { rich_text: Array<{ text: { content: string } }> }
+      const code = getBlockProp(result[0], 'code') as {
+        rich_text: Array<{ text: { content: string } }>
+      }
       expect(code.rich_text[0].text.content).toBe('line1\nline2\nline3')
     })
   })
@@ -209,7 +211,9 @@ describe('markdownToBlocks', () => {
     it('should combine consecutive quote lines', () => {
       const result = markdownToBlocks('> Line 1\n> Line 2')
       expect(result).toHaveLength(1)
-      const quote = getBlockProp(result[0], 'quote') as { rich_text: Array<{ text: { content: string } }> }
+      const quote = getBlockProp(result[0], 'quote') as {
+        rich_text: Array<{ text: { content: string } }>
+      }
       expect(quote.rich_text[0].text.content).toBe('Line 1\nLine 2')
     })
   })
@@ -282,7 +286,10 @@ describe('markdownToBlocks', () => {
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('table')
 
-      const table = (result[0] as unknown as { table: unknown }).table as { has_column_header: boolean; children: unknown[] }
+      const table = (result[0] as unknown as { table: unknown }).table as {
+        has_column_header: boolean
+        children: unknown[]
+      }
       expect(table.has_column_header).toBe(false)
       expect(table.children).toHaveLength(3)
     })
@@ -333,7 +340,10 @@ describe('markdownToBlocks', () => {
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('table')
 
-      const table = (result[0] as unknown as { table: unknown }).table as { table_width: number; children: unknown[] }
+      const table = (result[0] as unknown as { table: unknown }).table as {
+        table_width: number
+        children: unknown[]
+      }
       expect(table.table_width).toBe(3)
       expect(table.children).toHaveLength(3) // header + 2 data rows
     })
@@ -347,7 +357,9 @@ describe('markdownToBlocks', () => {
       expect(result).toHaveLength(1)
       expect(result[0].type).toBe('table')
 
-      const table = (result[0] as unknown as { table: unknown }).table as { has_column_header: boolean }
+      const table = (result[0] as unknown as { table: unknown }).table as {
+        has_column_header: boolean
+      }
       expect(table.has_column_header).toBe(true)
     })
 

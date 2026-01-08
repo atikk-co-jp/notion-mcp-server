@@ -1,2 +1,2 @@
 // Field descriptions for MCP tool schemas
-export { F, Fields, type FieldDesc } from './descriptions/index.js'
+export { F, type FieldDesc, Fields } from './descriptions/index.js'

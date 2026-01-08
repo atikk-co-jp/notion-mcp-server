@@ -37,7 +37,7 @@ export function registerCreateDatabase(server: McpServer, notion: NotionClient):
           ...(is_inline !== undefined && { is_inline }),
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: SDK type compatibility workaround
         const response = await notion.databases.create(params as any)
         return formatResponse(response)
       } catch (error) {

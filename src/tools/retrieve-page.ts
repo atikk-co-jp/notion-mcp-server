@@ -1,10 +1,12 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
+import { blocksToMarkdown, pageToSimple } from '../converters/index.js'
 import {
-  blocksToMarkdown,
-  pageToSimple,
-} from '../converters/index.js'
-import { type BlockObjectResponse, isFullBlock, isFullPage, type NotionClient } from '../notion-client.js'
+  type BlockObjectResponse,
+  isFullBlock,
+  isFullPage,
+  type NotionClient,
+} from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, formatSimpleResponse, handleError } from '../utils/index.js'
 

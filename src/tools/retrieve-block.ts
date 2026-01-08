@@ -7,10 +7,7 @@ import { formatMarkdownResponse, formatResponse, handleError } from '../utils/in
 
 const inputSchema = {
   block_id: z.string().describe(F.block_id),
-  format: z
-    .enum(['markdown', 'json'])
-    .optional()
-    .describe(F.format),
+  format: z.enum(['markdown', 'json']).optional().describe(F.format),
 }
 
 export function registerRetrieveBlock(server: McpServer, notion: NotionClient): void {
@@ -36,7 +33,9 @@ export function registerRetrieveBlock(server: McpServer, notion: NotionClient): 
         }
 
         // Convert to markdown (cast to any for now until converters are updated)
-        const markdown = blocksToMarkdownSync([response as unknown as Parameters<typeof blocksToMarkdownSync>[0][number]])
+        const markdown = blocksToMarkdownSync([
+          response as unknown as Parameters<typeof blocksToMarkdownSync>[0][number],
+        ])
         return formatMarkdownResponse(markdown, false, null)
       } catch (error) {
         return handleError(error)

@@ -43,7 +43,9 @@ export function registerUpdateBlockSimple(server: McpServer, notion: NotionClien
 
         if (!isFullBlock(existingBlock)) {
           return {
-            content: [{ type: 'text' as const, text: 'Error: Could not retrieve full block details.' }],
+            content: [
+              { type: 'text' as const, text: 'Error: Could not retrieve full block details.' },
+            ],
             isError: true,
           }
         }

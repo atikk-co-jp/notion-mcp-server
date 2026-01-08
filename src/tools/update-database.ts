@@ -41,7 +41,7 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
           ...(is_locked !== undefined && { is_locked }),
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: SDK type compatibility workaround
         const response = await notion.databases.update(params as any)
         return formatResponse(response)
       } catch (error) {

@@ -35,9 +35,10 @@ export function registerListComments(server: McpServer, notion: NotionClient): v
         }
 
         // Notion API only accepts block_id (page_id works as block_id since pages are blocks)
-        // Safe to assert non-null since we checked above that at least one is defined
+        // We checked above that at least one is defined, so we can safely use the fallback
+        const targetBlockId = block_id ?? page_id ?? ''
         const response = await notion.comments.list({
-          block_id: (block_id || page_id)!,
+          block_id: targetBlockId,
           start_cursor,
           page_size,
         })

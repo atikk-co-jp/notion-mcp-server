@@ -117,7 +117,8 @@ export const Fields = {
   filter: {
     desc: {
       default: 'Filter object. Example: {"property":"Status","select":{"equals":"Done"}}',
-      search: 'Filter to limit results to pages or data sources. Example: { "value": "page", "property": "object" }',
+      search:
+        'Filter to limit results to pages or data sources. Example: { "value": "page", "property": "object" }',
     },
   },
   sorts: {
@@ -145,7 +146,8 @@ export const Fields = {
   // ============================================
   icon: {
     desc: {
-      default: 'Icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }',
+      default:
+        'Icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }',
       emoji: 'Emoji character (e.g. "📝", "🐛", "✅"). Must be an actual emoji, not a name.',
     },
   },

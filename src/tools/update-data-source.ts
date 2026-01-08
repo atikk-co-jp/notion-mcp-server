@@ -7,10 +7,7 @@ import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
   data_source_id: z.string().describe(F.data_source_id),
-  properties: z
-    .record(z.string(), z.any())
-    .optional()
-    .describe(F.properties_update),
+  properties: z.record(z.string(), z.any()).optional().describe(F.properties_update),
 }
 
 // Types derived from inputSchema - guaranteed to match

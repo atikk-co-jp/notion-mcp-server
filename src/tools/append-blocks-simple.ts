@@ -1,6 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { z } from 'zod'
 import type { BlockObjectRequest } from '@notionhq/client'
+import { z } from 'zod'
 import { markdownToBlocks } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
