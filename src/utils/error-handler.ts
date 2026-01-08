@@ -114,7 +114,6 @@ function formatPropertyList(
   const uniqueTypes = [...new Set(Object.values(properties).map((p) => p.type))]
   const exampleLines = uniqueTypes
     .filter((type) => examples[type])
-    .slice(0, 5) // Limit to 5 examples to save tokens
     .map((type) => `  ${type}: ${examples[type]}`)
     .join('\n')
 

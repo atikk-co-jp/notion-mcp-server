@@ -92,7 +92,6 @@ export function getExamplesByType(type: ExampleType): string {
 
 function formatExamples(title: string, examples: Record<string, string>): string {
   const lines = Object.entries(examples)
-    .slice(0, 5) // Limit to 5 examples to save tokens
     .map(([key, value]) => `  ${key}: ${value}`)
     .join('\n')
   return `${title} examples:\n${lines}`
