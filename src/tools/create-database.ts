@@ -1,4 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import type { CreateDatabaseParameters } from '@notionhq/client/build/src/api-endpoints.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
@@ -37,8 +38,7 @@ export function registerCreateDatabase(server: McpServer, notion: NotionClient):
           ...(is_inline !== undefined && { is_inline }),
         }
 
-        // biome-ignore lint/suspicious/noExplicitAny: SDK type compatibility workaround
-        const response = await notion.databases.create(params as any)
+        const response = await notion.databases.create(params as CreateDatabaseParameters)
         return formatResponse(response)
       } catch (error) {
         return handleErrorWithContext(error, notion, {

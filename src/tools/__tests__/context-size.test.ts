@@ -46,9 +46,10 @@ interface JsonSchema {
 }
 
 // Access internal registered tools from McpServer
+// Using type assertion chain to avoid explicit any
 function getRegisteredTools(server: McpServer): Record<string, RegisteredTool> {
-  // biome-ignore lint/suspicious/noExplicitAny: Internal API access required for testing
-  return (server as any)._registeredTools as Record<string, RegisteredTool>
+  return (server as unknown as { _registeredTools: Record<string, RegisteredTool> })
+    ._registeredTools
 }
 
 // Create a mock notion client for testing (won't make actual API calls)
