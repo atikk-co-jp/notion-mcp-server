@@ -2,13 +2,14 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { parseInlineMarkdown } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  page_id: z.string().optional().describe('Page ID (for page comments)'),
-  block_id: z.string().optional().describe('Block ID (for block comments)'),
-  discussion_id: z.string().optional().describe('Discussion ID (for replies)'),
-  content: z.string().describe('Comment in Markdown (**bold**, *italic*, [link](url), `code`)'),
+  page_id: z.string().optional().describe(F.page_id),
+  block_id: z.string().optional().describe(F.block_id),
+  discussion_id: z.string().optional().describe(F.discussion_id),
+  content: z.string().describe(F.content),
 }
 
 export function registerCreateCommentSimple(server: McpServer, notion: NotionClient): void {

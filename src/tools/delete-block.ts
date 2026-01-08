@@ -1,10 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  block_id: z.string().describe('Block ID to delete'),
+  block_id: z.string().describe(F.block_id),
 }
 
 export function registerDeleteBlock(server: McpServer, notion: NotionClient): void {

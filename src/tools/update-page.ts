@@ -1,22 +1,24 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import type { PropertyValueSchema } from '../schemas/page.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleErrorWithContext } from '../utils/index.js'
-
-type PropertyValue = z.infer<typeof PropertyValueSchema>
-type Icon = { type: 'emoji'; emoji: string } | { type: 'external'; external: { url: string } }
-type Cover = { type: 'external'; external: { url: string } }
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  page_id: z.string().describe('Page ID'),
-  properties: z.record(z.string(), z.any()).optional().describe('Properties to update'),
-  archived: z.boolean().optional().describe('Archive the page'),
-  icon: z.any().optional().describe('Page icon { type: "emoji", emoji: "📝" } or { type: "external", external: { url: "..." } }, or null to remove. Emoji must be an actual emoji character.'),
-  cover: z.any().optional().describe('Cover image (null to remove)'),
-  is_locked: z.boolean().optional().describe('Lock the page to prevent edits in the UI. Set to true to lock, false to unlock.'),
+  page_id: z.string().describe(F.page_id),
+  properties: z.record(z.string(), z.any()).optional().describe(F.properties),
+  archived: z.boolean().optional().describe(F.archived),
+  icon: z.any().optional().describe(F.icon),
+  cover: z.any().optional().describe(F.cover),
+  is_locked: z.boolean().optional().describe(F.is_locked),
 }
+
+// Types derived from inputSchema - guaranteed to match
+type Input = { [K in keyof typeof inputSchema]: z.infer<(typeof inputSchema)[K]> }
+type Properties = NonNullable<Input['properties']>
+type Icon = NonNullable<Input['icon']>
+type Cover = NonNullable<Input['cover']>
 
 export function registerUpdatePage(server: McpServer, notion: NotionClient): void {
   server.registerTool(
@@ -34,7 +36,7 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
       try {
         const params: {
           page_id: string
-          properties?: Record<string, PropertyValue>
+          properties?: Properties
           archived?: boolean
           icon?: Icon | null
           cover?: Cover | null
@@ -42,7 +44,7 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
         } = { page_id }
 
         if (properties !== undefined) {
-          params.properties = properties as Record<string, PropertyValue>
+          params.properties = properties as Properties
         }
 
         if (archived !== undefined) {
@@ -65,8 +67,10 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
         return formatResponse(response)
       } catch (error) {
         // Note: update-page uses page_id, not data_source_id,
-        // so we can't show available properties without additional API call
-        return handleErrorWithContext(error, notion)
+        // so we can't fetch property list, but we can still show format examples
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'page',
+        })
       }
     },
   )

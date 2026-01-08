@@ -1,14 +1,16 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import type { BlockObjectRequest } from '@notionhq/client'
 import { z } from 'zod'
 import { markdownToBlocks } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 // Minimal schema for MCP
 const inputSchema = {
-  block_id: z.string().describe('Page or block ID to append to'),
-  content: z.string().describe('Content in Markdown'),
-  after: z.string().optional().describe('Insert after this block ID'),
+  block_id: z.string().describe(F.block_id),
+  content: z.string().describe(F.content),
+  after: z.string().optional().describe(F.after),
 }
 
 export function registerAppendBlocksSimple(server: McpServer, notion: NotionClient): void {
@@ -18,30 +20,19 @@ export function registerAppendBlocksSimple(server: McpServer, notion: NotionClie
       description:
         'Append blocks to a page using Markdown. ' +
         'Simpler than append-block-children: just provide markdown text. ' +
-        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), images (![]()), bold (**), italic (*), links ([]()), etc.',
+        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), tables (| |), images (![]()), bold (**), italic (*), links ([]()), etc.',
       inputSchema,
     },
     async ({ block_id, content, after }) => {
       try {
-        // Convert markdown to blocks
-        const children = markdownToBlocks(content)
+        // Convert markdown to blocks and cast to SDK type
+        const children = markdownToBlocks(content) as unknown as BlockObjectRequest[]
 
-        // Build params
-        const params: {
-          block_id: string
-          children: unknown[]
-          after?: string
-        } = {
+        const response = await notion.blocks.children.append({
           block_id,
           children,
-        }
-
-        if (after) {
-          params.after = after
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await notion.blocks.children.append(params as any)
+          ...(after && { after }),
+        })
         return formatResponse(response)
       } catch (error) {
         return handleError(error)

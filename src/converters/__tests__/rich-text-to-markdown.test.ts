@@ -1,17 +1,42 @@
 import { describe, expect, it } from 'vitest'
-import { type RichTextItem, richTextToMarkdown, richTextToPlain } from '../rich-text-to-markdown.js'
+import type { RichTextItemResponse } from '../../notion-client.js'
+import { richTextToMarkdown, richTextToPlain } from '../rich-text-to-markdown.js'
+
+/**
+ * テスト用の簡易 RichText 型
+ * SDK の RichTextItemResponse は多くの必須フィールドを要求するため、
+ * テストでは最小限のデータで unknown 経由でキャストして使用
+ */
+type TestRichText = {
+  type: string
+  text?: { content: string; link?: { url: string } | null }
+  plain_text?: string
+  annotations?: Partial<{
+    bold: boolean
+    italic: boolean
+    strikethrough: boolean
+    underline: boolean
+    code: boolean
+  }>
+  href?: string | null
+  mention?: unknown
+  equation?: unknown
+}
+
+const asRichText = (items: TestRichText[]): RichTextItemResponse[] =>
+  items as unknown as RichTextItemResponse[]
 
 describe('richTextToMarkdown', () => {
   describe('basic text conversion', () => {
     it('converts plain text', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: 'Hello World' },
           plain_text: 'Hello World',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('Hello World')
+      expect(richTextToMarkdown(asRichText(input))).toBe('Hello World')
     })
 
     it('handles empty array', () => {
@@ -19,25 +44,25 @@ describe('richTextToMarkdown', () => {
     })
 
     it('handles undefined input', () => {
-      expect(richTextToMarkdown(undefined as unknown as RichTextItem[])).toBe('')
+      expect(richTextToMarkdown(undefined as unknown as RichTextItemResponse[])).toBe('')
     })
 
     it('handles null input', () => {
-      expect(richTextToMarkdown(null as unknown as RichTextItem[])).toBe('')
+      expect(richTextToMarkdown(null as unknown as RichTextItemResponse[])).toBe('')
     })
 
     it('concatenates multiple text items', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         { type: 'text', text: { content: 'Hello ' }, plain_text: 'Hello ' },
         { type: 'text', text: { content: 'World' }, plain_text: 'World' },
       ]
-      expect(richTextToMarkdown(input)).toBe('Hello World')
+      expect(richTextToMarkdown(asRichText(input))).toBe('Hello World')
     })
   })
 
   describe('annotations', () => {
     it('converts bold text', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: 'bold' },
@@ -45,11 +70,11 @@ describe('richTextToMarkdown', () => {
           plain_text: 'bold',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('**bold**')
+      expect(richTextToMarkdown(asRichText(input))).toBe('**bold**')
     })
 
     it('converts italic text', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: 'italic' },
@@ -57,11 +82,11 @@ describe('richTextToMarkdown', () => {
           plain_text: 'italic',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('*italic*')
+      expect(richTextToMarkdown(asRichText(input))).toBe('*italic*')
     })
 
     it('converts strikethrough text', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: 'strikethrough' },
@@ -69,11 +94,11 @@ describe('richTextToMarkdown', () => {
           plain_text: 'strikethrough',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('~~strikethrough~~')
+      expect(richTextToMarkdown(asRichText(input))).toBe('~~strikethrough~~')
     })
 
     it('converts code text', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: 'code' },
@@ -81,11 +106,11 @@ describe('richTextToMarkdown', () => {
           plain_text: 'code',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('`code`')
+      expect(richTextToMarkdown(asRichText(input))).toBe('`code`')
     })
 
     it('converts underline text with HTML tag', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: 'underline' },
@@ -93,11 +118,11 @@ describe('richTextToMarkdown', () => {
           plain_text: 'underline',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('<u>underline</u>')
+      expect(richTextToMarkdown(asRichText(input))).toBe('<u>underline</u>')
     })
 
     it('handles nested annotations (bold + italic)', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: 'bold italic' },
@@ -105,11 +130,11 @@ describe('richTextToMarkdown', () => {
           plain_text: 'bold italic',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('***bold italic***')
+      expect(richTextToMarkdown(asRichText(input))).toBe('***bold italic***')
     })
 
     it('handles all annotations combined', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: 'all' },
@@ -124,13 +149,13 @@ describe('richTextToMarkdown', () => {
       ]
       // code -> strikethrough -> italic -> bold の順で適用
       // bold + italic が *** として結合される
-      expect(richTextToMarkdown(input)).toBe('***~~`all`~~***')
+      expect(richTextToMarkdown(asRichText(input))).toBe('***~~`all`~~***')
     })
   })
 
   describe('links', () => {
     it('converts text with link (text.link)', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: {
@@ -140,11 +165,11 @@ describe('richTextToMarkdown', () => {
           plain_text: 'link text',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('[link text](https://example.com)')
+      expect(richTextToMarkdown(asRichText(input))).toBe('[link text](https://example.com)')
     })
 
     it('converts text with link (href)', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: 'link text' },
@@ -152,11 +177,11 @@ describe('richTextToMarkdown', () => {
           plain_text: 'link text',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('[link text](https://example.com)')
+      expect(richTextToMarkdown(asRichText(input))).toBe('[link text](https://example.com)')
     })
 
     it('handles code annotation with link (ignores link)', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: {
@@ -168,11 +193,11 @@ describe('richTextToMarkdown', () => {
         },
       ]
       // コード内のリンクは無視される
-      expect(richTextToMarkdown(input)).toBe('`code`')
+      expect(richTextToMarkdown(asRichText(input))).toBe('`code`')
     })
 
     it('handles bold link', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: {
@@ -183,13 +208,13 @@ describe('richTextToMarkdown', () => {
           plain_text: 'bold link',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('[**bold link**](https://example.com)')
+      expect(richTextToMarkdown(asRichText(input))).toBe('[**bold link**](https://example.com)')
     })
   })
 
   describe('mention types', () => {
     it('converts user mention', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'mention',
           mention: {
@@ -199,11 +224,11 @@ describe('richTextToMarkdown', () => {
           plain_text: '@John Doe',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('@John Doe')
+      expect(richTextToMarkdown(asRichText(input))).toBe('@John Doe')
     })
 
     it('converts page mention', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'mention',
           mention: {
@@ -213,11 +238,11 @@ describe('richTextToMarkdown', () => {
           plain_text: 'My Page',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('My Page')
+      expect(richTextToMarkdown(asRichText(input))).toBe('My Page')
     })
 
     it('converts date mention', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'mention',
           mention: {
@@ -227,11 +252,11 @@ describe('richTextToMarkdown', () => {
           plain_text: '@January 1, 2024',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('2024-01-01')
+      expect(richTextToMarkdown(asRichText(input))).toBe('2024-01-01')
     })
 
     it('converts date range mention', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'mention',
           mention: {
@@ -241,26 +266,26 @@ describe('richTextToMarkdown', () => {
           plain_text: '@January 1, 2024 → January 31, 2024',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('2024-01-01 → 2024-01-31')
+      expect(richTextToMarkdown(asRichText(input))).toBe('2024-01-01 → 2024-01-31')
     })
   })
 
   describe('equation types', () => {
     it('converts equation', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'equation',
           equation: { expression: 'E = mc^2' },
           plain_text: 'E = mc^2',
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('$E = mc^2$')
+      expect(richTextToMarkdown(asRichText(input))).toBe('$E = mc^2$')
     })
   })
 
   describe('mixed content', () => {
     it('handles mixed plain and formatted text', () => {
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         { type: 'text', text: { content: 'This is ' }, plain_text: 'This is ' },
         {
           type: 'text',
@@ -277,12 +302,12 @@ describe('richTextToMarkdown', () => {
         },
         { type: 'text', text: { content: ' text.' }, plain_text: ' text.' },
       ]
-      expect(richTextToMarkdown(input)).toBe('This is **bold** and *italic* text.')
+      expect(richTextToMarkdown(asRichText(input))).toBe('This is **bold** and *italic* text.')
     })
 
     it('handles real-world Notion data', () => {
       // 実際のNotionから取得したデータ形式
-      const input: RichTextItem[] = [
+      const input: TestRichText[] = [
         {
           type: 'text',
           text: { content: '以下のパッケージで ', link: null },
@@ -292,7 +317,6 @@ describe('richTextToMarkdown', () => {
             strikethrough: false,
             underline: false,
             code: false,
-            color: 'default',
           },
           plain_text: '以下のパッケージで ',
           href: null,
@@ -306,7 +330,6 @@ describe('richTextToMarkdown', () => {
             strikethrough: false,
             underline: false,
             code: true,
-            color: 'default',
           },
           plain_text: 'exports',
           href: null,
@@ -320,7 +343,6 @@ describe('richTextToMarkdown', () => {
             strikethrough: false,
             underline: false,
             code: false,
-            color: 'default',
           },
           plain_text: ' と ',
           href: null,
@@ -334,20 +356,19 @@ describe('richTextToMarkdown', () => {
             strikethrough: false,
             underline: false,
             code: true,
-            color: 'default',
           },
           plain_text: 'main',
           href: null,
         },
       ]
-      expect(richTextToMarkdown(input)).toBe('以下のパッケージで `exports` と `main`')
+      expect(richTextToMarkdown(asRichText(input))).toBe('以下のパッケージで `exports` と `main`')
     })
   })
 })
 
 describe('richTextToPlain', () => {
   it('extracts plain text', () => {
-    const input: RichTextItem[] = [
+    const input: TestRichText[] = [
       {
         type: 'text',
         text: { content: 'Hello' },
@@ -356,7 +377,7 @@ describe('richTextToPlain', () => {
       },
       { type: 'text', text: { content: ' World' }, plain_text: ' World' },
     ]
-    expect(richTextToPlain(input)).toBe('Hello World')
+    expect(richTextToPlain(asRichText(input))).toBe('Hello World')
   })
 
   it('handles empty array', () => {
@@ -364,17 +385,17 @@ describe('richTextToPlain', () => {
   })
 
   it('handles undefined input', () => {
-    expect(richTextToPlain(undefined as unknown as RichTextItem[])).toBe('')
+    expect(richTextToPlain(undefined as unknown as RichTextItemResponse[])).toBe('')
   })
 
   it('prefers plain_text over text.content', () => {
-    const input: RichTextItem[] = [
+    const input: TestRichText[] = [
       {
         type: 'text',
         text: { content: 'content' },
         plain_text: 'plain',
       },
     ]
-    expect(richTextToPlain(input)).toBe('plain')
+    expect(richTextToPlain(asRichText(input))).toBe('plain')
   })
 })

@@ -2,59 +2,27 @@
  * RichText配列をマークダウン文字列に変換するモジュール
  */
 
-/**
- * Notion APIのRichTextアイテムの型定義
- */
-export interface RichTextItem {
-  type?: string
-  text?: {
-    content: string
-    link?: { url: string } | null
-  }
-  annotations?: {
-    bold?: boolean
-    italic?: boolean
-    strikethrough?: boolean
-    underline?: boolean
-    code?: boolean
-    color?: string
-  }
-  plain_text?: string
-  href?: string | null
-  // Mention type support
-  mention?: {
-    type: string
-    user?: { name?: string; id: string }
-    page?: { id: string }
-    database?: { id: string }
-    date?: { start: string; end?: string | null }
-    link_preview?: { url: string }
-  }
-  // Equation type support
-  equation?: {
-    expression: string
-  }
-}
+import type { RichTextItemResponse } from '../notion-client.js'
 
 /**
  * 単一のRichTextアイテムをマークダウンに変換
  */
-function convertRichTextItem(item: RichTextItem): string {
+function convertRichTextItem(item: RichTextItemResponse): string {
   // テキスト内容を取得
-  let text = item.text?.content ?? item.plain_text ?? ''
+  let text = item.plain_text
 
   // Mention type の処理
   if (item.type === 'mention' && item.mention) {
     const mention = item.mention
     switch (mention.type) {
       case 'user':
-        text = `@${mention.user?.name ?? 'user'}`
+        text = `@${mention.user && 'name' in mention.user ? mention.user.name : 'user'}`
         break
       case 'page':
-        text = item.plain_text ?? `[page](${mention.page?.id})`
+        text = item.plain_text || `[page](${mention.page.id})`
         break
       case 'database':
-        text = item.plain_text ?? `[database](${mention.database?.id})`
+        text = item.plain_text || `[database](${mention.database.id})`
         break
       case 'date':
         text = mention.date?.start ?? ''
@@ -66,7 +34,7 @@ function convertRichTextItem(item: RichTextItem): string {
         text = mention.link_preview?.url ?? ''
         break
       default:
-        text = item.plain_text ?? ''
+        text = item.plain_text || ''
     }
   }
 
@@ -80,37 +48,38 @@ function convertRichTextItem(item: RichTextItem): string {
     return ''
   }
 
-  const annotations = item.annotations
+  // annotations がない場合はデフォルト値を使用（テスト用データ対応）
+  const annotations = item.annotations ?? {}
 
   // アノテーション適用（内側から外側へ）
   // code が最も内側
-  if (annotations?.code) {
+  if (annotations.code) {
     text = `\`${text}\``
   }
 
   // strikethrough
-  if (annotations?.strikethrough) {
+  if (annotations.strikethrough) {
     text = `~~${text}~~`
   }
 
   // italic
-  if (annotations?.italic) {
+  if (annotations.italic) {
     text = `*${text}*`
   }
 
   // bold
-  if (annotations?.bold) {
+  if (annotations.bold) {
     text = `**${text}**`
   }
 
   // underline はマークダウンで標準サポートされていないため、HTMLタグを使用
-  if (annotations?.underline) {
+  if (annotations.underline) {
     text = `<u>${text}</u>`
   }
 
   // リンク処理（text.link または href）
-  const href = item.text?.link?.url ?? item.href
-  if (href && !annotations?.code) {
+  const href = (item.type === 'text' && item.text.link?.url) ?? item.href
+  if (href && !annotations.code) {
     // コード内のリンクは無視
     text = `[${text}](${href})`
   }
@@ -123,7 +92,7 @@ function convertRichTextItem(item: RichTextItem): string {
  * @param richTexts - Notion APIから取得したRichText配列
  * @returns マークダウン文字列
  */
-export function richTextToMarkdown(richTexts: RichTextItem[]): string {
+export function richTextToMarkdown(richTexts: RichTextItemResponse[]): string {
   if (!richTexts || richTexts.length === 0) {
     return ''
   }
@@ -135,9 +104,9 @@ export function richTextToMarkdown(richTexts: RichTextItem[]): string {
  * @param richTexts - Notion APIから取得したRichText配列
  * @returns プレーンテキスト文字列
  */
-export function richTextToPlain(richTexts: RichTextItem[]): string {
+export function richTextToPlain(richTexts: RichTextItemResponse[]): string {
   if (!richTexts || richTexts.length === 0) {
     return ''
   }
-  return richTexts.map((item) => item.plain_text ?? item.text?.content ?? '').join('')
+  return richTexts.map((item) => item.plain_text).join('')
 }

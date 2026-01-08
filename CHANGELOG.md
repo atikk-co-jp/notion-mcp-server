@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-01-08
+
+### Changed
+
+- **Notion Official SDK Migration**: Adopted `@notionhq/client` for improved type safety
+  - Removed manually maintained Zod schemas (~2,000 lines deleted)
+  - Updated all 28 tools to use official SDK type definitions
+  - Significantly improved maintainability
+
+### Added
+
+- **Markdown Table Conversion**: `create-page-simple` and `append-blocks-simple` now support tables
+  - Header row and separator row detection
+  - Inline formatting within cells (bold, italic, code, links)
+  - Alignment specifier support
+- **Enhanced Error Messages**: Show format examples on validation errors
+  - Helps AI agents self-correct their requests
+
+### Improved
+
+- Changed example values from Japanese to English (internationalization)
+- Set noExplicitAny to error in biome.json (stricter type safety)
+
 ## [0.7.0] - 2026-01-07
 
 ### Added

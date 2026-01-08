@@ -1,16 +1,17 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import { formatResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
-  page_id: z.string().describe('Page ID to move'),
+  page_id: z.string().describe(F.page_id),
   parent: z
     .object({
-      page_id: z.string().optional().describe('Target parent page ID'),
-      data_source_id: z.string().optional().describe('Target data source ID'),
+      page_id: z.string().optional().describe(F.page_id_target),
+      data_source_id: z.string().optional().describe(F.data_source_id_target),
     })
-    .describe('New parent (provide either page_id or data_source_id)'),
+    .describe(F.parent),
 }
 
 export function registerMovePage(server: McpServer, notion: NotionClient): void {

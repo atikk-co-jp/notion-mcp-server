@@ -1,40 +1,23 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { type NotionProperty, pagesToSimple } from '../converters/index.js'
-import type { NotionClient } from '../notion-client.js'
+import { pagesToSimple } from '../converters/index.js'
+import { isFullPage, type NotionClient } from '../notion-client.js'
+import { F } from '../schemas/descriptions/index.js'
 import {
   formatPaginatedResponse,
   formatSimplePaginatedResponse,
-  handleError,
+  handleErrorWithContext,
 } from '../utils/index.js'
 
-interface PageResult {
-  id: string
-  url?: string
-  properties: Record<string, NotionProperty>
-  [key: string]: unknown
-}
-
-interface PaginatedResponse {
-  results: PageResult[]
-  has_more: boolean
-  next_cursor: string | null
-}
-
 // Minimal schema for MCP (full validation by Notion API)
+// Uses z.any() for filter/sorts to reduce context size (~8,000 tokens saved)
 const inputSchema = {
-  data_source_id: z.string().describe('Data source ID'),
-  filter: z
-    .any()
-    .optional()
-    .describe('Filter object. Example: {"property":"Status","select":{"equals":"Done"}}'),
-  sorts: z
-    .array(z.any())
-    .optional()
-    .describe('Sort array. Example: [{"property":"Date","direction":"descending"}]'),
-  start_cursor: z.string().optional().describe('Pagination cursor'),
-  page_size: z.number().optional().describe('Results per page (1-100)'),
-  format: z.enum(['json', 'simple']).optional().describe('Output format (default: simple)'),
+  data_source_id: z.string().describe(F.data_source_id),
+  filter: z.any().optional().describe(F.filter),
+  sorts: z.array(z.any()).optional().describe(F.sorts),
+  start_cursor: z.string().optional().describe(F.start_cursor),
+  page_size: z.number().optional().describe(F.page_size),
+  format: z.enum(['json', 'simple']).optional().describe(F.format),
 }
 
 export function registerQueryDataSource(server: McpServer, notion: NotionClient): void {
@@ -49,45 +32,28 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
     },
     async ({ data_source_id, filter, sorts, start_cursor, page_size, format }) => {
       try {
-        const params: {
-          data_source_id: string
-          filter?: Record<string, unknown>
-          sorts?: Array<{ property?: string; timestamp?: string; direction: string }>
-          start_cursor?: string
-          page_size?: number
-        } = { data_source_id }
-
-        if (filter) {
-          params.filter = filter as Record<string, unknown>
-        }
-
-        if (sorts) {
-          params.sorts = sorts as Array<{
-            property?: string
-            timestamp?: string
-            direction: string
-          }>
-        }
-
-        if (start_cursor) {
-          params.start_cursor = start_cursor
-        }
-
-        if (page_size) {
-          params.page_size = page_size
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await notion.dataSources.query<PaginatedResponse>(params as any)
+        const response = await notion.dataSources.query({
+          data_source_id,
+          ...(filter && { filter }),
+          ...(sorts && { sorts }),
+          ...(start_cursor && { start_cursor }),
+          ...(page_size && { page_size }),
+        })
 
         if (format === 'simple') {
-          const simplePages = pagesToSimple(response.results)
+          // Filter to full pages and cast for pagesToSimple converter
+          const fullPages = response.results.filter(isFullPage)
+          const simplePages = pagesToSimple(
+            fullPages as unknown as Parameters<typeof pagesToSimple>[0],
+          )
           return formatSimplePaginatedResponse(simplePages, response.has_more, response.next_cursor)
         }
 
         return formatPaginatedResponse(response.results, response.has_more, response.next_cursor)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'filter',
+        })
       }
     },
   )

@@ -1,15 +1,19 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
-import type { Block } from '../schemas/block.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { F } from '../schemas/descriptions/index.js'
+import { formatResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
-  block_id: z.string().describe('Block or page ID'),
-  children: z.array(z.any()).describe('Block objects to append'),
-  after: z.string().optional().describe('Insert after this block ID'),
+  block_id: z.string().describe(F.block_id),
+  children: z.array(z.any()).describe(F.children),
+  after: z.string().optional().describe(F.after),
 }
+
+// Types derived from inputSchema - guaranteed to match
+type Input = { [K in keyof typeof inputSchema]: z.infer<(typeof inputSchema)[K]> }
+type Children = Input['children']
 
 export function registerAppendBlockChildren(server: McpServer, notion: NotionClient): void {
   server.registerTool(
@@ -26,11 +30,11 @@ export function registerAppendBlockChildren(server: McpServer, notion: NotionCli
       try {
         const params: {
           block_id: string
-          children: Block[]
+          children: Children
           after?: string
         } = {
           block_id,
-          children: children as Block[],
+          children: children as Children,
         }
 
         if (after) {
@@ -40,7 +44,9 @@ export function registerAppendBlockChildren(server: McpServer, notion: NotionCli
         const response = await notion.blocks.children.append(params)
         return formatResponse(response)
       } catch (error) {
-        return handleError(error)
+        return handleErrorWithContext(error, notion, {
+          exampleType: 'block',
+        })
       }
     },
   )
