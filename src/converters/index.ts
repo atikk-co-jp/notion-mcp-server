@@ -10,9 +10,11 @@ export { blocksToMarkdown, blocksToMarkdownSync, type ConvertOptions } from './b
 export { markdownToBlocks, parseInlineMarkdown } from './markdown-to-blocks.js'
 // ページプロパティ変換
 export {
+  type FlatPage,
   type PropertyValue,
   pagePropertiesToObject,
   pagePropertiesToSimple,
+  pagesToFlat,
   pagesToSimple,
   pageToSimple,
   type SimplePage,

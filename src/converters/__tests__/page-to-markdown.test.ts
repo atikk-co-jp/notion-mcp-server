@@ -3,6 +3,7 @@ import type { PageObjectResponse } from '../../notion-client.js'
 import {
   pagePropertiesToObject,
   pagePropertiesToSimple,
+  pagesToFlat,
   pagesToSimple,
   pageToSimple,
 } from '../page-to-markdown.js'
@@ -660,6 +661,87 @@ describe('pagesToSimple', () => {
     })
     expect(result[0].properties).not.toHaveProperty('Priority')
     expect(result[1].properties).not.toHaveProperty('Priority')
+  })
+})
+
+describe('pagesToFlat', () => {
+  it('converts array of pages to flat format (no id/url)', () => {
+    const pages = asPages([
+      {
+        id: 'page-1',
+        url: 'https://notion.so/page-1',
+        properties: {
+          Name: {
+            type: 'title',
+            title: [{ type: 'text', text: { content: 'Page 1' }, plain_text: 'Page 1' }],
+          },
+          Status: {
+            type: 'select',
+            select: { id: '1', name: 'Active', color: 'green' },
+          },
+        },
+      },
+      {
+        id: 'page-2',
+        url: 'https://notion.so/page-2',
+        properties: {
+          Name: {
+            type: 'title',
+            title: [{ type: 'text', text: { content: 'Page 2' }, plain_text: 'Page 2' }],
+          },
+          Status: {
+            type: 'select',
+            select: { id: '1', name: 'Done', color: 'blue' },
+          },
+        },
+      },
+    ])
+
+    const result = pagesToFlat(pages)
+
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({ Name: 'Page 1', Status: 'Active' })
+    expect(result[1]).toEqual({ Name: 'Page 2', Status: 'Done' })
+    // Should not have id or url
+    expect(result[0]).not.toHaveProperty('id')
+    expect(result[0]).not.toHaveProperty('url')
+  })
+
+  it('filters properties with fields parameter', () => {
+    const pages = asPages([
+      {
+        id: 'page-1',
+        url: 'https://notion.so/page-1',
+        properties: {
+          Name: {
+            type: 'title',
+            title: [{ type: 'text', text: { content: 'Page 1' }, plain_text: 'Page 1' }],
+          },
+          Status: {
+            type: 'select',
+            select: { id: '1', name: 'Active', color: 'green' },
+          },
+          Priority: {
+            type: 'select',
+            select: { id: '2', name: 'High', color: 'red' },
+          },
+        },
+      },
+    ])
+
+    const result = pagesToFlat(pages, ['Name', 'Status'])
+
+    expect(result).toHaveLength(1)
+    expect(result[0]).toEqual({ Name: 'Page 1', Status: 'Active' })
+    expect(result[0]).not.toHaveProperty('Priority')
+  })
+
+  it('handles empty array', () => {
+    expect(pagesToFlat([])).toEqual([])
+  })
+
+  it('handles undefined input', () => {
+    expect(pagesToFlat(undefined as unknown as PageObjectResponse[])).toEqual([])
   })
 })
 

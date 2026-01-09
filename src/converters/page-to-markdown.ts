@@ -268,3 +268,21 @@ export function pagesToSimple(pages: PageObjectResponse[], fields?: string[]): S
   }
   return pages.map((page) => pageToSimple(page, fields))
 }
+
+/**
+ * フラットなページプロパティの型（id/urlなし、プロパティ値のみ）
+ */
+export type FlatPage = Record<string, PropertyValue>
+
+/**
+ * ページ配列をフラットな形式に変換（id/urlなし、プロパティ値のみ）
+ * @param pages - Notion APIから取得したページ配列
+ * @param fields - 取得するプロパティ名の配列（指定しない場合は全プロパティ）
+ * @returns フラット化されたページ配列
+ */
+export function pagesToFlat(pages: PageObjectResponse[], fields?: string[]): FlatPage[] {
+  if (!pages) {
+    return []
+  }
+  return pages.map((page) => pagePropertiesToObject(page.properties, fields))
+}

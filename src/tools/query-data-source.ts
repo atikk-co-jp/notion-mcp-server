@@ -1,6 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { pagesToSimple } from '../converters/index.js'
+import { pagesToFlat, pagesToSimple } from '../converters/index.js'
 import { isFullPage, type NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
 import {
@@ -17,7 +17,7 @@ const inputSchema = {
   sorts: z.array(z.any()).optional().describe(F.sorts),
   start_cursor: z.string().optional().describe(F.start_cursor),
   page_size: z.number().optional().describe(F.page_size),
-  format: z.enum(['json', 'simple']).optional().describe(F.format),
+  format: z.enum(['json', 'simple', 'flat']).optional().describe(F.format_query),
   fields: z.array(z.string()).optional().describe(F.fields),
 }
 
@@ -27,8 +27,9 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
     {
       description:
         'Query a Notion data source with optional filters and sorts. Returns paginated results. ' +
-        "Use format='simple' (default) for human-readable output with reduced token usage. " +
-        'Use fields parameter to limit which properties are returned (simple format only). ' +
+        "Use format='flat' for minimal output with only property values (no id/url). " +
+        "Use format='simple' for output with id, url, and properties. " +
+        'Use fields parameter to limit which properties are returned (flat/simple format only). ' +
         '(API version 2025-09-03)',
       inputSchema,
     },
@@ -42,9 +43,20 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
           ...(page_size && { page_size }),
         })
 
+        // Filter to full pages for simple/flat format converters
+        const fullPages = response.results.filter(isFullPage)
+
+        if (format === 'flat') {
+          // Flat format: only property values, no id/url
+          const flatPages = pagesToFlat(
+            fullPages as unknown as Parameters<typeof pagesToFlat>[0],
+            fields,
+          )
+          return formatSimplePaginatedResponse(flatPages, response.has_more, response.next_cursor)
+        }
+
         if (format === 'simple') {
-          // Filter to full pages and cast for pagesToSimple converter
-          const fullPages = response.results.filter(isFullPage)
+          // Simple format: id, url, and properties
           const simplePages = pagesToSimple(
             fullPages as unknown as Parameters<typeof pagesToSimple>[0],
             fields,
@@ -52,6 +64,7 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
           return formatSimplePaginatedResponse(simplePages, response.has_more, response.next_cursor)
         }
 
+        // JSON format: full Notion API response
         return formatPaginatedResponse(response.results, response.has_more, response.next_cursor)
       } catch (error) {
         return handleErrorWithContext(error, notion, {
