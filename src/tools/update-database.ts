@@ -3,7 +3,7 @@ import type { UpdateDatabaseParameters } from '@notionhq/client/build/src/api-en
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+import { formatSimpleResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 // Note: Properties (schema) updates should use update-data-source in API 2025-09-03
@@ -25,7 +25,8 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
     {
       description:
         'Update a Notion database container. Can modify title, description, icon, cover, inline status, archive status, and lock status. ' +
-        'For schema (properties/columns) updates, use update-data-source instead. (API version 2025-09-03)',
+        'For schema (properties/columns) updates, use update-data-source instead. ' +
+        'Returns database ID and URL. (API version 2025-09-03)',
       inputSchema,
     },
     async ({ database_id, title, description, icon, cover, is_inline, archived, is_locked }) => {
@@ -43,7 +44,12 @@ export function registerUpdateDatabase(server: McpServer, notion: NotionClient):
         }
 
         const response = await notion.databases.update(params as UpdateDatabaseParameters)
-        return formatResponse(response)
+
+        // Return minimal response (id + url only)
+        return formatSimpleResponse({
+          id: response.id,
+          url: 'url' in response ? response.url : undefined,
+        })
       } catch (error) {
         return handleErrorWithContext(error, notion, {
           exampleType: 'richTextArray',

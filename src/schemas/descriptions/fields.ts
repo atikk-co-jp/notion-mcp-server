@@ -124,6 +124,9 @@ export const Fields = {
   sorts: {
     desc: 'Sort array. Example: [{"property":"Date","direction":"descending"}]',
   },
+  fields: {
+    desc: 'Property names to include in response (simple format only). Example: ["Name", "Status", "Date"]',
+  },
 
   // ============================================
   // Blocks

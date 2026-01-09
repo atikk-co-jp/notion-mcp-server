@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+import { formatSimpleResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
@@ -22,7 +22,7 @@ export function registerAppendBlockChildren(server: McpServer, notion: NotionCli
       description:
         'Append new blocks as children to a block or page. ' +
         'Supports all block types: paragraph, headings, lists, code, images, etc. ' +
-        'Returns the created blocks with their IDs. ' +
+        'Returns the created block IDs. ' +
         'Use the "after" parameter to insert blocks at a specific position.',
       inputSchema,
     },
@@ -42,7 +42,11 @@ export function registerAppendBlockChildren(server: McpServer, notion: NotionCli
         }
 
         const response = await notion.blocks.children.append(params)
-        return formatResponse(response)
+
+        // Return minimal response (block_ids only)
+        return formatSimpleResponse({
+          block_ids: response.results.map((block) => block.id),
+        })
       } catch (error) {
         return handleErrorWithContext(error, notion, {
           exampleType: 'block',

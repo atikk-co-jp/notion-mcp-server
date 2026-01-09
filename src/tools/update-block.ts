@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+import { formatSimpleResponse, handleErrorWithContext } from '../utils/index.js'
 
 const inputSchema = {
   block_id: z.string().describe(F.block_id),
@@ -17,7 +17,8 @@ export function registerUpdateBlock(server: McpServer, notion: NotionClient): vo
       description:
         'Update a block by its ID. Provide the block type and its properties. ' +
         'Example: { "paragraph": { "rich_text": [{ "text": { "content": "Updated text" } }] } }. ' +
-        'Set archived to true to move the block to trash.',
+        'Set archived to true to move the block to trash. ' +
+        'Returns updated block ID.',
       inputSchema,
     },
     async ({ block_id, block, archived }) => {
@@ -32,7 +33,11 @@ export function registerUpdateBlock(server: McpServer, notion: NotionClient): vo
         }
 
         const response = await notion.blocks.update(params)
-        return formatResponse(response)
+
+        // Return minimal response (id only)
+        return formatSimpleResponse({
+          id: response.id,
+        })
       } catch (error) {
         return handleErrorWithContext(error, notion, {
           exampleType: 'block',

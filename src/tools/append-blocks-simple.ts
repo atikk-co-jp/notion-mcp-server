@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { markdownToBlocks } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { formatSimpleResponse, handleError } from '../utils/index.js'
 
 // Minimal schema for MCP
 const inputSchema = {
@@ -20,7 +20,8 @@ export function registerAppendBlocksSimple(server: McpServer, notion: NotionClie
       description:
         'Append blocks to a page using Markdown. ' +
         'Simpler than append-block-children: just provide markdown text. ' +
-        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), tables (| |), images (![]()), bold (**), italic (*), links ([]()), etc.',
+        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), tables (| |), images (![]()), bold (**), italic (*), links ([]()), etc. ' +
+        'Returns created block IDs.',
       inputSchema,
     },
     async ({ block_id, content, after }) => {
@@ -33,7 +34,11 @@ export function registerAppendBlocksSimple(server: McpServer, notion: NotionClie
           children,
           ...(after && { after }),
         })
-        return formatResponse(response)
+
+        // Return minimal response (block_ids only)
+        return formatSimpleResponse({
+          block_ids: response.results.map((block) => block.id),
+        })
       } catch (error) {
         return handleError(error)
       }

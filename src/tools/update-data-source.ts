@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+import { formatSimpleResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
@@ -21,7 +21,7 @@ export function registerUpdateDataSource(server: McpServer, notion: NotionClient
       description:
         'Update a data source schema (properties/columns). ' +
         'Use this to add, update, or delete properties. Set a property to null to delete it. ' +
-        '(API version 2025-09-03)',
+        'Returns data source ID. (API version 2025-09-03)',
       inputSchema,
     },
     async ({ data_source_id, properties }) => {
@@ -36,7 +36,11 @@ export function registerUpdateDataSource(server: McpServer, notion: NotionClient
         }
 
         const response = await notion.dataSources.update(params)
-        return formatResponse(response)
+
+        // Return minimal response (id only)
+        return formatSimpleResponse({
+          id: response.id,
+        })
       } catch (error) {
         return handleErrorWithContext(error, notion, {
           dataSourceId: data_source_id,

@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+import { formatSimpleResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
@@ -20,7 +20,7 @@ export function registerCreateComment(server: McpServer, notion: NotionClient): 
         'Add a comment to a Notion page. Creates a new discussion or adds to an existing one. ' +
         'Comments support rich text formatting (bold, italic, links, etc.). ' +
         'Use discussion_id to reply to an existing comment thread. ' +
-        'Returns the created comment with its ID.',
+        'Returns the created comment ID.',
       inputSchema,
     },
     async ({ page_id, block_id, discussion_id, rich_text }) => {
@@ -59,7 +59,11 @@ export function registerCreateComment(server: McpServer, notion: NotionClient): 
         const response = await notion.comments.create(
           params as Parameters<typeof notion.comments.create>[0],
         )
-        return formatResponse(response)
+
+        // Return minimal response (id only)
+        return formatSimpleResponse({
+          id: response.id,
+        })
       } catch (error) {
         return handleErrorWithContext(error, notion, {
           exampleType: 'richTextArray',

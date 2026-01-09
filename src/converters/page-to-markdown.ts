@@ -211,10 +211,12 @@ export function pagePropertiesToSimple(
 /**
  * ページプロパティをオブジェクト形式に変換（キー: プロパティ名、値: 値）
  * @param properties - Notion APIから取得したプロパティオブジェクト
+ * @param fields - 取得するプロパティ名の配列（指定しない場合は全プロパティ）
  * @returns シンプル化されたプロパティオブジェクト
  */
 export function pagePropertiesToObject(
   properties: PageObjectResponse['properties'],
+  fields?: string[],
 ): Record<string, PropertyValue> {
   if (!properties) {
     return {}
@@ -222,6 +224,10 @@ export function pagePropertiesToObject(
 
   const result: Record<string, PropertyValue> = {}
   for (const [name, prop] of Object.entries(properties)) {
+    // fieldsが指定されている場合は、指定されたプロパティのみを含める
+    if (fields && fields.length > 0 && !fields.includes(name)) {
+      continue
+    }
     result[name] = extractPropertyValue(prop)
   }
   return result
@@ -239,24 +245,27 @@ export interface SimplePage {
 /**
  * ページオブジェクトをシンプルな形式に変換
  * @param page - Notion APIから取得したページオブジェクト
+ * @param fields - 取得するプロパティ名の配列（指定しない場合は全プロパティ）
  * @returns シンプル化されたページオブジェクト
  */
-export function pageToSimple(page: PageObjectResponse): SimplePage {
+export function pageToSimple(page: PageObjectResponse, fields?: string[]): SimplePage {
   return {
     id: page.id,
     url: page.url ?? '',
-    properties: pagePropertiesToObject(page.properties),
+    properties: pagePropertiesToObject(page.properties, fields),
   }
 }
 
 /**
  * ページ配列をシンプルな形式に変換
  * @param pages - Notion APIから取得したページ配列
+ * @param fields - 取得するプロパティ名の配列（指定しない場合は全プロパティ）
  * @returns シンプル化されたページ配列
  */
-export function pagesToSimple(pages: PageObjectResponse[]): SimplePage[] {
+export function pagesToSimple(pages: PageObjectResponse[], fields?: string[]): SimplePage[] {
   if (!pages) {
     return []
   }
-  return pages.map(pageToSimple)
+  return pages.map((page) => pageToSimple(page, fields))
 }
+
