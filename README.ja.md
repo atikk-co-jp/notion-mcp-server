@@ -21,44 +21,47 @@ Notion API用のMCP（Model Context Protocol）サーバー。AIアシスタン�
 
 ## API対応表
 
-| カテゴリ | Notion API | MCPツール | 形式 |
-|---------|-----------|----------|------|
-| **ページ** | | | |
-| | [Create page](https://developers.notion.com/reference/post-page) | `create-page` | JSON |
-| | | `create-page-simple` ⭐ | Markdown |
-| | [Retrieve page](https://developers.notion.com/reference/retrieve-a-page) | `retrieve-page` | simple/json |
-| | [Update page](https://developers.notion.com/reference/patch-page) | `update-page` | JSON |
-| | [Retrieve page property](https://developers.notion.com/reference/retrieve-a-page-property-item) | `retrieve-page-property` | JSON |
-| | [Move page](https://developers.notion.com/reference/post-page-move) | `move-page` | JSON |
-| | [Archive page](https://developers.notion.com/reference/patch-page) | `archive-page` | JSON |
-| **データベース** | | | |
-| | [Create database](https://developers.notion.com/reference/create-a-database) | `create-database` | JSON |
-| | [Retrieve database](https://developers.notion.com/reference/retrieve-a-database) | `retrieve-database` | simple/json |
-| | [Update database](https://developers.notion.com/reference/update-a-database) | `update-database` | JSON |
-| | [Archive database](https://developers.notion.com/reference/update-a-database) | `archive-database` | JSON |
-| **データソース** | | | |
-| | [Retrieve data source](https://developers.notion.com/reference/retrieve-a-data-source) | `retrieve-data-source` | simple/json |
-| | [Query data source](https://developers.notion.com/reference/post-data-source-query) | `query-data-source` | simple/json |
-| | [Update data source](https://developers.notion.com/reference/patch-data-source) | `update-data-source` | JSON |
-| **ブロック** | | | |
-| | [Retrieve block](https://developers.notion.com/reference/retrieve-a-block) | `retrieve-block` | markdown/json |
-| | [Update block](https://developers.notion.com/reference/update-a-block) | `update-block` | JSON |
-| | | `update-block-simple` ⭐ | Markdown |
-| | [Delete block](https://developers.notion.com/reference/delete-a-block) | `delete-block` | JSON |
-| | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | markdown/json |
-| | [Append block children](https://developers.notion.com/reference/patch-block-children) | `append-block-children` | JSON |
-| | | `append-blocks-simple` ⭐ | Markdown |
-| **コメント** | | | |
-| | [Create comment](https://developers.notion.com/reference/create-a-comment) | `create-comment` | JSON |
-| | [List comments](https://developers.notion.com/reference/retrieve-comments) | `list-comments` | JSON |
-| **ユーザー** | | | |
-| | [List users](https://developers.notion.com/reference/get-users) | `list-users` | JSON |
-| | [Retrieve user](https://developers.notion.com/reference/get-user) | `retrieve-user` | JSON |
-| | [Retrieve bot user](https://developers.notion.com/reference/get-self) | `retrieve-bot-user` | JSON |
-| **検索** | | | |
-| | [Search](https://developers.notion.com/reference/post-search) | `search` | JSON |
+> ⭐ = Markdown入力対応（入力トークン約80%削減）
+>
+> 📤 = 最小レスポンス（id/urlのみ）- 出力トークン約90%削減
 
-⭐ = Markdown入力対応（入力トークン約80%削減）
+| カテゴリ | Notion API | MCPツール | 入力 | 出力（デフォルト） |
+|---------|-----------|----------|------|-------------------|
+| **ページ** | | | | |
+| | [Create page](https://developers.notion.com/reference/post-page) | `create-page` 📤 | JSON | `{id, url}` |
+| | | `create-page-simple` ⭐📤 | Markdown | `{id, url}` |
+| | [Retrieve page](https://developers.notion.com/reference/retrieve-a-page) | `retrieve-page` | JSON | **simple**/json |
+| | [Update page](https://developers.notion.com/reference/patch-page) | `update-page` 📤 | JSON | `{id, url}` |
+| | [Retrieve page property](https://developers.notion.com/reference/retrieve-a-page-property-item) | `retrieve-page-property` | JSON | json |
+| | [Move page](https://developers.notion.com/reference/post-page-move) | `move-page` 📤 | JSON | `{id, url}` |
+| | [Archive page](https://developers.notion.com/reference/patch-page) | `archive-page` 📤 | JSON | `{id}` |
+| **データベース** | | | | |
+| | [Create database](https://developers.notion.com/reference/create-a-database) | `create-database` 📤 | JSON | `{id, url}` |
+| | [Retrieve database](https://developers.notion.com/reference/retrieve-a-database) | `retrieve-database` | JSON | **simple**/json |
+| | [Update database](https://developers.notion.com/reference/update-a-database) | `update-database` 📤 | JSON | `{id, url}` |
+| | [Archive database](https://developers.notion.com/reference/update-a-database) | `archive-database` 📤 | JSON | `{id}` |
+| **データソース** | | | | |
+| | [Retrieve data source](https://developers.notion.com/reference/retrieve-a-data-source) | `retrieve-data-source` | JSON | **simple**/json |
+| | [Query data source](https://developers.notion.com/reference/post-data-source-query) | `query-data-source` | JSON | **simple**/json |
+| | [Update data source](https://developers.notion.com/reference/patch-data-source) | `update-data-source` 📤 | JSON | `{id}` |
+| **ブロック** | | | | |
+| | [Retrieve block](https://developers.notion.com/reference/retrieve-a-block) | `retrieve-block` | JSON | **markdown**/json |
+| | [Update block](https://developers.notion.com/reference/update-a-block) | `update-block` 📤 | JSON | `{id}` |
+| | | `update-block-simple` ⭐📤 | Markdown | `{id}` |
+| | [Delete block](https://developers.notion.com/reference/delete-a-block) | `delete-block` 📤 | JSON | `{id}` |
+| | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | JSON | **markdown**/json |
+| | [Append block children](https://developers.notion.com/reference/patch-block-children) | `append-block-children` 📤 | JSON | `{block_ids}` |
+| | | `append-blocks-simple` ⭐📤 | Markdown | `{block_ids}` |
+| **コメント** | | | | |
+| | [Create comment](https://developers.notion.com/reference/create-a-comment) | `create-comment` 📤 | JSON | `{id}` |
+| | | `create-comment-simple` ⭐📤 | Markdown | `{id}` |
+| | [List comments](https://developers.notion.com/reference/retrieve-comments) | `list-comments` | JSON | json |
+| **ユーザー** | | | | |
+| | [List users](https://developers.notion.com/reference/get-users) | `list-users` | JSON | json |
+| | [Retrieve user](https://developers.notion.com/reference/get-user) | `retrieve-user` | JSON | json |
+| | [Retrieve bot user](https://developers.notion.com/reference/get-self) | `retrieve-bot-user` | JSON | json |
+| **検索** | | | | |
+| | [Search](https://developers.notion.com/reference/post-search) | `search` | JSON | **simple**/json |
 
 ## インストール
 

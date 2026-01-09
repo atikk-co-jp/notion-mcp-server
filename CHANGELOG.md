@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-01-10
+
+### Added
+
+- **fields Parameter**: Filter which properties are returned in results
+  - `query-data-source`: Added `fields` parameter to limit returned properties
+  - `search`: Added `fields` parameter to limit returned properties (simple format only)
+- **search format Parameter**: Added `format` parameter (`simple`/`json`) to search tool
+  - `simple` (default): Returns compact results with reduced token usage
+  - `json`: Returns full Notion API response
+
+### Changed
+
+- **Minimal Response for Write Operations**: All write tools now return only essential data (~90% token reduction)
+  - `create-page` / `create-page-simple`: Returns `{id, url}` only
+  - `update-page`: Returns `{id, url}` only
+  - `move-page`: Returns `{id, url}` only
+  - `archive-page`: Returns `{id}` only
+  - `create-database`: Returns `{id, url}` only
+  - `update-database`: Returns `{id, url}` only
+  - `archive-database`: Returns `{id}` only
+  - `update-data-source`: Returns `{id}` only
+  - `append-block-children` / `append-blocks-simple`: Returns `{block_ids}` only
+  - `update-block` / `update-block-simple`: Returns `{id}` only
+  - `delete-block`: Returns `{id}` only
+  - `create-comment` / `create-comment-simple`: Returns `{id}` only
+- **Default Format**: Unified default format to `simple` for all read tools
+  - `retrieve-page`: Default changed to `simple`
+  - `retrieve-database`: Default changed to `simple`
+  - `retrieve-data-source`: Default changed to `simple`
+  - `query-data-source`: Default changed to `simple`
+  - `search`: Default is `simple`
+- **retrieve-data-source Simple Format**: Options now return names only (not full objects with color)
+  - Reduces token usage for select/multi_select/status properties
+
 ## [0.8.1] - 2026-01-09
 
 ### Fixed
