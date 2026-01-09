@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { formatSimpleResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
   page_id: z.string().describe(F.page_id),
@@ -21,7 +21,7 @@ export function registerMovePage(server: McpServer, notion: NotionClient): void 
       description:
         'Move a page to a new parent (page or data source). ' +
         'Provide either page_id or data_source_id as the new parent. ' +
-        '(API version 2025-09-03)',
+        'Returns page ID and URL. (API version 2025-09-03)',
       inputSchema,
     },
     async ({ page_id, parent }) => {
@@ -47,7 +47,11 @@ export function registerMovePage(server: McpServer, notion: NotionClient): void 
           parent: parentParam,
         })
 
-        return formatResponse(response)
+        // Return minimal response (id + url only)
+        return formatSimpleResponse({
+          id: response.id,
+          url: 'url' in response ? response.url : undefined,
+        })
       } catch (error) {
         return handleError(error)
       }

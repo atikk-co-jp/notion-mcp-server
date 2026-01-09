@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { parseInlineMarkdown } from '../converters/index.js'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { formatSimpleResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
   page_id: z.string().optional().describe(F.page_id),
@@ -16,7 +16,7 @@ export function registerCreateCommentSimple(server: McpServer, notion: NotionCli
   server.registerTool(
     'create-comment-simple',
     {
-      description: 'Add a comment using Markdown. Simpler than create-comment.',
+      description: 'Add a comment using Markdown. Simpler than create-comment. Returns comment ID.',
       inputSchema,
     },
     async ({ page_id, block_id, discussion_id, content }) => {
@@ -57,7 +57,11 @@ export function registerCreateCommentSimple(server: McpServer, notion: NotionCli
         const response = await notion.comments.create(
           params as Parameters<typeof notion.comments.create>[0],
         )
-        return formatResponse(response)
+
+        // Return minimal response (id only)
+        return formatSimpleResponse({
+          id: response.id,
+        })
       } catch (error) {
         return handleError(error)
       }
