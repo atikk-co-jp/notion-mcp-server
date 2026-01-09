@@ -18,6 +18,7 @@ const inputSchema = {
   start_cursor: z.string().optional().describe(F.start_cursor),
   page_size: z.number().optional().describe(F.page_size),
   format: z.enum(['json', 'simple']).optional().describe(F.format),
+  fields: z.array(z.string()).optional().describe(F.fields),
 }
 
 export function registerQueryDataSource(server: McpServer, notion: NotionClient): void {
@@ -27,10 +28,11 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
       description:
         'Query a Notion data source with optional filters and sorts. Returns paginated results. ' +
         "Use format='simple' (default) for human-readable output with reduced token usage. " +
+        'Use fields parameter to limit which properties are returned (simple format only). ' +
         '(API version 2025-09-03)',
       inputSchema,
     },
-    async ({ data_source_id, filter, sorts, start_cursor, page_size, format }) => {
+    async ({ data_source_id, filter, sorts, start_cursor, page_size, format, fields }) => {
       try {
         const response = await notion.dataSources.query({
           data_source_id,
@@ -45,6 +47,7 @@ export function registerQueryDataSource(server: McpServer, notion: NotionClient)
           const fullPages = response.results.filter(isFullPage)
           const simplePages = pagesToSimple(
             fullPages as unknown as Parameters<typeof pagesToSimple>[0],
+            fields,
           )
           return formatSimplePaginatedResponse(simplePages, response.has_more, response.next_cursor)
         }
