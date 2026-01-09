@@ -6,13 +6,13 @@ import { formatResponse, formatSimpleResponse, handleError } from '../utils/inde
 
 const inputSchema = {
   data_source_id: z.string().describe(F.data_source_id),
-  format: z.enum(['json', 'simple']).optional().describe(F.format),
+  format: z.enum(['json', 'simple']).optional().default('simple').describe(F.format),
 }
 
 interface SimpleSchemaProperty {
   id: string
   type: string
-  options?: Array<{ name: string; color?: string }>
+  options?: string[]
 }
 
 export function registerRetrieveDataSource(server: McpServer, notion: NotionClient): void {
@@ -47,23 +47,23 @@ export function registerRetrieveDataSource(server: McpServer, notion: NotionClie
             type: prop.type,
           }
 
-          // Include options for select/multi_select/status
+          // Include options for select/multi_select/status (names only for simple format)
           const propAny = prop as Record<string, unknown>
           if (prop.type === 'select' && propAny.select) {
             const selectProp = propAny.select as {
-              options?: Array<{ name: string; color?: string }>
+              options?: Array<{ name: string }>
             }
-            simpleProp.options = selectProp.options
+            simpleProp.options = selectProp.options?.map((o) => o.name)
           } else if (prop.type === 'multi_select' && propAny.multi_select) {
             const multiSelectProp = propAny.multi_select as {
-              options?: Array<{ name: string; color?: string }>
+              options?: Array<{ name: string }>
             }
-            simpleProp.options = multiSelectProp.options
+            simpleProp.options = multiSelectProp.options?.map((o) => o.name)
           } else if (prop.type === 'status' && propAny.status) {
             const statusProp = propAny.status as {
-              options?: Array<{ name: string; color?: string }>
+              options?: Array<{ name: string }>
             }
-            simpleProp.options = statusProp.options
+            simpleProp.options = statusProp.options?.map((o) => o.name)
           }
 
           simpleProperties[name] = simpleProp

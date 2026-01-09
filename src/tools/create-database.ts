@@ -3,7 +3,7 @@ import type { CreateDatabaseParameters } from '@notionhq/client/build/src/api-en
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+import { formatSimpleResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 // Uses z.any() for title/icon/cover to reduce context size (~2,300 tokens saved)
@@ -23,7 +23,8 @@ export function registerCreateDatabase(server: McpServer, notion: NotionClient):
       description:
         'Create a new database as a subpage of an existing Notion page. ' +
         'Requires a parent_page_id and properties object defining the database schema. ' +
-        'Each database must have exactly one title property. (API version 2025-09-03)',
+        'Each database must have exactly one title property. ' +
+        'Returns database ID and URL. (API version 2025-09-03)',
       inputSchema,
     },
     async ({ parent_page_id, title, properties, icon, cover, is_inline }) => {
@@ -39,7 +40,12 @@ export function registerCreateDatabase(server: McpServer, notion: NotionClient):
         }
 
         const response = await notion.databases.create(params as CreateDatabaseParameters)
-        return formatResponse(response)
+
+        // Return minimal response (id + url only)
+        return formatSimpleResponse({
+          id: response.id,
+          url: 'url' in response ? response.url : undefined,
+        })
       } catch (error) {
         return handleErrorWithContext(error, notion, {
           exampleType: 'schema',

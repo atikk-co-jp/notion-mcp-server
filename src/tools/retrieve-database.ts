@@ -6,7 +6,7 @@ import { formatResponse, formatSimpleResponse, handleError } from '../utils/inde
 
 const inputSchema = {
   database_id: z.string().describe(F.database_id),
-  format: z.enum(['json', 'simple']).optional().describe(F.format),
+  format: z.enum(['json', 'simple']).optional().default('simple').describe(F.format),
 }
 
 export function registerRetrieveDatabase(server: McpServer, notion: NotionClient): void {

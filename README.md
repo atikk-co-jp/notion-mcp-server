@@ -22,44 +22,46 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 ## API Coverage
 
 > ⭐ = Markdown input supported (reduces input tokens by ~80%)
+>
+> 📤 = Minimal response (id/url only) - reduces output tokens by ~90%
 
-| Category | Notion API | MCP Tool | Format |
-|----------|-----------|----------|--------|
-| **Pages** | | | |
-| | [Create page](https://developers.notion.com/reference/post-page) | `create-page` | JSON |
-| | | `create-page-simple` ⭐ | Markdown |
-| | [Retrieve page](https://developers.notion.com/reference/retrieve-a-page) | `retrieve-page` | simple/json |
-| | [Update page](https://developers.notion.com/reference/patch-page) | `update-page` | JSON |
-| | [Retrieve page property](https://developers.notion.com/reference/retrieve-a-page-property-item) | `retrieve-page-property` | JSON |
-| | [Move page](https://developers.notion.com/reference/post-page-move) | `move-page` | JSON |
-| | [Archive page](https://developers.notion.com/reference/patch-page) | `archive-page` | JSON |
-| **Databases** | | | |
-| | [Create database](https://developers.notion.com/reference/create-a-database) | `create-database` | JSON |
-| | [Retrieve database](https://developers.notion.com/reference/retrieve-a-database) | `retrieve-database` | simple/json |
-| | [Update database](https://developers.notion.com/reference/update-a-database) | `update-database` | JSON |
-| | [Archive database](https://developers.notion.com/reference/update-a-database) | `archive-database` | JSON |
-| **Data Sources** | | | |
-| | [Retrieve data source](https://developers.notion.com/reference/retrieve-a-data-source) | `retrieve-data-source` | simple/json |
-| | [Query data source](https://developers.notion.com/reference/post-data-source-query) | `query-data-source` | simple/json |
-| | [Update data source](https://developers.notion.com/reference/patch-data-source) | `update-data-source` | JSON |
-| **Blocks** | | | |
-| | [Retrieve block](https://developers.notion.com/reference/retrieve-a-block) | `retrieve-block` | markdown/json |
-| | [Update block](https://developers.notion.com/reference/update-a-block) | `update-block` | JSON |
-| | | `update-block-simple` ⭐ | Markdown |
-| | [Delete block](https://developers.notion.com/reference/delete-a-block) | `delete-block` | JSON |
-| | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | markdown/json |
-| | [Append block children](https://developers.notion.com/reference/patch-block-children) | `append-block-children` | JSON |
-| | | `append-blocks-simple` ⭐ | Markdown |
-| **Comments** | | | |
-| | [Create comment](https://developers.notion.com/reference/create-a-comment) | `create-comment` | JSON |
-| | | `create-comment-simple` ⭐ | Markdown |
-| | [List comments](https://developers.notion.com/reference/retrieve-comments) | `list-comments` | JSON |
-| **Users** | | | |
-| | [List users](https://developers.notion.com/reference/get-users) | `list-users` | JSON |
-| | [Retrieve user](https://developers.notion.com/reference/get-user) | `retrieve-user` | JSON |
-| | [Retrieve bot user](https://developers.notion.com/reference/get-self) | `retrieve-bot-user` | JSON |
-| **Search** | | | |
-| | [Search](https://developers.notion.com/reference/post-search) | `search` | JSON |
+| Category | Notion API | MCP Tool | Input | Output (default) |
+|----------|-----------|----------|-------|------------------|
+| **Pages** | | | | |
+| | [Create page](https://developers.notion.com/reference/post-page) | `create-page` 📤 | JSON | `{id, url}` |
+| | | `create-page-simple` ⭐📤 | Markdown | `{id, url}` |
+| | [Retrieve page](https://developers.notion.com/reference/retrieve-a-page) | `retrieve-page` | JSON | **simple**/json |
+| | [Update page](https://developers.notion.com/reference/patch-page) | `update-page` 📤 | JSON | `{id, url}` |
+| | [Retrieve page property](https://developers.notion.com/reference/retrieve-a-page-property-item) | `retrieve-page-property` | JSON | json |
+| | [Move page](https://developers.notion.com/reference/post-page-move) | `move-page` 📤 | JSON | `{id, url}` |
+| | [Archive page](https://developers.notion.com/reference/patch-page) | `archive-page` 📤 | JSON | `{id}` |
+| **Databases** | | | | |
+| | [Create database](https://developers.notion.com/reference/create-a-database) | `create-database` 📤 | JSON | `{id, url}` |
+| | [Retrieve database](https://developers.notion.com/reference/retrieve-a-database) | `retrieve-database` | JSON | **simple**/json |
+| | [Update database](https://developers.notion.com/reference/update-a-database) | `update-database` 📤 | JSON | `{id, url}` |
+| | [Archive database](https://developers.notion.com/reference/update-a-database) | `archive-database` 📤 | JSON | `{id}` |
+| **Data Sources** | | | | |
+| | [Retrieve data source](https://developers.notion.com/reference/retrieve-a-data-source) | `retrieve-data-source` | JSON | **simple**/json |
+| | [Query data source](https://developers.notion.com/reference/post-data-source-query) | `query-data-source` | JSON | **simple**/json |
+| | [Update data source](https://developers.notion.com/reference/patch-data-source) | `update-data-source` 📤 | JSON | `{id}` |
+| **Blocks** | | | | |
+| | [Retrieve block](https://developers.notion.com/reference/retrieve-a-block) | `retrieve-block` | JSON | **markdown**/json |
+| | [Update block](https://developers.notion.com/reference/update-a-block) | `update-block` 📤 | JSON | `{id}` |
+| | | `update-block-simple` ⭐📤 | Markdown | `{id}` |
+| | [Delete block](https://developers.notion.com/reference/delete-a-block) | `delete-block` 📤 | JSON | `{id}` |
+| | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | JSON | **markdown**/json |
+| | [Append block children](https://developers.notion.com/reference/patch-block-children) | `append-block-children` 📤 | JSON | `{block_ids}` |
+| | | `append-blocks-simple` ⭐📤 | Markdown | `{block_ids}` |
+| **Comments** | | | | |
+| | [Create comment](https://developers.notion.com/reference/create-a-comment) | `create-comment` 📤 | JSON | `{id}` |
+| | | `create-comment-simple` ⭐📤 | Markdown | `{id}` |
+| | [List comments](https://developers.notion.com/reference/retrieve-comments) | `list-comments` | JSON | json |
+| **Users** | | | | |
+| | [List users](https://developers.notion.com/reference/get-users) | `list-users` | JSON | json |
+| | [Retrieve user](https://developers.notion.com/reference/get-user) | `retrieve-user` | JSON | json |
+| | [Retrieve bot user](https://developers.notion.com/reference/get-self) | `retrieve-bot-user` | JSON | json |
+| **Search** | | | | |
+| | [Search](https://developers.notion.com/reference/post-search) | `search` | JSON | **simple**/json |
 
 ## Installation
 

@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+import { formatSimpleResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
@@ -29,7 +29,8 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
         'Partial updates are supported - only provide the fields you want to change. ' +
         'Set icon or cover to null to remove them. ' +
         'Set archived to true to move the page to trash. ' +
-        'Set is_locked to true to lock the page in the UI.',
+        'Set is_locked to true to lock the page in the UI. ' +
+        'Returns updated page ID and URL.',
       inputSchema,
     },
     async ({ page_id, properties, archived, icon, cover, is_locked }) => {
@@ -64,7 +65,12 @@ export function registerUpdatePage(server: McpServer, notion: NotionClient): voi
         }
 
         const response = await notion.pages.update(params)
-        return formatResponse(response)
+
+        // Return minimal response (id + url only)
+        return formatSimpleResponse({
+          id: response.id,
+          url: 'url' in response ? response.url : undefined,
+        })
       } catch (error) {
         // Note: update-page uses page_id, not data_source_id,
         // so we can't fetch property list, but we can still show format examples

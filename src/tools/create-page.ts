@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+import { formatSimpleResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP (full validation by Notion API)
 const inputSchema = {
@@ -27,7 +27,7 @@ export function registerCreatePage(server: McpServer, notion: NotionClient): voi
       description:
         'Create a new page in a Notion data source. Requires a data_source_id and properties object. ' +
         'Optionally include initial content blocks, icon, and cover image. ' +
-        'Returns the created page with its ID and URL. (API version 2025-09-03)',
+        'Returns the created page ID and URL. (API version 2025-09-03)',
       inputSchema,
     },
     async ({ data_source_id, properties, children, icon, cover }) => {
@@ -56,7 +56,12 @@ export function registerCreatePage(server: McpServer, notion: NotionClient): voi
         }
 
         const response = await notion.pages.create(params)
-        return formatResponse(response)
+
+        // Return minimal response (id + url only)
+        return formatSimpleResponse({
+          id: response.id,
+          url: 'url' in response ? response.url : undefined,
+        })
       } catch (error) {
         return handleErrorWithContext(error, notion, {
           dataSourceId: data_source_id,

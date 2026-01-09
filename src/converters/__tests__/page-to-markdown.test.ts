@@ -500,6 +500,61 @@ describe('pageToSimple', () => {
 
     expect(result.url).toBe('')
   })
+
+  it('filters properties with fields parameter', () => {
+    const page = asPage({
+      id: 'page-123',
+      url: 'https://notion.so/page-123',
+      properties: {
+        Name: {
+          type: 'title',
+          title: [{ type: 'text', text: { content: 'My Page' }, plain_text: 'My Page' }],
+        },
+        Status: {
+          type: 'select',
+          select: { id: '1', name: 'Active', color: 'green' },
+        },
+        Priority: {
+          type: 'select',
+          select: { id: '2', name: 'High', color: 'red' },
+        },
+      },
+    })
+
+    const result = pageToSimple(page, ['Name', 'Status'])
+
+    expect(result).toEqual({
+      id: 'page-123',
+      url: 'https://notion.so/page-123',
+      properties: {
+        Name: 'My Page',
+        Status: 'Active',
+      },
+    })
+    expect(result.properties).not.toHaveProperty('Priority')
+  })
+
+  it('returns all properties when fields is empty array', () => {
+    const page = asPage({
+      id: 'page-123',
+      url: 'https://notion.so/page-123',
+      properties: {
+        Name: {
+          type: 'title',
+          title: [{ type: 'text', text: { content: 'My Page' }, plain_text: 'My Page' }],
+        },
+        Status: {
+          type: 'select',
+          select: { id: '1', name: 'Active', color: 'green' },
+        },
+      },
+    })
+
+    const result = pageToSimple(page, [])
+
+    expect(result.properties).toHaveProperty('Name')
+    expect(result.properties).toHaveProperty('Status')
+  })
 })
 
 describe('pagesToSimple', () => {
@@ -548,6 +603,63 @@ describe('pagesToSimple', () => {
 
   it('handles undefined input', () => {
     expect(pagesToSimple(undefined as unknown as PageObjectResponse[])).toEqual([])
+  })
+
+  it('filters properties with fields parameter', () => {
+    const pages = asPages([
+      {
+        id: 'page-1',
+        url: 'https://notion.so/page-1',
+        properties: {
+          Name: {
+            type: 'title',
+            title: [{ type: 'text', text: { content: 'Page 1' }, plain_text: 'Page 1' }],
+          },
+          Status: {
+            type: 'select',
+            select: { id: '1', name: 'Active', color: 'green' },
+          },
+          Priority: {
+            type: 'select',
+            select: { id: '2', name: 'High', color: 'red' },
+          },
+        },
+      },
+      {
+        id: 'page-2',
+        url: 'https://notion.so/page-2',
+        properties: {
+          Name: {
+            type: 'title',
+            title: [{ type: 'text', text: { content: 'Page 2' }, plain_text: 'Page 2' }],
+          },
+          Status: {
+            type: 'select',
+            select: { id: '1', name: 'Done', color: 'blue' },
+          },
+          Priority: {
+            type: 'select',
+            select: { id: '2', name: 'Low', color: 'gray' },
+          },
+        },
+      },
+    ])
+
+    const result = pagesToSimple(pages, ['Name', 'Status'])
+
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({
+      id: 'page-1',
+      url: 'https://notion.so/page-1',
+      properties: { Name: 'Page 1', Status: 'Active' },
+    })
+    expect(result[1]).toEqual({
+      id: 'page-2',
+      url: 'https://notion.so/page-2',
+      properties: { Name: 'Page 2', Status: 'Done' },
+    })
+    expect(result[0].properties).not.toHaveProperty('Priority')
+    expect(result[1].properties).not.toHaveProperty('Priority')
   })
 })
 
