@@ -28,6 +28,7 @@ const inputSchema = {
   start_cursor: z.string().optional().describe(F.start_cursor),
   page_size: z.number().min(1).max(100).optional().describe(F.page_size),
   format: z.enum(['json', 'simple']).optional().default('simple').describe(F.format),
+  fields: z.array(z.string()).optional().describe(F.fields),
 }
 
 // Types derived from inputSchema - guaranteed to match
@@ -44,11 +45,12 @@ export function registerSearch(server: McpServer, notion: NotionClient): void {
         'Filter results by type (page or data_source) and sort by last edited time. ' +
         'Returns paginated results. ' +
         "Use format='simple' (default) for human-readable output with reduced token usage. " +
+        'Use fields parameter to limit which properties are returned (simple format only). ' +
         'For querying a specific data source with filters, use query-data-source instead. ' +
         '(API version 2025-09-03)',
       inputSchema,
     },
-    async ({ query, filter, sort, start_cursor, page_size, format }) => {
+    async ({ query, filter, sort, start_cursor, page_size, format, fields }) => {
       try {
         const params: {
           query?: string
@@ -85,7 +87,7 @@ export function registerSearch(server: McpServer, notion: NotionClient): void {
           const simpleResults = response.results.map((result) => {
             if (result.object === 'page' && isFullPage(result)) {
               // Use pagesToSimple for pages
-              const [simplePage] = pagesToSimple([result as unknown as PageObjectResponse])
+              const [simplePage] = pagesToSimple([result as unknown as PageObjectResponse], fields)
               return { object: 'page', ...simplePage }
             }
             if (result.object === 'data_source') {
