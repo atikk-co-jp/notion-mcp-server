@@ -64,10 +64,7 @@ export const Fields = {
   // Format
   // ============================================
   format: {
-    desc: {
-      default: "Output format: 'simple' or 'json'",
-      query: "Output format: 'flat' (minimal, properties only), 'simple' (with id/url), or 'json' (full API response)",
-    },
+    desc: "Output format: 'simple' or 'json'",
   },
 
   // ============================================
@@ -218,5 +215,4 @@ export const F = (() => {
   properties_update: string
   filter_search: string
   icon_emoji: string
-  format_query: string
 }
