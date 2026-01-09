@@ -268,4 +268,3 @@ export function pagesToSimple(pages: PageObjectResponse[], fields?: string[]): S
   }
   return pages.map((page) => pageToSimple(page, fields))
 }
-

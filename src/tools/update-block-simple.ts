@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { parseInlineMarkdown } from '../converters/index.js'
 import { isFullBlock, type NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleError } from '../utils/index.js'
+import { formatSimpleResponse, handleError } from '../utils/index.js'
 
 const inputSchema = {
   block_id: z.string().describe(F.block_id),
@@ -85,7 +85,11 @@ export function registerUpdateBlockSimple(server: McpServer, notion: NotionClien
         }
 
         const response = await notion.blocks.update(params)
-        return formatResponse(response)
+
+        // Return minimal response (id only)
+        return formatSimpleResponse({
+          id: response.id,
+        })
       } catch (error) {
         return handleError(error)
       }
