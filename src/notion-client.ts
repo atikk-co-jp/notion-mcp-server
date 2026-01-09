@@ -2,6 +2,7 @@ import { Client } from '@notionhq/client'
 
 // Type exports - use 'import type' to re-export
 // Block types
+// NotionClientErrorは型としてのみエクスポート（ランタイムには存在しない）
 export type {
   AppendBlockChildrenParameters,
   AppendBlockChildrenResponse,
@@ -48,6 +49,7 @@ export type {
   MentionRichTextItemResponse,
   MovePageParameters,
   MovePageResponse,
+  NotionClientError,
   // Page types
   PageObjectResponse,
   PartialBlockObjectResponse,
@@ -95,9 +97,6 @@ export {
   isNotionClientError,
   iteratePaginatedAPI,
 } from '@notionhq/client'
-
-// NotionClientErrorは型としてのみエクスポート（ランタイムには存在しない）
-export type { NotionClientError } from '@notionhq/client'
 
 export interface NotionClientOptions {
   token: string
