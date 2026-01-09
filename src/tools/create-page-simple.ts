@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { markdownToBlocks } from '../converters/index.js'
 import { isFullDataSource, type NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatResponse, handleErrorWithContext } from '../utils/index.js'
+import { formatSimpleResponse, handleErrorWithContext } from '../utils/index.js'
 
 // Minimal schema for MCP
 const inputSchema = {
@@ -76,7 +76,12 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
           ...(children && { children }),
           ...(icon && { icon: { type: 'emoji' as const, emoji: icon } }),
         })
-        return formatResponse(response)
+
+        // Return minimal response (id + url only)
+        return formatSimpleResponse({
+          id: response.id,
+          url: 'url' in response ? response.url : undefined,
+        })
       } catch (error) {
         return handleErrorWithContext(error, notion, {
           dataSourceId: data_source_id,
