@@ -17,7 +17,7 @@ const inputSchema = {
   sorts: z.array(z.any()).optional().describe(F.sorts),
   start_cursor: z.string().optional().describe(F.start_cursor),
   page_size: z.number().optional().describe(F.page_size),
-  format: z.enum(['json', 'simple']).optional().describe(F.format),
+  format: z.enum(['json', 'simple']).optional().default('simple').describe(F.format),
   fields: z.array(z.string()).optional().describe(F.fields),
 }
 

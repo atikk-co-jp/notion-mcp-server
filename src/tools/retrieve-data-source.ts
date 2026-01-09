@@ -6,7 +6,7 @@ import { formatResponse, formatSimpleResponse, handleError } from '../utils/inde
 
 const inputSchema = {
   data_source_id: z.string().describe(F.data_source_id),
-  format: z.enum(['json', 'simple']).optional().describe(F.format),
+  format: z.enum(['json', 'simple']).optional().default('simple').describe(F.format),
 }
 
 interface SimpleSchemaProperty {
