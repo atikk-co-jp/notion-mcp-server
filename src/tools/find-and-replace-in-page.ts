@@ -45,7 +45,11 @@ function extractPlainText(richText: RichTextItemResponse[]): string {
 /**
  * Execute regex with timeout protection (ReDoS mitigation)
  */
-function safeRegexTest(pattern: RegExp, text: string, timeoutMs: number = REGEX_TIMEOUT_MS): boolean {
+function safeRegexTest(
+  pattern: RegExp,
+  text: string,
+  timeoutMs: number = REGEX_TIMEOUT_MS,
+): boolean {
   const start = Date.now()
   try {
     // Simple timeout check (not perfect but helps with obvious ReDoS)
@@ -63,7 +67,12 @@ function safeRegexTest(pattern: RegExp, text: string, timeoutMs: number = REGEX_
  * Replace text in string with regex/string matching
  * @internal Exported for testing
  */
-export function replaceText(text: string, find: string, replace: string, useRegex: boolean): string {
+export function replaceText(
+  text: string,
+  find: string,
+  replace: string,
+  useRegex: boolean,
+): string {
   if (useRegex) {
     try {
       const regex = new RegExp(find, 'g')
@@ -116,7 +125,7 @@ async function getAllChildBlocks(
       }
     }
 
-    cursor = response.has_more ? response.next_cursor ?? undefined : undefined
+    cursor = response.has_more ? (response.next_cursor ?? undefined) : undefined
   } while (cursor)
 
   return allBlocks

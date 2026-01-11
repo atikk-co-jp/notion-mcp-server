@@ -43,7 +43,7 @@ async function getAllChildBlocks(
       }
     }
 
-    cursor = response.has_more ? response.next_cursor ?? undefined : undefined
+    cursor = response.has_more ? (response.next_cursor ?? undefined) : undefined
   } while (cursor)
 
   return allBlocks

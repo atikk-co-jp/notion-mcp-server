@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2026-01-12
+
+### Added
+
+- **README "Why this repository?" Section**: Added explanation of why this repository was created
+  - Comparison table with Official Notion MCP and open-source version
+  - Plan restrictions explained (Notion AI, Enterprise+AI)
+  - Token efficiency comparison
+
+### Changed
+
+- **.gitignore**: Added `tmp/` to ignore temporary files
+
 ## [0.10.0] - 2026-01-11
 
 ### Added
