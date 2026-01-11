@@ -29,6 +29,56 @@ Here's what I found with existing options:
 
 **This repository provides property filtering with `fields` parameter for 90% token reduction.**
 
+## Quick Start
+
+### 1. Get a Notion Token
+
+1. Go to [Notion Integrations](https://www.notion.so/my-integrations)
+2. Click "New integration"
+3. Give it a name and select the workspace
+4. Copy the "Internal Integration Token" (starts with `ntn_`)
+5. Share the pages/databases you want to access with your integration
+
+### 2. Configure Your AI Client
+
+#### Claude Desktop
+
+Add to your configuration (`~/.config/claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "ntn_xxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+#### Claude Code
+
+Add to your `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "ntn_xxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+That's it! Restart your AI client and start using Notion.
+
 ## Features
 
 - **Page Operations**: Create, retrieve, update, and move Notion pages
@@ -85,62 +135,6 @@ Here's what I found with existing options:
 | | [Retrieve bot user](https://developers.notion.com/reference/get-self) | `retrieve-bot-user` | JSON | json |
 | **Search** | | | | |
 | | [Search](https://developers.notion.com/reference/post-search) | `search` | JSON | **simple**/json |
-
-## Installation
-
-```bash
-npm install @atikk-co-jp/notion-mcp-server
-# or
-pnpm add @atikk-co-jp/notion-mcp-server
-# or
-yarn add @atikk-co-jp/notion-mcp-server
-```
-
-## Usage
-
-### With Claude Desktop
-
-Add to your Claude Desktop configuration (`~/.config/claude/claude_desktop_config.json` on macOS):
-
-```json
-{
-  "mcpServers": {
-    "notion": {
-      "command": "npx",
-      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
-      "env": {
-        "NOTION_TOKEN": "your-notion-integration-token"
-      }
-    }
-  }
-}
-```
-
-### With Claude Code
-
-Add to your `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "notion": {
-      "command": "npx",
-      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
-      "env": {
-        "NOTION_TOKEN": "your-notion-integration-token"
-      }
-    }
-  }
-}
-```
-
-## Getting a Notion Token
-
-1. Go to [Notion Integrations](https://www.notion.so/my-integrations)
-2. Click "New integration"
-3. Give it a name and select the workspace
-4. Copy the "Internal Integration Token" (starts with `ntn_`)
-5. Share the pages/databases you want to access with your integration
 
 ## Available Tools
 

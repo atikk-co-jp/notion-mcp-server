@@ -29,6 +29,56 @@ Notionのタスクデータベースから、特定の条件でタスクを取�
 
 **このリポジトリは、`fields`パラメータによる90%のトークン削減と共にプロパティフィルタを提供します。**
 
+## クイックスタート
+
+### 1. Notionトークンを取得
+
+1. [Notion Integrations](https://www.notion.so/my-integrations)にアクセス
+2. 「新しいインテグレーション」をクリック
+3. 名前を入力し、ワークスペースを選択
+4. 「内部インテグレーションシークレット」をコピー（`ntn_`で始まる）
+5. アクセスしたいページ/データベースをインテグレーションと共有
+
+### 2. AIクライアントを設定
+
+#### Claude Desktop
+
+設定ファイル（macOSの場合: `~/.config/claude/claude_desktop_config.json`）に追加:
+
+```json
+{
+  "mcpServers": {
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "ntn_xxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+#### Claude Code
+
+`.mcp.json`に追加:
+
+```json
+{
+  "mcpServers": {
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "ntn_xxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+以上です！AIクライアントを再起動して、Notionの操作を始めましょう。
+
 ## 特徴
 
 - **ページ操作**: Notionページの作成、取得、更新、移動
@@ -86,62 +136,6 @@ Notionのタスクデータベースから、特定の条件でタスクを取�
 | | [Retrieve bot user](https://developers.notion.com/reference/get-self) | `retrieve-bot-user` | JSON | json |
 | **検索** | | | | |
 | | [Search](https://developers.notion.com/reference/post-search) | `search` | JSON | **simple**/json |
-
-## インストール
-
-```bash
-npm install @atikk-co-jp/notion-mcp-server
-# または
-pnpm add @atikk-co-jp/notion-mcp-server
-# または
-yarn add @atikk-co-jp/notion-mcp-server
-```
-
-## 使い方
-
-### Claude Desktopで使用する
-
-Claude Desktopの設定ファイル（macOSの場合: `~/.config/claude/claude_desktop_config.json`）に追加:
-
-```json
-{
-  "mcpServers": {
-    "notion": {
-      "command": "npx",
-      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
-      "env": {
-        "NOTION_TOKEN": "your-notion-integration-token"
-      }
-    }
-  }
-}
-```
-
-### Claude Codeで使用する
-
-`.mcp.json`に追加:
-
-```json
-{
-  "mcpServers": {
-    "notion": {
-      "command": "npx",
-      "args": ["-y", "@atikk-co-jp/notion-mcp-server"],
-      "env": {
-        "NOTION_TOKEN": "your-notion-integration-token"
-      }
-    }
-  }
-}
-```
-
-## Notionトークンの取得方法
-
-1. [Notion Integrations](https://www.notion.so/my-integrations)にアクセス
-2. 「新しいインテグレーション」をクリック
-3. 名前を入力し、ワークスペースを選択
-4. 「内部インテグレーションシークレット」をコピー（`ntn_`で始まる）
-5. アクセスしたいページ/データベースをインテグレーションと共有
 
 ## 利用可能なツール
 
@@ -431,17 +425,6 @@ Markdownを使ってブロックを追加します。`append-block-children`と�
 | append-block-children (ブロック構造) | ~201 | - |
 | append-blocks-simple (Markdown) | ~42 | **79%** |
 
-### create-comment
-
-ページにコメントを追加します。
-
-```json
-{
-  "page_id": "ページのUUID",
-  "rich_text": [{ "type": "text", "text": { "content": "これはコメントです" } }]
-}
-```
-
 ### replace-page-content ⭐
 
 ページの全コンテンツをMarkdownで置換します。`child_database`と`child_page`ブロックは自動的に保護されます（削除されません）。
@@ -506,6 +489,33 @@ Markdownを使ってブロックを追加します。`append-block-children`と�
 ```
 
 **対象ブロックタイプ:** paragraph, heading_1/2/3, bulleted_list_item, numbered_list_item, to_do, quote, callout, toggle
+
+### create-comment
+
+ページにコメントを追加します。
+
+```json
+{
+  "page_id": "ページのUUID",
+  "rich_text": [{ "type": "text", "text": { "content": "これはコメントです" } }]
+}
+```
+
+### create-comment-simple ⭐
+
+Markdownを使ってコメントを追加します。`create-comment`より簡単。
+
+**パラメータ:**
+- `page_id` (必須): ページのID
+- `content` (必須): コメント内容（Markdown形式）
+- `discussion_id` (任意): 既存スレッドへの返信
+
+```json
+{
+  "page_id": "ページのUUID",
+  "content": "これは**重要**で[リンク](https://example.com)もあります"
+}
+```
 
 ## 開発
 
