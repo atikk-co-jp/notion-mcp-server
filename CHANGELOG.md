@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-01-12
+
+### Added
+
+- **Bidirectional Extended Markdown Support**: Full support for extended markdown syntax in both directions
+  - **Markdown → Notion**: `create-page-simple`, `append-blocks-simple` now support extended syntax
+  - **Notion → Markdown**: `retrieve-page`, `get-block-children` now output extended syntax
+- **Extended Markdown Syntax**: New block types and inline formatting
+  - Toggle: `<details><summary>title</summary>content</details>`
+  - Callout: `> [!NOTE]`, `> [!WARNING]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!CAUTION]`
+  - Equation: `$$E = mc^2$$` (block), `$inline$` (inline)
+  - Underline: `<u>text</u>` or `++text++`
+  - Color: `{color:red}text{/color}`, `{bg:yellow}text{/bg}`
+  - Bookmark: `[bookmark](url)` or `[bookmark:caption](url)`
+  - Columns: `:::columns` / `:::column` / `:::`
+  - Media embeds: `@[embed](url)`, `@[video](url)`, `@[audio](url)`, `@[file](url)`, `@[pdf](url)`
+
+### Improved
+
+- **Test Coverage**: Added comprehensive tests for all extended markdown conversions (411 tests total)
+- **Documentation**: Added Extended Markdown section to README with syntax examples
+
 ## [0.10.2] - 2026-01-12
 
 ### Changed
