@@ -89,6 +89,21 @@ export const Fields = {
   },
 
   // ============================================
+  // Markdown Syntax (for tool descriptions)
+  // ============================================
+  markdown_syntax: {
+    desc: {
+      default:
+        'Markdown: # headings, - lists, - [ ] checkboxes, ``` code, > quotes, | tables |, ![]() images, **bold**, *italic*, ~~strike~~, `code`, [links](). ' +
+        'Extended: <details><summary> toggle, > [!NOTE/WARNING/TIP/IMPORTANT/CAUTION] callout, $$ equation, <u>/++ underline, {color:x}{/color}, {bg:x}{/bg}, ' +
+        '[bookmark](), :::columns, @[embed/video/audio/file/pdf]().',
+      short:
+        '# headings, - lists, - [ ] checkboxes, ``` code, > quotes, | tables |, **bold**, *italic*, [links](), ' +
+        '<details> toggle, > [!NOTE] callout, $$ equation.',
+    },
+  },
+
+  // ============================================
   // Archive / Lock
   // ============================================
   archived: {
@@ -215,4 +230,5 @@ export const F = (() => {
   properties_update: string
   filter_search: string
   icon_emoji: string
+  markdown_syntax_short: string
 }

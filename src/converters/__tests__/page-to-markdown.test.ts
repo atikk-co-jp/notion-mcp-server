@@ -420,6 +420,172 @@ describe('pagePropertiesToObject', () => {
     })
   })
 
+  describe('rollup property', () => {
+    it('converts rollup number result', () => {
+      const properties = asProperties({
+        Count: {
+          type: 'rollup',
+          rollup: { type: 'number', number: 42 },
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Count: 42,
+      })
+    })
+
+    it('converts rollup date result', () => {
+      const properties = asProperties({
+        LastDate: {
+          type: 'rollup',
+          rollup: { type: 'date', date: { start: '2024-01-15' } },
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        LastDate: '2024-01-15',
+      })
+    })
+
+    it('converts rollup array result', () => {
+      const properties = asProperties({
+        Items: {
+          type: 'rollup',
+          rollup: { type: 'array', array: [{}, {}, {}] },
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Items: '[3 items]',
+      })
+    })
+
+    it('handles null rollup', () => {
+      const properties = asProperties({
+        Count: {
+          type: 'rollup',
+          rollup: null,
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Count: null,
+      })
+    })
+  })
+
+  describe('created_by property', () => {
+    it('converts created_by with name', () => {
+      const properties = asProperties({
+        Creator: {
+          type: 'created_by',
+          created_by: { id: 'user-123', name: 'John Doe' },
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Creator: 'John Doe',
+      })
+    })
+
+    it('converts created_by without name (uses id)', () => {
+      const properties = asProperties({
+        Creator: {
+          type: 'created_by',
+          created_by: { id: 'user-123' },
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Creator: 'user-123',
+      })
+    })
+
+    it('handles null created_by', () => {
+      const properties = asProperties({
+        Creator: {
+          type: 'created_by',
+          created_by: null,
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Creator: null,
+      })
+    })
+  })
+
+  describe('last_edited_by property', () => {
+    it('converts last_edited_by with name', () => {
+      const properties = asProperties({
+        Editor: {
+          type: 'last_edited_by',
+          last_edited_by: { id: 'user-456', name: 'Jane Doe' },
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Editor: 'Jane Doe',
+      })
+    })
+
+    it('converts last_edited_by without name (uses id)', () => {
+      const properties = asProperties({
+        Editor: {
+          type: 'last_edited_by',
+          last_edited_by: { id: 'user-456' },
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Editor: 'user-456',
+      })
+    })
+
+    it('handles null last_edited_by', () => {
+      const properties = asProperties({
+        Editor: {
+          type: 'last_edited_by',
+          last_edited_by: null,
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Editor: null,
+      })
+    })
+  })
+
+  describe('verification property', () => {
+    it('converts verification state', () => {
+      const properties = asProperties({
+        Verified: {
+          type: 'verification',
+          verification: { state: 'verified' },
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Verified: 'verified',
+      })
+    })
+
+    it('handles null verification', () => {
+      const properties = asProperties({
+        Verified: {
+          type: 'verification',
+          verification: null,
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Verified: null,
+      })
+    })
+  })
+
+  describe('button property', () => {
+    it('converts button property', () => {
+      const properties = asProperties({
+        Action: {
+          type: 'button',
+          button: {},
+        },
+      })
+      expect(pagePropertiesToObject(properties)).toEqual({
+        Action: '[Button]',
+      })
+    })
+  })
+
   describe('handles undefined/null properties', () => {
     it('handles undefined properties', () => {
       expect(

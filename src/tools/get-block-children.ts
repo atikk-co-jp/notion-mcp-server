@@ -1,6 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { blocksToMarkdown, blocksToMarkdownSync } from '../converters/index.js'
+import { blocksToMarkdown } from '../converters/index.js'
 import { type BlockObjectResponse, isFullBlock, type NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
 import { formatMarkdownResponse, formatPaginatedResponse, handleError } from '../utils/index.js'
@@ -43,8 +43,8 @@ export function registerGetBlockChildren(server: McpServer, notion: NotionClient
             }
             markdown = await blocksToMarkdown(blocks, { fetchChildren })
           } else {
-            // 子ブロック取得なし（同期版）
-            markdown = blocksToMarkdownSync(blocks)
+            // 子ブロック取得なし
+            markdown = await blocksToMarkdown(blocks)
           }
 
           return formatMarkdownResponse(markdown, response.has_more, response.next_cursor)

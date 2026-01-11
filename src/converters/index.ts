@@ -5,7 +5,7 @@
  */
 
 // ブロック変換
-export { blocksToMarkdown, blocksToMarkdownSync, type ConvertOptions } from './block-to-markdown.js'
+export { blocksToMarkdown, type ConvertOptions } from './block-to-markdown.js'
 // Markdown→ブロック変換
 export { markdownToBlocks, parseInlineMarkdown } from './markdown-to-blocks.js'
 // ページプロパティ変換

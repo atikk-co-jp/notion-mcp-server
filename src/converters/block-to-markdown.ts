@@ -166,8 +166,17 @@ async function convertBlock(
     case 'callout': {
       const text = richTextToMarkdown(block.callout.rich_text)
       const icon = extractIconText(block.callout.icon)
-      const prefix = icon ? `${icon} ` : ''
-      return `${indent}> ${prefix}**Note:** ${text}`
+      // アイコンからGitHub Alerts形式を推測
+      const alertTypeMap: Record<string, string> = {
+        'ℹ️': 'NOTE',
+        '⚠️': 'WARNING',
+        '💡': 'TIP',
+        '❗': 'IMPORTANT',
+        '🔴': 'CAUTION',
+      }
+      const alertType = alertTypeMap[icon] || 'NOTE'
+      const lines = text.split('\n')
+      return `${indent}> [!${alertType}]\n${lines.map((line) => `${indent}> ${line}`).join('\n')}`
     }
 
     case 'divider': {
@@ -177,8 +186,10 @@ async function convertBlock(
     case 'bookmark': {
       const url = block.bookmark.url || ''
       const caption = block.bookmark.caption ? richTextToMarkdown(block.bookmark.caption) : ''
-      const displayText = caption || url
-      return `${indent}[${displayText}](${url})`
+      if (caption) {
+        return `${indent}[bookmark:${caption}](${url})`
+      }
+      return `${indent}[bookmark](${url})`
     }
 
     case 'image': {
@@ -190,35 +201,46 @@ async function convertBlock(
     case 'video': {
       const url = extractFileUrl(block.video)
       const caption = block.video.caption ? richTextToMarkdown(block.video.caption) : ''
-      const displayText = caption || 'Video'
-      return `${indent}[${displayText}](${url})`
+      if (caption) {
+        return `${indent}@[video:${caption}](${url})`
+      }
+      return `${indent}@[video](${url})`
     }
 
     case 'audio': {
       const url = extractFileUrl(block.audio)
-      const displayText = 'Audio'
-      return `${indent}[${displayText}](${url})`
+      const caption = block.audio.caption ? richTextToMarkdown(block.audio.caption) : ''
+      if (caption) {
+        return `${indent}@[audio:${caption}](${url})`
+      }
+      return `${indent}@[audio](${url})`
     }
 
     case 'file': {
       const url = extractFileUrl(block.file)
-      const caption = block.file.caption ? richTextToMarkdown(block.file.caption) : ''
-      const name = block.file.name || caption || 'File'
-      return `${indent}[${name}](${url})`
+      const name = block.file.name || ''
+      if (name) {
+        return `${indent}@[file:${name}](${url})`
+      }
+      return `${indent}@[file](${url})`
     }
 
     case 'pdf': {
       const url = extractFileUrl(block.pdf)
       const caption = block.pdf.caption ? richTextToMarkdown(block.pdf.caption) : ''
-      const displayText = caption || 'PDF'
-      return `${indent}[${displayText}](${url})`
+      if (caption) {
+        return `${indent}@[pdf:${caption}](${url})`
+      }
+      return `${indent}@[pdf](${url})`
     }
 
     case 'embed': {
       const url = block.embed.url || ''
       const caption = block.embed.caption ? richTextToMarkdown(block.embed.caption) : ''
-      const displayText = caption || 'Embed'
-      return `${indent}[${displayText}](${url})`
+      if (caption) {
+        return `${indent}@[embed:${caption}](${url})`
+      }
+      return `${indent}@[embed](${url})`
     }
 
     case 'table_of_contents': {
@@ -264,12 +286,12 @@ async function convertBlock(
             const columnChildren = await options.fetchChildren(column.id)
             const content = await blocksToMarkdown(columnChildren, options)
             if (content) {
-              columnContents.push(content)
+              columnContents.push(`${indent}:::column\n${content}\n${indent}:::`)
             }
           }
         }
-        // カラムを | で区切って表示
-        return columnContents.join('\n\n---\n\n')
+        // :::columns 形式で出力
+        return `${indent}:::columns\n${columnContents.join('\n')}\n${indent}:::`
       }
       return ''
     }
@@ -372,209 +394,6 @@ export async function blocksToMarkdown(
     }
 
     // 空でない結果のみ追加
-    if (markdown) {
-      lines.push(markdown)
-    }
-  }
-
-  return lines.join('\n')
-}
-
-/**
- * ブロック配列をマークダウン文字列に変換（同期版、子ブロック取得なし）
- * @param blocks - Notion APIから取得したブロック配列
- * @returns マークダウン文字列
- */
-export function blocksToMarkdownSync(blocks: BlockObjectResponse[]): string {
-  if (!blocks || blocks.length === 0) {
-    return ''
-  }
-
-  const lines: string[] = []
-  let numberedListIndex = 1
-
-  for (const block of blocks) {
-    const indent = ''
-    let markdown = ''
-
-    switch (block.type) {
-      case 'paragraph': {
-        const text = richTextToMarkdown(block.paragraph.rich_text)
-        markdown = text ? `${indent}${text}` : ''
-        break
-      }
-
-      case 'heading_1': {
-        const text = richTextToMarkdown(block.heading_1.rich_text)
-        markdown = `${indent}# ${text}`
-        break
-      }
-
-      case 'heading_2': {
-        const text = richTextToMarkdown(block.heading_2.rich_text)
-        markdown = `${indent}## ${text}`
-        break
-      }
-
-      case 'heading_3': {
-        const text = richTextToMarkdown(block.heading_3.rich_text)
-        markdown = `${indent}### ${text}`
-        break
-      }
-
-      case 'bulleted_list_item': {
-        const text = richTextToMarkdown(block.bulleted_list_item.rich_text)
-        markdown = `${indent}- ${text}`
-        break
-      }
-
-      case 'numbered_list_item': {
-        const text = richTextToMarkdown(block.numbered_list_item.rich_text)
-        markdown = `${indent}${numberedListIndex}. ${text}`
-        numberedListIndex++
-        break
-      }
-
-      case 'to_do': {
-        const text = richTextToMarkdown(block.to_do.rich_text)
-        const checked = block.to_do.checked ? 'x' : ' '
-        markdown = `${indent}- [${checked}] ${text}`
-        break
-      }
-
-      case 'toggle': {
-        const text = richTextToMarkdown(block.toggle.rich_text)
-        markdown = `${indent}<details>\n${indent}<summary>${text}</summary>\n${indent}</details>`
-        break
-      }
-
-      case 'code': {
-        const text = richTextToMarkdown(block.code.rich_text)
-        const language = block.code.language || ''
-        markdown = `${indent}\`\`\`${language}\n${text}\n${indent}\`\`\``
-        break
-      }
-
-      case 'quote': {
-        const text = richTextToMarkdown(block.quote.rich_text)
-        const quoteLines = text.split('\n')
-        markdown = quoteLines.map((line) => `${indent}> ${line}`).join('\n')
-        break
-      }
-
-      case 'callout': {
-        const text = richTextToMarkdown(block.callout.rich_text)
-        const icon = extractIconText(block.callout.icon)
-        const prefix = icon ? `${icon} ` : ''
-        markdown = `${indent}> ${prefix}**Note:** ${text}`
-        break
-      }
-
-      case 'divider': {
-        markdown = `${indent}---`
-        break
-      }
-
-      case 'bookmark': {
-        const url = block.bookmark.url || ''
-        const caption = block.bookmark.caption ? richTextToMarkdown(block.bookmark.caption) : ''
-        const displayText = caption || url
-        markdown = `${indent}[${displayText}](${url})`
-        break
-      }
-
-      case 'image': {
-        const url = extractFileUrl(block.image)
-        const caption = block.image.caption ? richTextToMarkdown(block.image.caption) : ''
-        markdown = `${indent}![${caption}](${url})`
-        break
-      }
-
-      case 'video':
-      case 'audio': {
-        const blockData = block.type === 'video' ? block.video : block.audio
-        const url = extractFileUrl(blockData)
-        const displayText = block.type === 'video' ? 'Video' : 'Audio'
-        markdown = `${indent}[${displayText}](${url})`
-        break
-      }
-
-      case 'file': {
-        const url = extractFileUrl(block.file)
-        const caption = block.file.caption ? richTextToMarkdown(block.file.caption) : ''
-        const name = block.file.name || caption || 'File'
-        markdown = `${indent}[${name}](${url})`
-        break
-      }
-
-      case 'pdf': {
-        const url = extractFileUrl(block.pdf)
-        const caption = block.pdf.caption ? richTextToMarkdown(block.pdf.caption) : ''
-        const displayText = caption || 'PDF'
-        markdown = `${indent}[${displayText}](${url})`
-        break
-      }
-
-      case 'embed': {
-        const url = block.embed.url || ''
-        const caption = block.embed.caption ? richTextToMarkdown(block.embed.caption) : ''
-        const displayText = caption || 'Embed'
-        markdown = `${indent}[${displayText}](${url})`
-        break
-      }
-
-      case 'table_of_contents': {
-        markdown = `${indent}[TOC]`
-        break
-      }
-
-      case 'equation': {
-        const expression = block.equation.expression || ''
-        markdown = `${indent}$$\n${expression}\n$$`
-        break
-      }
-
-      case 'child_page': {
-        const title = block.child_page.title || 'Untitled'
-        markdown = `${indent}📄 [${title}]`
-        break
-      }
-
-      case 'child_database': {
-        const title = block.child_database.title || 'Untitled Database'
-        markdown = `${indent}📊 [${title}]`
-        break
-      }
-
-      case 'link_preview': {
-        const url = block.link_preview.url || ''
-        markdown = `${indent}[${url}](${url})`
-        break
-      }
-
-      case 'link_to_page': {
-        const linkTo = block.link_to_page
-        if (linkTo.type === 'page_id') {
-          markdown = `${indent}[Link to page](${linkTo.page_id})`
-        } else if (linkTo.type === 'database_id') {
-          markdown = `${indent}[Link to database](${linkTo.database_id})`
-        } else {
-          markdown = `${indent}<!-- Link to page -->`
-        }
-        break
-      }
-
-      default: {
-        markdown = `${indent}<!-- Unsupported block type: ${block.type} -->`
-        break
-      }
-    }
-
-    // 番号付きリスト以外の場合はインデックスをリセット
-    if (block.type !== 'numbered_list_item') {
-      numberedListIndex = 1
-    }
-
     if (markdown) {
       lines.push(markdown)
     }

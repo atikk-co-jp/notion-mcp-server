@@ -197,6 +197,16 @@ Create a new page using Markdown. **~80% fewer output tokens** compared to `crea
 - Tables: `| col1 | col2 |` with header separator `|---|---|`
 - Inline: `**bold**`, `*italic*`, `~~strike~~`, `` `code` ``, `[link](url)`
 
+**Extended Markdown (bidirectional):**
+- Toggle: `<details><summary>title</summary>content</details>`
+- Callout: `> [!NOTE]`, `> [!WARNING]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!CAUTION]`
+- Equation: `$$E = mc^2$$` (inline/block)
+- Underline: `<u>text</u>` or `++text++`
+- Color: `{color:red}text{/color}`, `{bg:yellow}text{/bg}`
+- Bookmark: `[bookmark](url)` or `[bookmark:caption](url)`
+- Columns: `:::columns` / `:::column` / `:::`
+- Media: `@[embed](url)`, `@[video](url)`, `@[audio](url)`, `@[file](url)`, `@[pdf](url)`
+
 ```json
 {
   "data_source_id": "data-source-uuid-here",
@@ -433,7 +443,7 @@ Replace all content of a page with new Markdown content. Automatically preserves
 - `content` (required): New content in Markdown
 - `dry_run` (optional): Preview which blocks will be deleted without making changes (default: false)
 
-**⚠️ Warning:** Blocks not supported by Markdown (bookmark, callout, equation, table_of_contents, synced_block, etc.) will be **DELETED**. Use `dry_run: true` to preview before executing.
+**⚠️ Warning:** Blocks not representable in Extended Markdown (table_of_contents, synced_block, etc.) will be **DELETED**. Use `dry_run: true` to preview before executing.
 
 **Use when:** You want to completely rewrite page content without finding individual block IDs.
 
