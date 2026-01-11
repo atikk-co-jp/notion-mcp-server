@@ -4,9 +4,7 @@
 
 Notion API用のMCP（Model Context Protocol）サーバー。AIアシスタントがNotionのページ、データベース、ブロックを操作できるようにします。
 
-> ⚠️ **注意**: これは初期リリースです。APIは変更される可能性があります。
-
-> **APIバージョン**: 2025-09-03（最新）
+**APIバージョン**: 2025-09-03（最新）
 
 ## 特徴
 
@@ -52,6 +50,9 @@ Notion API用のMCP（Model Context Protocol）サーバー。AIアシスタン�
 | | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | JSON | **markdown**/json |
 | | [Append block children](https://developers.notion.com/reference/patch-block-children) | `append-block-children` 📤 | JSON | `{block_ids}` |
 | | | `append-blocks-simple` ⭐📤 | Markdown | `{block_ids}` |
+| **ページコンテンツ** | | | | |
+| | - | `replace-page-content` ⭐📤 | Markdown | `{deleted_count, created_count}` |
+| | - | `find-and-replace-in-page` ⭐📤 | Markdown | `{updated_count, updated_block_ids}` |
 | **コメント** | | | | |
 | | [Create comment](https://developers.notion.com/reference/create-a-comment) | `create-comment` 📤 | JSON | `{id}` |
 | | | `create-comment-simple` ⭐📤 | Markdown | `{id}` |
@@ -417,6 +418,59 @@ Markdownを使ってブロックを追加します。`append-block-children`と�
   "rich_text": [{ "type": "text", "text": { "content": "これはコメントです" } }]
 }
 ```
+
+### replace-page-content ⭐
+
+ページの全コンテンツをMarkdownで置換します。`child_database`と`child_page`ブロックは自動的に保護されます（削除されません）。
+
+**パラメータ:**
+- `page_id` (必須): 更新するページのID
+- `content` (必須): 新しいコンテンツ（Markdown形式）
+
+**サポートするMarkdown記法:**
+見出し(#)、リスト(- または 1.)、チェックボックス(- [ ])、コードブロック(```)、引用(>)、テーブル(| |)、画像(![]())、太字(**)、イタリック(*)、リンク([]())
+
+```json
+{
+  "page_id": "ページのUUID",
+  "content": "# 新しいタイトル\n\nこれは完全に新しいコンテンツです。\n\n## セクション1\n\n- 項目1\n- 項目2"
+}
+```
+
+**使い分け:**
+- ページ全体を書き換えたい場合 → `replace-page-content`
+- 特定のテキストだけ置換したい場合 → `find-and-replace-in-page`
+- 単一ブロックを更新したい（block_idがわかる）場合 → `update-block-simple`
+
+### find-and-replace-in-page ⭐
+
+ページ内のテキストを検索して置換します。正規表現にも対応。
+
+**パラメータ:**
+- `page_id` (必須): 対象ページのID
+- `find` (必須): 検索文字列（`use_regex: true`の場合は正規表現パターン）
+- `replace` (必須): 置換テキスト（Markdown対応: **太字**, *イタリック*, [リンク](url)など）
+- `use_regex` (任意): trueの場合、`find`を正規表現として解釈（デフォルト: false）
+
+```json
+{
+  "page_id": "ページのUUID",
+  "find": "古いテキスト",
+  "replace": "**新しいテキスト**"
+}
+```
+
+**正規表現の例:**
+```json
+{
+  "page_id": "ページのUUID",
+  "find": "item\\d+",
+  "replace": "アイテム",
+  "use_regex": true
+}
+```
+
+**対象ブロックタイプ:** paragraph, heading_1/2/3, bulleted_list_item, numbered_list_item, to_do, quote, callout, toggle
 
 ## 開発
 
