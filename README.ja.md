@@ -426,6 +426,9 @@ Markdownを使ってブロックを追加します。`append-block-children`と�
 **パラメータ:**
 - `page_id` (必須): 更新するページのID
 - `content` (必須): 新しいコンテンツ（Markdown形式）
+- `dry_run` (任意): 削除されるブロックをプレビュー（実際には変更しない）（デフォルト: false）
+
+**⚠️ 注意:** Markdownで表現できないブロック（bookmark, callout, equation, table_of_contents, synced_block等）は**削除されます**。実行前に `dry_run: true` でプレビューを確認してください。
 
 **サポートするMarkdown記法:**
 見出し(#)、リスト(- または 1.)、チェックボックス(- [ ])、コードブロック(```)、引用(>)、テーブル(| |)、画像(![]())、太字(**)、イタリック(*)、リンク([]())
@@ -434,6 +437,15 @@ Markdownを使ってブロックを追加します。`append-block-children`と�
 {
   "page_id": "ページのUUID",
   "content": "# 新しいタイトル\n\nこれは完全に新しいコンテンツです。\n\n## セクション1\n\n- 項目1\n- 項目2"
+}
+```
+
+**削除プレビュー (dry run):**
+```json
+{
+  "page_id": "ページのUUID",
+  "content": "# 新しいコンテンツ",
+  "dry_run": true
 }
 ```
 

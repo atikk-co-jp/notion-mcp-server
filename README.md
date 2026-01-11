@@ -414,6 +414,9 @@ Replace all content of a page with new Markdown content. Automatically preserves
 **Parameters:**
 - `page_id` (required): The page ID to update
 - `content` (required): New content in Markdown
+- `dry_run` (optional): Preview which blocks will be deleted without making changes (default: false)
+
+**⚠️ Warning:** Blocks not supported by Markdown (bookmark, callout, equation, table_of_contents, synced_block, etc.) will be **DELETED**. Use `dry_run: true` to preview before executing.
 
 **Use when:** You want to completely rewrite page content without finding individual block IDs.
 
@@ -423,6 +426,15 @@ Same Markdown support as `create-page-simple`.
 {
   "page_id": "page-uuid-here",
   "content": "# New Page Title\n\nThis is the new content.\n\n## Section 1\n\n- Item 1\n- Item 2"
+}
+```
+
+**Preview deletions (dry run):**
+```json
+{
+  "page_id": "page-uuid-here",
+  "content": "# New content",
+  "dry_run": true
 }
 ```
 
