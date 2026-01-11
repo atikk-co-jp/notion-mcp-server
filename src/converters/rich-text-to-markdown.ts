@@ -77,6 +77,19 @@ function convertRichTextItem(item: RichTextItemResponse): string {
     text = `<u>${text}</u>`
   }
 
+  // color（文字色・背景色）
+  if (annotations.color && annotations.color !== 'default') {
+    const color = annotations.color as string
+    if (color.endsWith('_background')) {
+      // 背景色: red_background → {bg:red}text{/bg}
+      const bgColor = color.replace('_background', '')
+      text = `{bg:${bgColor}}${text}{/bg}`
+    } else {
+      // 文字色: red → {color:red}text{/color}
+      text = `{color:${color}}${text}{/color}`
+    }
+  }
+
   // リンク処理（text.link または href）
   const href = (item.type === 'text' && item.text.link?.url) ?? item.href
   if (href && !annotations.code) {

@@ -384,6 +384,562 @@ describe('markdownToBlocks', () => {
     })
   })
 
+  describe('toggle (details/summary)', () => {
+    it('should convert simple <details> to toggle block', () => {
+      const markdown = `<details>
+<summary>クリックで開く</summary>
+
+ここに中身があります
+
+</details>`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('toggle')
+      expect(getBlockProp(result[0], 'toggle')).toMatchObject({
+        rich_text: [{ type: 'text', text: { content: 'クリックで開く' } }],
+      })
+    })
+
+    it('should handle toggle with nested list', () => {
+      const markdown = `<details>
+<summary>リスト付きトグル</summary>
+
+- Item 1
+- Item 2
+- Item 3
+
+</details>`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('toggle')
+
+      const toggle = getBlockProp(result[0], 'toggle') as {
+        children: Array<{ type: string }>
+      }
+      expect(toggle.children).toHaveLength(3)
+      expect(toggle.children[0].type).toBe('bulleted_list_item')
+    })
+
+    it('should handle toggle with code block', () => {
+      const markdown = `<details>
+<summary>コード例</summary>
+
+\`\`\`typescript
+const x = 1
+\`\`\`
+
+</details>`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('toggle')
+
+      const toggle = getBlockProp(result[0], 'toggle') as {
+        children: Array<{ type: string }>
+      }
+      expect(toggle.children).toHaveLength(1)
+      expect(toggle.children[0].type).toBe('code')
+    })
+
+    it('should handle nested toggle', () => {
+      const markdown = `<details>
+<summary>外側トグル</summary>
+
+<details>
+<summary>内側トグル</summary>
+
+ネストされた内容
+
+</details>
+
+</details>`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('toggle')
+
+      const toggle = getBlockProp(result[0], 'toggle') as {
+        children: Array<{ type: string }>
+      }
+      expect(toggle.children).toHaveLength(1)
+      expect(toggle.children[0].type).toBe('toggle')
+    })
+
+    it('should handle toggle with multiple elements', () => {
+      const markdown = `<details>
+<summary>複数要素</summary>
+
+## 見出し
+
+段落テキスト
+
+- リストアイテム
+
+</details>`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('toggle')
+
+      const toggle = getBlockProp(result[0], 'toggle') as {
+        children: Array<{ type: string }>
+      }
+      expect(toggle.children).toHaveLength(3)
+      expect(toggle.children[0].type).toBe('heading_2')
+      expect(toggle.children[1].type).toBe('paragraph')
+      expect(toggle.children[2].type).toBe('bulleted_list_item')
+    })
+
+    it('should handle toggle with inline formatting in summary', () => {
+      const markdown = `<details>
+<summary>**太字**と*斜体*のタイトル</summary>
+
+内容
+
+</details>`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('toggle')
+
+      const toggle = getBlockProp(result[0], 'toggle') as {
+        rich_text: Array<{ text: { content: string }; annotations?: { bold?: boolean; italic?: boolean } }>
+      }
+      // Check inline formatting is parsed
+      expect(toggle.rich_text.some((rt) => rt.annotations?.bold)).toBe(true)
+      expect(toggle.rich_text.some((rt) => rt.annotations?.italic)).toBe(true)
+    })
+  })
+
+  describe('callout (GitHub Alerts)', () => {
+    it('should convert > [!NOTE] to callout block', () => {
+      const markdown = `> [!NOTE]
+> これはノートです`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('callout')
+
+      const callout = getBlockProp(result[0], 'callout') as {
+        rich_text: Array<{ text: { content: string } }>
+        icon: { type: string; emoji: string }
+      }
+      expect(callout.rich_text[0].text.content).toBe('これはノートです')
+      expect(callout.icon.emoji).toBe('ℹ️')
+    })
+
+    it('should convert > [!WARNING] to callout with warning icon', () => {
+      const markdown = `> [!WARNING]
+> 警告メッセージ`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('callout')
+
+      const callout = getBlockProp(result[0], 'callout') as {
+        icon: { emoji: string }
+      }
+      expect(callout.icon.emoji).toBe('⚠️')
+    })
+
+    it('should convert > [!TIP] to callout with tip icon', () => {
+      const markdown = `> [!TIP]
+> ヒントメッセージ`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('callout')
+
+      const callout = getBlockProp(result[0], 'callout') as {
+        icon: { emoji: string }
+      }
+      expect(callout.icon.emoji).toBe('💡')
+    })
+
+    it('should convert > [!IMPORTANT] to callout with important icon', () => {
+      const markdown = `> [!IMPORTANT]
+> 重要なメッセージ`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('callout')
+
+      const callout = getBlockProp(result[0], 'callout') as {
+        icon: { emoji: string }
+      }
+      expect(callout.icon.emoji).toBe('❗')
+    })
+
+    it('should convert > [!CAUTION] to callout with caution icon', () => {
+      const markdown = `> [!CAUTION]
+> 注意メッセージ`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('callout')
+
+      const callout = getBlockProp(result[0], 'callout') as {
+        icon: { emoji: string }
+      }
+      expect(callout.icon.emoji).toBe('🔴')
+    })
+
+    it('should handle multi-line callout', () => {
+      const markdown = `> [!NOTE]
+> 1行目
+> 2行目
+> 3行目`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('callout')
+
+      const callout = getBlockProp(result[0], 'callout') as {
+        rich_text: Array<{ text: { content: string } }>
+      }
+      expect(callout.rich_text[0].text.content).toBe('1行目\n2行目\n3行目')
+    })
+
+    it('should handle callout with inline formatting', () => {
+      const markdown = `> [!NOTE]
+> これは**太字**と*斜体*です`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('callout')
+
+      const callout = getBlockProp(result[0], 'callout') as {
+        rich_text: Array<{ annotations?: { bold?: boolean; italic?: boolean } }>
+      }
+      expect(callout.rich_text.some((rt) => rt.annotations?.bold)).toBe(true)
+      expect(callout.rich_text.some((rt) => rt.annotations?.italic)).toBe(true)
+    })
+  })
+
+  describe('equation ($$)', () => {
+    it('should convert $$ block to equation', () => {
+      const markdown = `$$
+E = mc^2
+$$`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('equation')
+      expect(getBlockProp(result[0], 'equation')).toEqual({
+        expression: 'E = mc^2',
+      })
+    })
+
+    it('should handle multi-line equation', () => {
+      const markdown = `$$
+\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}
+$$`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('equation')
+      expect(getBlockProp(result[0], 'equation')).toEqual({
+        expression: '\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}',
+      })
+    })
+
+    it('should handle complex LaTeX equation', () => {
+      const markdown = `$$
+\\sum_{i=1}^{n} x_i = x_1 + x_2 + ... + x_n
+$$`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('equation')
+
+      const equation = getBlockProp(result[0], 'equation') as { expression: string }
+      expect(equation.expression).toContain('\\sum')
+    })
+
+    it('should handle inline single-line $$ equation', () => {
+      const markdown = `$$E = mc^2$$`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('equation')
+      expect(getBlockProp(result[0], 'equation')).toEqual({
+        expression: 'E = mc^2',
+      })
+    })
+  })
+
+  describe('underline', () => {
+    it('should parse <u>underline</u> in inline text', () => {
+      const result = parseInlineMarkdown('This is <u>underlined</u> text')
+      expect(result).toHaveLength(3)
+      expect(result[1]).toEqual({
+        type: 'text',
+        text: { content: 'underlined' },
+        annotations: { underline: true },
+      })
+    })
+
+    it('should parse ++underline++ in inline text', () => {
+      const result = parseInlineMarkdown('This is ++underlined++ text')
+      expect(result).toHaveLength(3)
+      expect(result[1]).toEqual({
+        type: 'text',
+        text: { content: 'underlined' },
+        annotations: { underline: true },
+      })
+    })
+
+    it('should handle underline in paragraph block', () => {
+      const result = markdownToBlocks('Text with <u>underline</u> here')
+      expect(result).toHaveLength(1)
+
+      const para = getBlockProp(result[0], 'paragraph') as {
+        rich_text: Array<{ annotations?: { underline?: boolean } }>
+      }
+      expect(para.rich_text.some((rt) => rt.annotations?.underline)).toBe(true)
+    })
+  })
+
+  describe('color', () => {
+    it('should parse {color:red}text{/color} as colored text', () => {
+      const result = parseInlineMarkdown('This is {color:red}red text{/color} here')
+      expect(result).toHaveLength(3)
+      expect(result[1]).toEqual({
+        type: 'text',
+        text: { content: 'red text' },
+        annotations: { color: 'red' },
+      })
+    })
+
+    it('should parse {color:blue}text{/color}', () => {
+      const result = parseInlineMarkdown('{color:blue}blue{/color}')
+      expect(result).toHaveLength(1)
+      expect(result[0]).toEqual({
+        type: 'text',
+        text: { content: 'blue' },
+        annotations: { color: 'blue' },
+      })
+    })
+
+    it('should handle background color {bg:yellow}text{/bg}', () => {
+      const result = parseInlineMarkdown('{bg:yellow}highlighted{/bg}')
+      expect(result).toHaveLength(1)
+      expect(result[0]).toEqual({
+        type: 'text',
+        text: { content: 'highlighted' },
+        annotations: { color: 'yellow_background' },
+      })
+    })
+
+    it('should handle all Notion color values', () => {
+      const colors = ['gray', 'brown', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'red']
+      for (const color of colors) {
+        const result = parseInlineMarkdown(`{color:${color}}test{/color}`)
+        expect(result[0]).toMatchObject({
+          annotations: { color },
+        })
+      }
+    })
+  })
+
+  describe('bookmark', () => {
+    it('should convert [bookmark](url) to bookmark block', () => {
+      const result = markdownToBlocks('[bookmark](https://example.com)')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('bookmark')
+      expect(getBlockProp(result[0], 'bookmark')).toEqual({
+        url: 'https://example.com',
+        caption: [],
+      })
+    })
+
+    it('should handle bookmark with caption', () => {
+      const result = markdownToBlocks('[bookmark:Example Site](https://example.com)')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('bookmark')
+      expect(getBlockProp(result[0], 'bookmark')).toEqual({
+        url: 'https://example.com',
+        caption: [{ type: 'text', text: { content: 'Example Site' } }],
+      })
+    })
+
+    it('should convert > 🔗 url format to bookmark', () => {
+      const result = markdownToBlocks('> 🔗 https://example.com')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('bookmark')
+      expect(getBlockProp(result[0], 'bookmark')).toMatchObject({
+        url: 'https://example.com',
+      })
+    })
+  })
+
+  describe('column_list (columns)', () => {
+    it('should convert :::columns to column_list block', () => {
+      const markdown = `:::columns
+:::column
+左カラム
+:::
+:::column
+右カラム
+:::
+:::`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('column_list')
+
+      const columnList = getBlockProp(result[0], 'column_list') as {
+        children: Array<{ type: string }>
+      }
+      expect(columnList.children).toHaveLength(2)
+      expect(columnList.children[0].type).toBe('column')
+      expect(columnList.children[1].type).toBe('column')
+    })
+
+    it('should handle 3 columns', () => {
+      const markdown = `:::columns
+:::column
+カラム1
+:::
+:::column
+カラム2
+:::
+:::column
+カラム3
+:::
+:::`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('column_list')
+
+      const columnList = getBlockProp(result[0], 'column_list') as {
+        children: Array<{ type: string }>
+      }
+      expect(columnList.children).toHaveLength(3)
+    })
+
+    it('should handle columns with multiple elements', () => {
+      const markdown = `:::columns
+:::column
+## 見出し
+
+段落
+
+- リスト
+:::
+:::column
+コード付き
+
+\`\`\`js
+const x = 1
+\`\`\`
+:::
+:::`
+
+      const result = markdownToBlocks(markdown)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('column_list')
+
+      const columnList = getBlockProp(result[0], 'column_list') as {
+        children: Array<{
+          type: string
+          column: { children: Array<{ type: string }> }
+        }>
+      }
+      // First column should have heading, paragraph, list item
+      expect(columnList.children[0].column.children).toHaveLength(3)
+      // Second column should have paragraph and code
+      expect(columnList.children[1].column.children).toHaveLength(2)
+    })
+  })
+
+  describe('embed', () => {
+    it('should convert @[embed](url) to embed block', () => {
+      const result = markdownToBlocks('@[embed](https://www.youtube.com/watch?v=123)')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('embed')
+      expect(getBlockProp(result[0], 'embed')).toEqual({
+        url: 'https://www.youtube.com/watch?v=123',
+        caption: [],
+      })
+    })
+
+    it('should handle embed with caption', () => {
+      const result = markdownToBlocks('@[embed:動画タイトル](https://www.youtube.com/watch?v=123)')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('embed')
+      expect(getBlockProp(result[0], 'embed')).toEqual({
+        url: 'https://www.youtube.com/watch?v=123',
+        caption: [{ type: 'text', text: { content: '動画タイトル' } }],
+      })
+    })
+  })
+
+  describe('video', () => {
+    it('should convert @[video](url) to video block', () => {
+      const result = markdownToBlocks('@[video](https://example.com/video.mp4)')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('video')
+      expect(getBlockProp(result[0], 'video')).toEqual({
+        type: 'external',
+        external: { url: 'https://example.com/video.mp4' },
+        caption: [],
+      })
+    })
+  })
+
+  describe('audio', () => {
+    it('should convert @[audio](url) to audio block', () => {
+      const result = markdownToBlocks('@[audio](https://example.com/audio.mp3)')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('audio')
+      expect(getBlockProp(result[0], 'audio')).toEqual({
+        type: 'external',
+        external: { url: 'https://example.com/audio.mp3' },
+        caption: [],
+      })
+    })
+  })
+
+  describe('file', () => {
+    it('should convert @[file](url) to file block', () => {
+      const result = markdownToBlocks('@[file](https://example.com/document.pdf)')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('file')
+      expect(getBlockProp(result[0], 'file')).toEqual({
+        type: 'external',
+        external: { url: 'https://example.com/document.pdf' },
+        caption: [],
+        name: 'document.pdf',
+      })
+    })
+
+    it('should handle file with custom name', () => {
+      const result = markdownToBlocks('@[file:カスタム名](https://example.com/doc.pdf)')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('file')
+      expect(getBlockProp(result[0], 'file')).toMatchObject({
+        name: 'カスタム名',
+      })
+    })
+  })
+
+  describe('pdf', () => {
+    it('should convert @[pdf](url) to pdf block', () => {
+      const result = markdownToBlocks('@[pdf](https://example.com/document.pdf)')
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe('pdf')
+      expect(getBlockProp(result[0], 'pdf')).toEqual({
+        type: 'external',
+        external: { url: 'https://example.com/document.pdf' },
+        caption: [],
+      })
+    })
+  })
+
   describe('mixed content', () => {
     it('should handle complex markdown document', () => {
       const markdown = `# Title

@@ -50,6 +50,14 @@ export function parseInlineMarkdown(text: string): RichTextRequest[] {
     { regex: /~~([^~]+)~~/g, type: 'strikethrough' as const },
     // インラインコード: `code`
     { regex: /`([^`]+)`/g, type: 'code' as const },
+    // 下線: <u>text</u>
+    { regex: /<u>([^<]+)<\/u>/g, type: 'underline' as const },
+    // 下線: ++text++
+    { regex: /\+\+([^+]+)\+\+/g, type: 'underline' as const },
+    // 文字色: {color:xxx}text{/color}
+    { regex: /\{color:([^}]+)\}([^{]+)\{\/color\}/g, type: 'color' as const },
+    // 背景色: {bg:xxx}text{/bg}
+    { regex: /\{bg:([^}]+)\}([^{]+)\{\/bg\}/g, type: 'bg_color' as const },
   ]
 
   // 単純な実装: マークダウン記法を順番に処理
@@ -61,21 +69,35 @@ export function parseInlineMarkdown(text: string): RichTextRequest[] {
     index: number
     length: number
     content: string
-    type: 'link' | 'bold' | 'italic' | 'strikethrough' | 'code'
+    type: 'link' | 'bold' | 'italic' | 'strikethrough' | 'code' | 'underline' | 'color' | 'bg_color'
     url?: string
+    color?: string
   }> = []
 
   for (const { regex, type } of patterns) {
     const re = new RegExp(regex.source, 'g')
     let match: RegExpExecArray | null = re.exec(safeText)
     while (match !== null) {
-      allMatches.push({
-        index: match.index,
-        length: match[0].length,
-        content: match[1],
-        type,
-        url: type === 'link' ? match[2] : undefined,
-      })
+      // color/bg_color: match[1]=color, match[2]=content
+      // link: match[1]=content, match[2]=url
+      // others: match[1]=content
+      if (type === 'color' || type === 'bg_color') {
+        allMatches.push({
+          index: match.index,
+          length: match[0].length,
+          content: match[2],
+          type,
+          color: match[1],
+        })
+      } else {
+        allMatches.push({
+          index: match.index,
+          length: match[0].length,
+          content: match[1],
+          type,
+          url: type === 'link' ? match[2] : undefined,
+        })
+      }
       match = re.exec(safeText)
     }
   }
@@ -126,6 +148,15 @@ export function parseInlineMarkdown(text: string): RichTextRequest[] {
         break
       case 'code':
         richText.annotations = { code: true }
+        break
+      case 'underline':
+        richText.annotations = { underline: true }
+        break
+      case 'color':
+        richText.annotations = { color: match.color }
+        break
+      case 'bg_color':
+        richText.annotations = { color: `${match.color}_background` }
         break
       case 'link':
         if (match.url) {
@@ -226,6 +257,34 @@ export function markdownToBlocks(markdown: string): BlockObjectRequest[] {
       continue
     }
 
+    // 数式ブロック: $$ ... $$
+    if (line.trim() === '$$' || line.trim().startsWith('$$')) {
+      // インライン形式: $$E = mc^2$$
+      const inlineMatch = line.trim().match(/^\$\$(.+)\$\$$/)
+      if (inlineMatch) {
+        blocks.push({
+          type: 'equation',
+          equation: { expression: inlineMatch[1].trim() },
+        } as BlockObjectRequest)
+        i++
+        continue
+      }
+
+      // 複数行形式: $$ ... $$
+      const equationLines: string[] = []
+      i++ // opening $$
+      while (i < lines.length && lines[i].trim() !== '$$') {
+        equationLines.push(lines[i])
+        i++
+      }
+      blocks.push({
+        type: 'equation',
+        equation: { expression: equationLines.join('\n').trim() },
+      } as BlockObjectRequest)
+      i++ // closing $$
+      continue
+    }
+
     // 水平線: ---
     if (/^-{3,}$/.test(line.trim())) {
       blocks.push({ type: 'divider', divider: {} } as BlockObjectRequest)
@@ -271,6 +330,51 @@ export function markdownToBlocks(markdown: string): BlockObjectRequest[] {
       continue
     }
 
+    // コールアウト (GitHub Alerts): > [!NOTE], > [!WARNING], etc.
+    const calloutMatch = line.match(/^>\s*\[!(NOTE|WARNING|TIP|IMPORTANT|CAUTION)\]/)
+    if (calloutMatch) {
+      const alertType = calloutMatch[1]
+      // アイコンのマッピング
+      const iconMap: Record<string, string> = {
+        NOTE: 'ℹ️',
+        WARNING: '⚠️',
+        TIP: '💡',
+        IMPORTANT: '❗',
+        CAUTION: '🔴',
+      }
+      const icon = iconMap[alertType] || 'ℹ️'
+
+      // 内容を収集（次の行から）
+      const calloutLines: string[] = []
+      i++
+      while (i < lines.length && lines[i].startsWith('>')) {
+        calloutLines.push(lines[i].replace(/^>\s*/, ''))
+        i++
+      }
+      blocks.push({
+        type: 'callout',
+        callout: {
+          rich_text: parseInlineMarkdown(calloutLines.join('\n')),
+          icon: { type: 'emoji', emoji: icon },
+        },
+      } as BlockObjectRequest)
+      continue
+    }
+
+    // ブックマーク: > 🔗 url
+    const bookmarkLinkMatch = line.match(/^>\s*🔗\s*(https?:\/\/\S+)$/)
+    if (bookmarkLinkMatch) {
+      blocks.push({
+        type: 'bookmark',
+        bookmark: {
+          url: bookmarkLinkMatch[1],
+          caption: [],
+        },
+      } as BlockObjectRequest)
+      i++
+      continue
+    }
+
     // 引用: >
     const quoteMatch = line.match(/^>\s*(.*)$/)
     if (quoteMatch) {
@@ -297,6 +401,196 @@ export function markdownToBlocks(markdown: string): BlockObjectRequest[] {
         },
       } as BlockObjectRequest)
       i++
+      continue
+    }
+
+    // ブックマーク: [bookmark](url) or [bookmark:caption](url)
+    const bookmarkMatch = line.match(/^\[bookmark(?::([^\]]*))?\]\(([^)]+)\)$/)
+    if (bookmarkMatch) {
+      blocks.push({
+        type: 'bookmark',
+        bookmark: {
+          url: bookmarkMatch[2],
+          caption: bookmarkMatch[1]
+            ? [{ type: 'text', text: { content: bookmarkMatch[1] } }]
+            : [],
+        },
+      } as BlockObjectRequest)
+      i++
+      continue
+    }
+
+    // メディア: @[embed](url), @[video](url), @[audio](url), @[file](url), @[pdf](url)
+    const mediaMatch = line.match(/^@\[(embed|video|audio|file|pdf)(?::([^\]]*))?\]\(([^)]+)\)$/)
+    if (mediaMatch) {
+      const mediaType = mediaMatch[1]
+      const caption = mediaMatch[2]
+      const url = mediaMatch[3]
+
+      if (mediaType === 'embed') {
+        blocks.push({
+          type: 'embed',
+          embed: {
+            url,
+            caption: caption ? [{ type: 'text', text: { content: caption } }] : [],
+          },
+        } as BlockObjectRequest)
+      } else if (mediaType === 'video') {
+        blocks.push({
+          type: 'video',
+          video: {
+            type: 'external',
+            external: { url },
+            caption: caption ? [{ type: 'text', text: { content: caption } }] : [],
+          },
+        } as BlockObjectRequest)
+      } else if (mediaType === 'audio') {
+        blocks.push({
+          type: 'audio',
+          audio: {
+            type: 'external',
+            external: { url },
+            caption: caption ? [{ type: 'text', text: { content: caption } }] : [],
+          },
+        } as BlockObjectRequest)
+      } else if (mediaType === 'pdf') {
+        blocks.push({
+          type: 'pdf',
+          pdf: {
+            type: 'external',
+            external: { url },
+            caption: caption ? [{ type: 'text', text: { content: caption } }] : [],
+          },
+        } as BlockObjectRequest)
+      } else if (mediaType === 'file') {
+        // ファイル名をURLから抽出
+        const fileName = caption || url.split('/').pop() || 'file'
+        blocks.push({
+          type: 'file',
+          file: {
+            type: 'external',
+            external: { url },
+            caption: [],
+            name: fileName,
+          },
+        } as BlockObjectRequest)
+      }
+      i++
+      continue
+    }
+
+    // トグル: <details><summary>title</summary>content</details>
+    if (line.trim() === '<details>' || line.trim().startsWith('<details>')) {
+      // summaryを取得
+      let summary = ''
+      let contentStartIndex = i + 1
+
+      // 同じ行に<summary>がある場合
+      const sameLine = line.match(/<details>\s*<summary>([^<]*)<\/summary>/)
+      if (sameLine) {
+        summary = sameLine[1]
+      } else {
+        // 次の行で<summary>を探す
+        i++
+        if (i < lines.length) {
+          const summaryMatch = lines[i].match(/<summary>([^<]*)<\/summary>/)
+          if (summaryMatch) {
+            summary = summaryMatch[1]
+            contentStartIndex = i + 1
+          }
+        }
+      }
+
+      // 内容を収集（</details>まで）
+      const toggleContent: string[] = []
+      i = contentStartIndex
+      let depth = 1
+      while (i < lines.length && depth > 0) {
+        const currentLine = lines[i]
+        if (currentLine.includes('<details>')) depth++
+        if (currentLine.includes('</details>')) {
+          depth--
+          if (depth === 0) break
+        }
+        if (depth > 0 && currentLine.trim() && !currentLine.includes('</details>')) {
+          toggleContent.push(currentLine)
+        }
+        i++
+      }
+      i++ // closing </details>
+
+      // 子ブロックを再帰的に変換
+      const childBlocks = markdownToBlocks(toggleContent.join('\n'))
+
+      blocks.push({
+        type: 'toggle',
+        toggle: {
+          rich_text: parseInlineMarkdown(summary),
+          children: childBlocks,
+        },
+      } as BlockObjectRequest)
+      continue
+    }
+
+    // カラムリスト: :::columns ... :::
+    if (line.trim() === ':::columns') {
+      const columns: BlockObjectRequest[][] = []
+      let currentColumn: string[] = []
+      let inColumn = false
+      i++
+
+      while (i < lines.length) {
+        const currentLine = lines[i].trim()
+
+        if (currentLine === ':::column') {
+          // 新しいカラムの開始（前のカラムがあれば保存）
+          if (inColumn && currentColumn.length > 0) {
+            columns.push(markdownToBlocks(currentColumn.join('\n')))
+            currentColumn = []
+          }
+          inColumn = true
+          i++
+          continue
+        }
+
+        if (currentLine === ':::') {
+          if (inColumn) {
+            // カラムの終了
+            if (currentColumn.length > 0) {
+              columns.push(markdownToBlocks(currentColumn.join('\n')))
+              currentColumn = []
+            }
+            inColumn = false
+          } else {
+            // columns全体の終了
+            i++
+            break
+          }
+          i++
+          continue
+        }
+
+        // カラム内のコンテンツを収集
+        if (inColumn) {
+          currentColumn.push(lines[i])
+        }
+        i++
+      }
+
+      // column_listブロックを生成
+      if (columns.length > 0) {
+        blocks.push({
+          type: 'column_list',
+          column_list: {
+            children: columns.map((columnBlocks) => ({
+              type: 'column',
+              column: {
+                children: columnBlocks,
+              },
+            })),
+          },
+        } as BlockObjectRequest)
+      }
       continue
     }
 

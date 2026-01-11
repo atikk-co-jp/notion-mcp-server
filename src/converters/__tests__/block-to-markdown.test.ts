@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { BlockObjectResponse } from '../../notion-client.js'
-import { blocksToMarkdown, blocksToMarkdownSync } from '../block-to-markdown.js'
+import { blocksToMarkdown } from '../block-to-markdown.js'
 
 /**
  * テスト用のブロックデータをBlockObjectResponse[]にキャストするヘルパー
@@ -10,9 +10,9 @@ import { blocksToMarkdown, blocksToMarkdownSync } from '../block-to-markdown.js'
 const asBlocks = (blocks: unknown[]): BlockObjectResponse[] =>
   blocks as unknown as BlockObjectResponse[]
 
-describe('blocksToMarkdownSync', () => {
-  describe('basic blocks', () => {
-    it('converts paragraph block', () => {
+describe('blocksToMarkdown', async () => {
+  describe('basic blocks', async () => {
+    it('converts paragraph block', async () => {
       const blocks = asBlocks([
         {
           type: 'paragraph',
@@ -24,30 +24,30 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('Hello World')
+      expect(await blocksToMarkdown(blocks)).toBe('Hello World')
     })
 
-    it('handles empty paragraph', () => {
+    it('handles empty paragraph', async () => {
       const blocks = asBlocks([
         {
           type: 'paragraph',
           paragraph: { rich_text: [], color: 'default' },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('')
+      expect(await blocksToMarkdown(blocks)).toBe('')
     })
 
-    it('handles empty array', () => {
-      expect(blocksToMarkdownSync([])).toBe('')
+    it('handles empty array', async () => {
+      expect(await blocksToMarkdown([])).toBe('')
     })
 
-    it('handles undefined input', () => {
-      expect(blocksToMarkdownSync(undefined as unknown as BlockObjectResponse[])).toBe('')
+    it('handles undefined input', async () => {
+      expect(await blocksToMarkdown(undefined as unknown as BlockObjectResponse[])).toBe('')
     })
   })
 
-  describe('headings', () => {
-    it('converts heading_1', () => {
+  describe('headings', async () => {
+    it('converts heading_1', async () => {
       const blocks = asBlocks([
         {
           type: 'heading_1',
@@ -71,10 +71,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('# Heading 1')
+      expect(await blocksToMarkdown(blocks)).toBe('# Heading 1')
     })
 
-    it('converts heading_2', () => {
+    it('converts heading_2', async () => {
       const blocks = asBlocks([
         {
           type: 'heading_2',
@@ -98,10 +98,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('## Heading 2')
+      expect(await blocksToMarkdown(blocks)).toBe('## Heading 2')
     })
 
-    it('converts heading_3', () => {
+    it('converts heading_3', async () => {
       const blocks = asBlocks([
         {
           type: 'heading_3',
@@ -125,12 +125,12 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('### Heading 3')
+      expect(await blocksToMarkdown(blocks)).toBe('### Heading 3')
     })
   })
 
-  describe('list items', () => {
-    it('converts bulleted_list_item', () => {
+  describe('list items', async () => {
+    it('converts bulleted_list_item', async () => {
       const blocks = asBlocks([
         {
           type: 'bulleted_list_item',
@@ -175,10 +175,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('- Item 1\n- Item 2')
+      expect(await blocksToMarkdown(blocks)).toBe('- Item 1\n- Item 2')
     })
 
-    it('converts numbered_list_item with correct indices', () => {
+    it('converts numbered_list_item with correct indices', async () => {
       const blocks = asBlocks([
         {
           type: 'numbered_list_item',
@@ -244,10 +244,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('1. First\n2. Second\n3. Third')
+      expect(await blocksToMarkdown(blocks)).toBe('1. First\n2. Second\n3. Third')
     })
 
-    it('resets numbered list index after non-list block', () => {
+    it('resets numbered list index after non-list block', async () => {
       const blocks = asBlocks([
         {
           type: 'numbered_list_item',
@@ -313,12 +313,12 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('1. First\nBreak\n1. New First')
+      expect(await blocksToMarkdown(blocks)).toBe('1. First\nBreak\n1. New First')
     })
   })
 
-  describe('to_do', () => {
-    it('converts unchecked to_do', () => {
+  describe('to_do', async () => {
+    it('converts unchecked to_do', async () => {
       const blocks = asBlocks([
         {
           type: 'to_do',
@@ -343,10 +343,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('- [ ] Task')
+      expect(await blocksToMarkdown(blocks)).toBe('- [ ] Task')
     })
 
-    it('converts checked to_do', () => {
+    it('converts checked to_do', async () => {
       const blocks = asBlocks([
         {
           type: 'to_do',
@@ -371,12 +371,12 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('- [x] Done Task')
+      expect(await blocksToMarkdown(blocks)).toBe('- [x] Done Task')
     })
   })
 
-  describe('code block', () => {
-    it('converts code block with language', () => {
+  describe('code block', async () => {
+    it('converts code block with language', async () => {
       const blocks = asBlocks([
         {
           type: 'code',
@@ -401,10 +401,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe("```javascript\nconsole.log('hello')\n```")
+      expect(await blocksToMarkdown(blocks)).toBe("```javascript\nconsole.log('hello')\n```")
     })
 
-    it('converts code block without language', () => {
+    it('converts code block without language', async () => {
       const blocks = asBlocks([
         {
           type: 'code',
@@ -429,12 +429,12 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('```\nplain code\n```')
+      expect(await blocksToMarkdown(blocks)).toBe('```\nplain code\n```')
     })
   })
 
-  describe('quote and callout', () => {
-    it('converts quote', () => {
+  describe('quote and callout', async () => {
+    it('converts quote', async () => {
       const blocks = asBlocks([
         {
           type: 'quote',
@@ -458,10 +458,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('> A wise quote')
+      expect(await blocksToMarkdown(blocks)).toBe('> A wise quote')
     })
 
-    it('converts multiline quote', () => {
+    it('converts multiline quote', async () => {
       const blocks = asBlocks([
         {
           type: 'quote',
@@ -485,10 +485,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('> Line 1\n> Line 2')
+      expect(await blocksToMarkdown(blocks)).toBe('> Line 1\n> Line 2')
     })
 
-    it('converts callout with emoji icon', () => {
+    it('converts callout with emoji icon', async () => {
       const blocks = asBlocks([
         {
           type: 'callout',
@@ -513,10 +513,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('> 💡 **Note:** Important info')
+      expect(await blocksToMarkdown(blocks)).toBe('> [!TIP]\n> Important info')
     })
 
-    it('converts callout without icon', () => {
+    it('converts callout without icon', async () => {
       const blocks = asBlocks([
         {
           type: 'callout',
@@ -541,19 +541,19 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('> **Note:** Info')
+      expect(await blocksToMarkdown(blocks)).toBe('> [!NOTE]\n> Info')
     })
   })
 
-  describe('divider', () => {
-    it('converts divider', () => {
+  describe('divider', async () => {
+    it('converts divider', async () => {
       const blocks = asBlocks([{ type: 'divider', divider: {} }])
-      expect(blocksToMarkdownSync(blocks)).toBe('---')
+      expect(await blocksToMarkdown(blocks)).toBe('---')
     })
   })
 
-  describe('bookmark and links', () => {
-    it('converts bookmark', () => {
+  describe('bookmark and links', async () => {
+    it('converts bookmark', async () => {
       const blocks = asBlocks([
         {
           type: 'bookmark',
@@ -563,10 +563,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('[https://example.com](https://example.com)')
+      expect(await blocksToMarkdown(blocks)).toBe('[bookmark](https://example.com)')
     })
 
-    it('converts bookmark with caption', () => {
+    it('converts bookmark with caption', async () => {
       const blocks = asBlocks([
         {
           type: 'bookmark',
@@ -591,10 +591,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('[Example Site](https://example.com)')
+      expect(await blocksToMarkdown(blocks)).toBe('[bookmark:Example Site](https://example.com)')
     })
 
-    it('converts link_preview', () => {
+    it('converts link_preview', async () => {
       const blocks = asBlocks([
         {
           type: 'link_preview',
@@ -603,14 +603,14 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe(
+      expect(await blocksToMarkdown(blocks)).toBe(
         '[https://example.com/preview](https://example.com/preview)',
       )
     })
   })
 
-  describe('media blocks', () => {
-    it('converts image with external url', () => {
+  describe('media blocks', async () => {
+    it('converts image with external url', async () => {
       const blocks = asBlocks([
         {
           type: 'image',
@@ -621,10 +621,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('![](https://example.com/image.png)')
+      expect(await blocksToMarkdown(blocks)).toBe('![](https://example.com/image.png)')
     })
 
-    it('converts image with caption', () => {
+    it('converts image with caption', async () => {
       const blocks = asBlocks([
         {
           type: 'image',
@@ -650,10 +650,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('![My Image](https://example.com/image.png)')
+      expect(await blocksToMarkdown(blocks)).toBe('![My Image](https://example.com/image.png)')
     })
 
-    it('converts image with file url', () => {
+    it('converts image with file url', async () => {
       const blocks = asBlocks([
         {
           type: 'image',
@@ -664,10 +664,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('![](https://s3.amazonaws.com/file.png)')
+      expect(await blocksToMarkdown(blocks)).toBe('![](https://s3.amazonaws.com/file.png)')
     })
 
-    it('converts video', () => {
+    it('converts video', async () => {
       const blocks = asBlocks([
         {
           type: 'video',
@@ -678,10 +678,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('[Video](https://youtube.com/watch?v=123)')
+      expect(await blocksToMarkdown(blocks)).toBe('@[video](https://youtube.com/watch?v=123)')
     })
 
-    it('converts audio', () => {
+    it('converts audio', async () => {
       const blocks = asBlocks([
         {
           type: 'audio',
@@ -691,10 +691,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('[Audio](https://example.com/audio.mp3)')
+      expect(await blocksToMarkdown(blocks)).toBe('@[audio](https://example.com/audio.mp3)')
     })
 
-    it('converts file', () => {
+    it('converts file', async () => {
       const blocks = asBlocks([
         {
           type: 'file',
@@ -706,10 +706,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('[Document](https://example.com/doc.pdf)')
+      expect(await blocksToMarkdown(blocks)).toBe('@[file:Document](https://example.com/doc.pdf)')
     })
 
-    it('converts pdf', () => {
+    it('converts pdf', async () => {
       const blocks = asBlocks([
         {
           type: 'pdf',
@@ -720,10 +720,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('[PDF](https://example.com/doc.pdf)')
+      expect(await blocksToMarkdown(blocks)).toBe('@[pdf](https://example.com/doc.pdf)')
     })
 
-    it('converts embed', () => {
+    it('converts embed', async () => {
       const blocks = asBlocks([
         {
           type: 'embed',
@@ -733,12 +733,12 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('[Embed](https://codepen.io/pen/123)')
+      expect(await blocksToMarkdown(blocks)).toBe('@[embed](https://codepen.io/pen/123)')
     })
   })
 
-  describe('toggle', () => {
-    it('converts toggle block', () => {
+  describe('toggle', async () => {
+    it('converts toggle block', async () => {
       const blocks = asBlocks([
         {
           type: 'toggle',
@@ -762,24 +762,24 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe(
+      expect(await blocksToMarkdown(blocks)).toBe(
         '<details>\n<summary>Click to expand</summary>\n</details>',
       )
     })
   })
 
-  describe('special blocks', () => {
-    it('converts table_of_contents', () => {
+  describe('special blocks', async () => {
+    it('converts table_of_contents', async () => {
       const blocks = asBlocks([
         {
           type: 'table_of_contents',
           table_of_contents: { color: 'default' },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('[TOC]')
+      expect(await blocksToMarkdown(blocks)).toBe('[TOC]')
     })
 
-    it('converts equation', () => {
+    it('converts equation', async () => {
       const blocks = asBlocks([
         {
           type: 'equation',
@@ -788,10 +788,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('$$\nE = mc^2\n$$')
+      expect(await blocksToMarkdown(blocks)).toBe('$$\nE = mc^2\n$$')
     })
 
-    it('converts child_page', () => {
+    it('converts child_page', async () => {
       const blocks = asBlocks([
         {
           type: 'child_page',
@@ -800,10 +800,10 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('📄 [My Subpage]')
+      expect(await blocksToMarkdown(blocks)).toBe('📄 [My Subpage]')
     })
 
-    it('converts child_database', () => {
+    it('converts child_database', async () => {
       const blocks = asBlocks([
         {
           type: 'child_database',
@@ -812,24 +812,77 @@ describe('blocksToMarkdownSync', () => {
           },
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('📊 [My Database]')
+      expect(await blocksToMarkdown(blocks)).toBe('📊 [My Database]')
     })
   })
 
-  describe('unsupported blocks', () => {
-    it('handles unsupported block type', () => {
+  describe('unsupported blocks', async () => {
+    it('handles unsupported block type', async () => {
       const blocks = asBlocks([
         {
           type: 'unsupported',
           unsupported: {},
         },
       ])
-      expect(blocksToMarkdownSync(blocks)).toBe('<!-- Unsupported block type: unsupported -->')
+      expect(await blocksToMarkdown(blocks)).toBe('<!-- Unsupported block type: unsupported -->')
     })
   })
 
-  describe('real world data', () => {
-    it('converts actual Notion block data', () => {
+  describe('breadcrumb block', async () => {
+    it('converts breadcrumb to HTML comment', async () => {
+      const blocks = asBlocks([
+        {
+          type: 'breadcrumb',
+          breadcrumb: {},
+        },
+      ])
+      expect(await blocksToMarkdown(blocks)).toBe('<!-- Breadcrumb -->')
+    })
+  })
+
+  describe('link_to_page block', async () => {
+    it('converts link_to_page with page_id', async () => {
+      const blocks = asBlocks([
+        {
+          type: 'link_to_page',
+          link_to_page: {
+            type: 'page_id',
+            page_id: 'abc123-page-id',
+          },
+        },
+      ])
+      expect(await blocksToMarkdown(blocks)).toBe('[Link to page](abc123-page-id)')
+    })
+
+    it('converts link_to_page with database_id', async () => {
+      const blocks = asBlocks([
+        {
+          type: 'link_to_page',
+          link_to_page: {
+            type: 'database_id',
+            database_id: 'xyz789-db-id',
+          },
+        },
+      ])
+      expect(await blocksToMarkdown(blocks)).toBe('[Link to database](xyz789-db-id)')
+    })
+
+    it('converts link_to_page with unknown type to HTML comment', async () => {
+      const blocks = asBlocks([
+        {
+          type: 'link_to_page',
+          link_to_page: {
+            type: 'comment_id',
+            comment_id: 'comment-123',
+          },
+        },
+      ])
+      expect(await blocksToMarkdown(blocks)).toBe('<!-- Link to page -->')
+    })
+  })
+
+  describe('real world data', async () => {
+    it('converts actual Notion block data', async () => {
       // 実際のNotionから取得したデータ形式
       const blocks = asBlocks([
         {
@@ -935,7 +988,7 @@ describe('blocksToMarkdownSync', () => {
         },
       ])
 
-      const result = blocksToMarkdownSync(blocks)
+      const result = await blocksToMarkdown(blocks)
       expect(result).toBe(
         '## 問題\n以下のパッケージで `exports` が必要：\n- `apps/supabase-client/package.json`',
       )
@@ -943,7 +996,7 @@ describe('blocksToMarkdownSync', () => {
   })
 })
 
-describe('blocksToMarkdown (async)', () => {
+describe('blocksToMarkdown (async)', async () => {
   it('works without fetchChildren option', async () => {
     const blocks = asBlocks([
       {
@@ -1034,5 +1087,261 @@ describe('blocksToMarkdown (async)', () => {
     expect(mockFetchChildren).toHaveBeenCalledWith('toggle-id')
     expect(result).toContain('<summary>Click me</summary>')
     expect(result).toContain('Toggle content')
+  })
+
+  it('handles synced_block with children', async () => {
+    const childBlocks = asBlocks([
+      {
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [
+            { type: 'text', text: { content: 'Synced content' }, plain_text: 'Synced content' },
+          ],
+        },
+      },
+    ])
+    const mockFetchChildren = vi.fn().mockResolvedValue(childBlocks)
+
+    const blocks = asBlocks([
+      {
+        id: 'synced-block-id',
+        type: 'synced_block',
+        has_children: true,
+        synced_block: {
+          synced_from: null,
+        },
+      },
+    ])
+
+    const result = await blocksToMarkdown(blocks, { fetchChildren: mockFetchChildren })
+
+    expect(mockFetchChildren).toHaveBeenCalledWith('synced-block-id')
+    expect(result).toBe('Synced content')
+  })
+
+  it('handles synced_block without children', async () => {
+    const blocks = asBlocks([
+      {
+        id: 'synced-block-id',
+        type: 'synced_block',
+        has_children: false,
+        synced_block: {
+          synced_from: { block_id: 'original-block-id' },
+        },
+      },
+    ])
+
+    const result = await blocksToMarkdown(blocks)
+    expect(result).toBe('')
+  })
+
+  it('handles column_list with columns', async () => {
+    const column1Children = asBlocks([
+      {
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [
+            { type: 'text', text: { content: 'Column 1 content' }, plain_text: 'Column 1 content' },
+          ],
+        },
+      },
+    ])
+    const column2Children = asBlocks([
+      {
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [
+            { type: 'text', text: { content: 'Column 2 content' }, plain_text: 'Column 2 content' },
+          ],
+        },
+      },
+    ])
+
+    const columns = asBlocks([
+      {
+        id: 'column-1-id',
+        type: 'column',
+        has_children: true,
+        column: {},
+      },
+      {
+        id: 'column-2-id',
+        type: 'column',
+        has_children: true,
+        column: {},
+      },
+    ])
+
+    const mockFetchChildren = vi.fn().mockImplementation((blockId: string) => {
+      if (blockId === 'column-list-id') return Promise.resolve(columns)
+      if (blockId === 'column-1-id') return Promise.resolve(column1Children)
+      if (blockId === 'column-2-id') return Promise.resolve(column2Children)
+      return Promise.resolve([])
+    })
+
+    const blocks = asBlocks([
+      {
+        id: 'column-list-id',
+        type: 'column_list',
+        has_children: true,
+        column_list: {},
+      },
+    ])
+
+    const result = await blocksToMarkdown(blocks, { fetchChildren: mockFetchChildren })
+
+    expect(mockFetchChildren).toHaveBeenCalledWith('column-list-id')
+    expect(mockFetchChildren).toHaveBeenCalledWith('column-1-id')
+    expect(mockFetchChildren).toHaveBeenCalledWith('column-2-id')
+    expect(result).toContain('Column 1 content')
+    expect(result).toContain('Column 2 content')
+    expect(result).toContain(':::columns')
+  })
+
+  it('handles table with rows', async () => {
+    const tableRows = asBlocks([
+      {
+        type: 'table_row',
+        table_row: {
+          cells: [
+            [{ type: 'text', text: { content: 'Header 1' }, plain_text: 'Header 1' }],
+            [{ type: 'text', text: { content: 'Header 2' }, plain_text: 'Header 2' }],
+          ],
+        },
+      },
+      {
+        type: 'table_row',
+        table_row: {
+          cells: [
+            [{ type: 'text', text: { content: 'Cell 1' }, plain_text: 'Cell 1' }],
+            [{ type: 'text', text: { content: 'Cell 2' }, plain_text: 'Cell 2' }],
+          ],
+        },
+      },
+    ])
+
+    const mockFetchChildren = vi.fn().mockResolvedValue(tableRows)
+
+    const blocks = asBlocks([
+      {
+        id: 'table-id',
+        type: 'table',
+        has_children: true,
+        table: {
+          table_width: 2,
+          has_column_header: true,
+          has_row_header: false,
+        },
+      },
+    ])
+
+    const result = await blocksToMarkdown(blocks, { fetchChildren: mockFetchChildren })
+
+    expect(mockFetchChildren).toHaveBeenCalledWith('table-id')
+    expect(result).toContain('| Header 1 | Header 2 |')
+    expect(result).toContain('| --- | --- |')
+    expect(result).toContain('| Cell 1 | Cell 2 |')
+  })
+
+  it('handles table without column header', async () => {
+    const tableRows = asBlocks([
+      {
+        type: 'table_row',
+        table_row: {
+          cells: [
+            [{ type: 'text', text: { content: 'Row 1 Cell 1' }, plain_text: 'Row 1 Cell 1' }],
+            [{ type: 'text', text: { content: 'Row 1 Cell 2' }, plain_text: 'Row 1 Cell 2' }],
+          ],
+        },
+      },
+      {
+        type: 'table_row',
+        table_row: {
+          cells: [
+            [{ type: 'text', text: { content: 'Row 2 Cell 1' }, plain_text: 'Row 2 Cell 1' }],
+            [{ type: 'text', text: { content: 'Row 2 Cell 2' }, plain_text: 'Row 2 Cell 2' }],
+          ],
+        },
+      },
+    ])
+
+    const mockFetchChildren = vi.fn().mockResolvedValue(tableRows)
+
+    const blocks = asBlocks([
+      {
+        id: 'table-id',
+        type: 'table',
+        has_children: true,
+        table: {
+          table_width: 2,
+          has_column_header: false,
+          has_row_header: false,
+        },
+      },
+    ])
+
+    const result = await blocksToMarkdown(blocks, { fetchChildren: mockFetchChildren })
+
+    expect(result).toContain('| Row 1 Cell 1 | Row 1 Cell 2 |')
+    expect(result).toContain('| Row 2 Cell 1 | Row 2 Cell 2 |')
+    expect(result).not.toContain('| --- | --- |')
+  })
+
+  it('handles template block', async () => {
+    const blocks = asBlocks([
+      {
+        type: 'template',
+        template: {
+          rich_text: [
+            { type: 'text', text: { content: 'Template text' }, plain_text: 'Template text' },
+          ],
+        },
+      },
+    ])
+
+    const result = await blocksToMarkdown(blocks)
+    expect(result).toBe('<!-- Template block -->')
+  })
+
+  it('handles breadcrumb block', async () => {
+    const blocks = asBlocks([
+      {
+        type: 'breadcrumb',
+        breadcrumb: {},
+      },
+    ])
+
+    const result = await blocksToMarkdown(blocks)
+    expect(result).toBe('<!-- Breadcrumb -->')
+  })
+
+  it('handles link_to_page with page_id', async () => {
+    const blocks = asBlocks([
+      {
+        type: 'link_to_page',
+        link_to_page: {
+          type: 'page_id',
+          page_id: 'page-123',
+        },
+      },
+    ])
+
+    const result = await blocksToMarkdown(blocks)
+    expect(result).toBe('[Link to page](page-123)')
+  })
+
+  it('handles link_to_page with database_id', async () => {
+    const blocks = asBlocks([
+      {
+        type: 'link_to_page',
+        link_to_page: {
+          type: 'database_id',
+          database_id: 'db-456',
+        },
+      },
+    ])
+
+    const result = await blocksToMarkdown(blocks)
+    expect(result).toBe('[Link to database](db-456)')
   })
 })

@@ -25,7 +25,7 @@ export function registerCreatePageSimple(server: McpServer, notion: NotionClient
     {
       description:
         'Create a page with Markdown. Title is auto-mapped to the database title property. ' +
-        'Supports: # headings, - lists, - [ ] checkboxes, ``` code, > quotes, | tables |, **bold**, *italic*, [links]().',
+        F.markdown_syntax_short,
       inputSchema,
     },
     async ({ data_source_id, title, content, properties, icon }) => {

@@ -198,6 +198,16 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 - テーブル: `| col1 | col2 |` (ヘッダーセパレーター `|---|---|` 対応)
 - インライン: `**太字**`、`*イタリック*`、`~~取り消し線~~`、`` `コード` ``、`[リンク](url)`
 
+**拡張Markdown (双方向変換対応):**
+- トグル: `<details><summary>タイトル</summary>コンテンツ</details>`
+- コールアウト: `> [!NOTE]`, `> [!WARNING]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!CAUTION]`
+- 数式: `$$E = mc^2$$` (インライン/ブロック両対応)
+- 下線: `<u>テキスト</u>` または `++テキスト++`
+- 文字色: `{color:red}テキスト{/color}`, `{bg:yellow}テキスト{/bg}`
+- ブックマーク: `[bookmark](url)` または `[bookmark:キャプション](url)`
+- カラム: `:::columns` / `:::column` / `:::`
+- メディア: `@[embed](url)`, `@[video](url)`, `@[audio](url)`, `@[file](url)`, `@[pdf](url)`
+
 ```json
 {
   "data_source_id": "データソースのUUID",
@@ -434,10 +444,10 @@ Markdownを使ってブロックを追加します。`append-block-children`と�
 - `content` (必須): 新しいコンテンツ（Markdown形式）
 - `dry_run` (任意): 削除されるブロックをプレビュー（実際には変更しない）（デフォルト: false）
 
-**⚠️ 注意:** Markdownで表現できないブロック（bookmark, callout, equation, table_of_contents, synced_block等）は**削除されます**。実行前に `dry_run: true` でプレビューを確認してください。
+**⚠️ 注意:** 拡張Markdownで表現できないブロック（table_of_contents, synced_block等）は**削除されます**。実行前に `dry_run: true` でプレビューを確認してください。
 
 **サポートするMarkdown記法:**
-見出し(#)、リスト(- または 1.)、チェックボックス(- [ ])、コードブロック(```)、引用(>)、テーブル(| |)、画像(![]())、太字(**)、イタリック(*)、リンク([]())
+`create-page-simple`と同じMarkdown記法（基本記法＋拡張Markdown）をサポート。
 
 ```json
 {
