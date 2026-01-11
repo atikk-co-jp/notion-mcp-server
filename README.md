@@ -4,9 +4,7 @@ English | [日本語](./README.ja.md)
 
 MCP (Model Context Protocol) server for Notion API. Enables AI assistants to interact with Notion pages, databases, and blocks.
 
-> ⚠️ **Note**: This is an early release. API may change.
-
-> **API Version**: 2025-09-03 (latest)
+**API Version**: 2025-09-03 (latest)
 
 ## Features
 
@@ -52,6 +50,8 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 | | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | JSON | **markdown**/json |
 | | [Append block children](https://developers.notion.com/reference/patch-block-children) | `append-block-children` 📤 | JSON | `{block_ids}` |
 | | | `append-blocks-simple` ⭐📤 | Markdown | `{block_ids}` |
+| | | `replace-page-content` ⭐📤 | Markdown | `{deleted_count, created_count}` |
+| | | `find-and-replace-in-page` ⭐📤 | Markdown | `{updated_count, updated_block_ids}` |
 | **Comments** | | | | |
 | | [Create comment](https://developers.notion.com/reference/create-a-comment) | `create-comment` 📤 | JSON | `{id}` |
 | | | `create-comment-simple` ⭐📤 | Markdown | `{id}` |
@@ -406,6 +406,67 @@ Same Markdown support as `create-page-simple`.
 |--------|--------|-----------|
 | append-block-children (blocks) | ~201 | - |
 | append-blocks-simple (markdown) | ~42 | **79%** |
+
+### replace-page-content ⭐
+
+Replace all content of a page with new Markdown content. Automatically preserves `child_database` and `child_page` blocks.
+
+**Parameters:**
+- `page_id` (required): The page ID to update
+- `content` (required): New content in Markdown
+- `dry_run` (optional): Preview which blocks will be deleted without making changes (default: false)
+
+**⚠️ Warning:** Blocks not supported by Markdown (bookmark, callout, equation, table_of_contents, synced_block, etc.) will be **DELETED**. Use `dry_run: true` to preview before executing.
+
+**Use when:** You want to completely rewrite page content without finding individual block IDs.
+
+Same Markdown support as `create-page-simple`.
+
+```json
+{
+  "page_id": "page-uuid-here",
+  "content": "# New Page Title\n\nThis is the new content.\n\n## Section 1\n\n- Item 1\n- Item 2"
+}
+```
+
+**Preview deletions (dry run):**
+```json
+{
+  "page_id": "page-uuid-here",
+  "content": "# New content",
+  "dry_run": true
+}
+```
+
+### find-and-replace-in-page ⭐
+
+Find text in a page and replace it with new content. Supports regex patterns for advanced matching.
+
+**Parameters:**
+- `page_id` (required): The page ID to search in
+- `find` (required): Text to find (string or regex pattern)
+- `replace` (required): Replacement text (supports Markdown: `**bold**`, `*italic*`, etc.)
+- `use_regex` (optional): If true, treat `find` as a regex pattern (default: false)
+
+**Use when:** You want to update specific text without rewriting the entire page.
+
+```json
+{
+  "page_id": "page-uuid-here",
+  "find": "old text",
+  "replace": "**new text**"
+}
+```
+
+**With regex:**
+```json
+{
+  "page_id": "page-uuid-here",
+  "find": "item\\d+",
+  "replace": "updated item",
+  "use_regex": true
+}
+```
 
 ### create-comment
 
