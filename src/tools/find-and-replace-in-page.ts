@@ -61,8 +61,9 @@ function safeRegexTest(pattern: RegExp, text: string, timeoutMs: number = REGEX_
 
 /**
  * Replace text in string with regex/string matching
+ * @internal Exported for testing
  */
-function replaceText(text: string, find: string, replace: string, useRegex: boolean): string {
+export function replaceText(text: string, find: string, replace: string, useRegex: boolean): string {
   if (useRegex) {
     try {
       const regex = new RegExp(find, 'g')
@@ -77,8 +78,9 @@ function replaceText(text: string, find: string, replace: string, useRegex: bool
 
 /**
  * Check if text matches the find pattern
+ * @internal Exported for testing
  */
-function textMatches(text: string, find: string, useRegex: boolean): boolean {
+export function textMatches(text: string, find: string, useRegex: boolean): boolean {
   if (useRegex) {
     try {
       const regex = new RegExp(find)
