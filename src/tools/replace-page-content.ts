@@ -49,8 +49,9 @@ export function registerReplacePageContent(server: McpServer, notion: NotionClie
     {
       description:
         'Replace all content of a page with new Markdown content. ' +
+        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), tables (| |), images (![]()), bold (**), italic (*), links ([]()). ' +
         'Automatically preserves child_database and child_page blocks (they will not be deleted). ' +
-        'This is useful for bulk updating page content without having to find individual block IDs.',
+        'Use this when you want to rewrite entire page content. For partial text replacement, use find-and-replace-in-page instead.',
       inputSchema,
     },
     async ({ page_id, content }) => {

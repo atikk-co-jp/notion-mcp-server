@@ -141,9 +141,11 @@ export function registerFindAndReplaceInPage(server: McpServer, notion: NotionCl
     {
       description:
         'Find text in a page and replace it with new content. ' +
-        'Supports regex patterns (use_regex: true) for advanced matching. ' +
+        'Supports regex patterns (use_regex: true) for advanced matching (e.g., "item\\d+" matches item1, item2). ' +
+        'All matching blocks will be updated. ' +
         'Replacement text supports Markdown formatting: **bold**, *italic*, ~~strikethrough~~, `code`, [links](url). ' +
-        'Only works with text-based blocks: paragraph, headings, lists, to_do, quote, callout, toggle.',
+        'Only works with text-based blocks: paragraph, headings, lists, to_do, quote, callout, toggle. ' +
+        'Use this for partial updates. For full page rewrite, use replace-page-content instead.',
       inputSchema,
     },
     async ({ page_id, find, replace, use_regex }) => {
