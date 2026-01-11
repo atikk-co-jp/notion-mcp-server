@@ -83,7 +83,9 @@ describe('find-and-replace-in-page utilities', () => {
       })
 
       it('should handle markdown in replacement', () => {
-        expect(replaceText('Hello World', 'World', '**Universe**', false)).toBe('Hello **Universe**')
+        expect(replaceText('Hello World', 'World', '**Universe**', false)).toBe(
+          'Hello **Universe**',
+        )
       })
     })
 
@@ -102,7 +104,9 @@ describe('find-and-replace-in-page utilities', () => {
 
       it('should handle invalid regex gracefully (fallback to string replace)', () => {
         // Unclosed bracket is invalid regex, should fallback to string replacement
-        expect(replaceText('Hello [incomplete [incomplete', '[incomplete', 'X', true)).toBe('Hello X X')
+        expect(replaceText('Hello [incomplete [incomplete', '[incomplete', 'X', true)).toBe(
+          'Hello X X',
+        )
       })
 
       it('should handle global replacement', () => {

@@ -6,6 +6,29 @@ MCP (Model Context Protocol) server for Notion API. Enables AI assistants to int
 
 **API Version**: 2025-09-03 (latest)
 
+## Why this repository?
+
+### Why I Built This
+
+I wanted to use AI agents to process tasks from my Notion database with specific conditions:
+
+> "Get tasks where Status = 'Not Started' AND Assignee = 'Alice', sorted by Priority"
+
+Here's what I found with existing options:
+
+| MCP Option | Property Filtering | Token Efficiency | Plan Required |
+|------------|-------------------|------------------|---------------|
+| [Official Notion MCP](https://developers.notion.com/docs/mcp) | Metadata only (created_at, created_by) / Full (Enterprise+AI) | Good | Notion AI |
+| [`@notionhq/notion-mcp-server`](https://github.com/makenotion/notion-mcp-server) | ✅ Full support | Large responses | None |
+| **This repository** | ✅ Full support | **Optimized** | **None** |
+
+**The gap I wanted to fill:**
+- Full database property filtering (AND/OR, select, checkbox, date, etc.)
+- Optimized response sizes for LLM token efficiency
+- No plan restrictions
+
+**This repository provides property filtering with `fields` parameter for 90% token reduction.**
+
 ## Features
 
 - **Page Operations**: Create, retrieve, update, and move Notion pages
