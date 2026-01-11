@@ -33,7 +33,8 @@ export function registerUpdateBlockSimple(server: McpServer, notion: NotionClien
       description:
         'Update a text block using Markdown. Simpler than update-block: just provide markdown text. ' +
         'Supports inline formatting: **bold**, *italic*, ~~strikethrough~~, `code`, [links](url). ' +
-        'Only works with text-based blocks: paragraph, headings, lists, to_do, quote, callout, toggle.',
+        'Only works with text-based blocks: paragraph, headings, lists, to_do, quote, callout, toggle. ' +
+        'Requires block_id. If you want to update by text search, use find-and-replace-in-page. For full page rewrite, use replace-page-content.',
       inputSchema,
     },
     async ({ block_id, content }) => {

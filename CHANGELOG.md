@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-01-11
+
+### Added
+
+- **Page Content Replacement Tools**: New tools for easier page content management
+  - `replace-page-content`: Replace all content of a page with Markdown (preserves child_database/child_page)
+  - `find-and-replace-in-page`: Find and replace text in a page with regex support
+- **Dry Run Mode**: Preview which blocks will be deleted before executing
+  - `replace-page-content`: Added `dry_run` parameter to preview deletions without making changes
+  - Shows block counts grouped by type (e.g., `will_delete_by_type: {paragraph: 5, bookmark: 1}`)
+- **Unit Tests**: Added tests for find-and-replace utility functions (textMatches, replaceText)
+
+### Improved
+
+- **Tool Descriptions**: Enhanced descriptions to help LLMs choose the right tool
+  - Added warning about non-Markdown blocks being deleted in `replace-page-content`
+  - Added Markdown syntax examples to `replace-page-content`
+  - Added regex examples to `find-and-replace-in-page`
+  - Added cross-references between related tools (update-block-simple, replace-page-content, find-and-replace-in-page)
+
 ## [0.9.1] - 2026-01-10
 
 ### Fixed

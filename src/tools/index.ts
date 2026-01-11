@@ -10,6 +10,8 @@ import { registerCreateDatabase } from './create-database.js'
 import { registerCreatePage } from './create-page.js'
 import { registerCreatePageSimple } from './create-page-simple.js'
 import { registerDeleteBlock } from './delete-block.js'
+import { registerFindAndReplaceInPage } from './find-and-replace-in-page.js'
+import { registerReplacePageContent } from './replace-page-content.js'
 import { registerGetBlockChildren } from './get-block-children.js'
 import { registerListComments } from './list-comments.js'
 import { registerListUsers } from './list-users.js'
@@ -61,6 +63,8 @@ export function registerAllTools(server: McpServer, notion: NotionClient): void 
   registerUpdateBlock(server, notion)
   registerUpdateBlockSimple(server, notion)
   registerDeleteBlock(server, notion)
+  registerReplacePageContent(server, notion)
+  registerFindAndReplaceInPage(server, notion)
 
   // Comment operations
   registerCreateComment(server, notion)
@@ -96,6 +100,8 @@ export {
   registerUpdateBlock,
   registerUpdateBlockSimple,
   registerDeleteBlock,
+  registerReplacePageContent,
+  registerFindAndReplaceInPage,
   registerCreateComment,
   registerCreateCommentSimple,
   registerListComments,
