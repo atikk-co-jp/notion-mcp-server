@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.2] - 2026-01-12
+
+### Changed
+
+- **README Quick Start Optimization**: Reorganized README for users who want to get started quickly
+  - Removed "Installation" section (unnecessary for MCP users who use `npx`)
+  - Renamed "Usage" section to "Quick Start"
+  - Integrated token acquisition steps into Quick Start (Step 1)
+  - Integrated configuration steps into Quick Start (Step 2)
+  - Changed token placeholder to `ntn_xxxxxxxxxxxx` for clarity
+
 ## [0.10.1] - 2026-01-12
 
 ### Added
