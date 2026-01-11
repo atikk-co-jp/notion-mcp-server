@@ -18,10 +18,9 @@ export function registerAppendBlocksSimple(server: McpServer, notion: NotionClie
     'append-blocks-simple',
     {
       description:
-        'Append blocks to a page using Markdown. ' +
-        'Simpler than append-block-children: just provide markdown text. ' +
-        'Supports: headings (#), lists (- or 1.), checkboxes (- [ ]), code blocks (```), quotes (>), tables (| |), images (![]()), bold (**), italic (*), links ([]()), etc. ' +
-        'Returns created block IDs.',
+        'Append blocks to a page using Markdown. Simpler than append-block-children: just provide markdown text. ' +
+        F.markdown_syntax +
+        ' Returns created block IDs.',
       inputSchema,
     },
     async ({ block_id, content, after }) => {

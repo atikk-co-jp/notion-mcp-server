@@ -1,7 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { blocksToMarkdownSync } from '../converters/index.js'
-import { isFullBlock, type NotionClient } from '../notion-client.js'
+import { blocksToMarkdown } from '../converters/index.js'
+import { type BlockObjectResponse, isFullBlock, type NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
 import { formatMarkdownResponse, formatResponse, handleError } from '../utils/index.js'
 
@@ -32,10 +32,17 @@ export function registerRetrieveBlock(server: McpServer, notion: NotionClient): 
           return formatResponse(response)
         }
 
-        // Convert to markdown (cast to any for now until converters are updated)
-        const markdown = blocksToMarkdownSync([
-          response as unknown as Parameters<typeof blocksToMarkdownSync>[0][number],
-        ])
+        // 子ブロックを再帰的に取得するヘルパー
+        const fetchChildren = async (blockId: string): Promise<BlockObjectResponse[]> => {
+          const res = await notion.blocks.children.list({ block_id: blockId })
+          return res.results.filter(isFullBlock)
+        }
+
+        // Convert to markdown with children fetching
+        const markdown = await blocksToMarkdown(
+          [response as unknown as BlockObjectResponse],
+          { fetchChildren },
+        )
         return formatMarkdownResponse(markdown, false, null)
       } catch (error) {
         return handleError(error)
