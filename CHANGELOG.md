@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-01-14
+
+### Added
+
+- **Batch Block Deletion Tools**: New tools for efficient block deletion
+  - `delete-blocks-batch`: Delete multiple blocks by IDs (max 100). Use `get-block-children` with `format="simple"` to get IDs first.
+  - `clear-page-content`: Delete all content from a page. Preserves `child_database` and `child_page` by default. Use `preserve_types: []` to delete everything.
+- **Block ID Retrieval Format**: `get-block-children` now supports `format="simple"` for lightweight ID + type + content output
+  - Ideal for deletion target selection (much lighter than `json` format)
+  - Returns: `{ blocks: [{ id, type, content }], has_more, next_cursor }`
+
 ## [0.12.0] - 2026-01-14
 
 ### Added
