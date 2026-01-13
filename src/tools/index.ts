@@ -4,12 +4,14 @@ import { registerAppendBlockChildren } from './append-block-children.js'
 import { registerAppendBlocksSimple } from './append-blocks-simple.js'
 import { registerArchiveDatabase } from './archive-database.js'
 import { registerArchivePage } from './archive-page.js'
+import { registerClearPageContent } from './clear-page-content.js'
 import { registerCreateComment } from './create-comment.js'
 import { registerCreateCommentSimple } from './create-comment-simple.js'
 import { registerCreateDatabase } from './create-database.js'
 import { registerCreatePage } from './create-page.js'
 import { registerCreatePageSimple } from './create-page-simple.js'
 import { registerDeleteBlock } from './delete-block.js'
+import { registerDeleteBlocksBatch } from './delete-blocks-batch.js'
 import { registerFindAndReplaceInPage } from './find-and-replace-in-page.js'
 import { registerGetBlockChildren } from './get-block-children.js'
 import { registerListComments } from './list-comments.js'
@@ -63,6 +65,8 @@ export function registerAllTools(server: McpServer, notion: NotionClient): void 
   registerUpdateBlock(server, notion)
   registerUpdateBlockSimple(server, notion)
   registerDeleteBlock(server, notion)
+  registerDeleteBlocksBatch(server, notion)
+  registerClearPageContent(server, notion)
   registerReplacePageContent(server, notion)
   registerFindAndReplaceInPage(server, notion)
 
@@ -100,6 +104,8 @@ export {
   registerUpdateBlock,
   registerUpdateBlockSimple,
   registerDeleteBlock,
+  registerDeleteBlocksBatch,
+  registerClearPageContent,
   registerReplacePageContent,
   registerFindAndReplaceInPage,
   registerCreateComment,
