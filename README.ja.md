@@ -160,11 +160,26 @@ Notionのタスクデータベースから、特定の条件でタスクを取�
 
 ### create-page
 
-データソースに新しいページを作成します。
+新しいページを作成します。2種類の親タイプをサポート:
+- **子ページ**: `parent.page_id` を使用して既存ページの下に作成
+- **データベースエントリ**: `parent.data_source_id` を使用してデータベースに作成
 
+**子ページを作成:**
 ```json
 {
-  "data_source_id": "データソースのUUID",
+  "parent": { "page_id": "親ページのUUID" },
+  "properties": {
+    "title": {
+      "title": [{ "text": { "content": "子ページタイトル" } }]
+    }
+  }
+}
+```
+
+**データベースエントリを作成:**
+```json
+{
+  "parent": { "data_source_id": "データソースのUUID" },
   "properties": {
     "Name": {
       "title": [{ "text": { "content": "新しいページタイトル" } }]
@@ -178,10 +193,14 @@ Notionのタスクデータベースから、特定の条件でタスクを取�
 
 ### create-page-simple ⭐
 
-Markdownを使ってページを作成します。`create-page`と比較して**出力トークン約80%削減**。
+Markdownを使ってページを作成します。`create-page`と比較して**入力トークン約80%削減**。
+
+2種類の親タイプをサポート:
+- **子ページ**: `parent.page_id` を使用して既存ページの下に作成
+- **データベースエントリ**: `parent.data_source_id` を使用してデータベースに作成
 
 **パラメータ:**
-- `data_source_id` (必須): ページを作成するデータソースのID
+- `parent` (必須): `{ page_id }` または `{ data_source_id }`
 - `title` (必須): ページタイトル（文字列）
 - `content` (任意): ページ本文（Markdown形式）
 - `properties` (任意): 追加のNotionプロパティ
@@ -208,9 +227,19 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 - カラム: `:::columns` / `:::column` / `:::`
 - メディア: `@[embed](url)`, `@[video](url)`, `@[audio](url)`, `@[file](url)`, `@[pdf](url)`
 
+**子ページを作成:**
 ```json
 {
-  "data_source_id": "データソースのUUID",
+  "parent": { "page_id": "親ページのUUID" },
+  "title": "ミーティングノート",
+  "content": "## アジェンダ\n\n1. 進捗確認\n2. 次のアクション"
+}
+```
+
+**データベースエントリを作成:**
+```json
+{
+  "parent": { "data_source_id": "データソースのUUID" },
   "title": "バグレポート",
   "content": "## 再現手順\n\n1. ログイン\n2. 設定を開く\n\n## 期待動作\n\n正常に表示される",
   "properties": {
