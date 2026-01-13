@@ -292,6 +292,16 @@ export function markdownToBlocks(markdown: string): BlockObjectRequest[] {
       continue
     }
 
+    // 目次: [TOC] (case-insensitive)
+    if (/^\[toc\]$/i.test(line.trim())) {
+      blocks.push({
+        type: 'table_of_contents',
+        table_of_contents: { color: 'default' },
+      } as BlockObjectRequest)
+      i++
+      continue
+    }
+
     // 見出し: # ## ### (####以上はheading_3にフォールバック)
     const headingMatch = line.match(/^(#{1,6})\s+(.+)$/)
     if (headingMatch) {
