@@ -227,6 +227,7 @@ Supports two parent types:
 - Bookmark: `[bookmark](url)` or `[bookmark:caption](url)`
 - Columns: `:::columns` / `:::column` / `:::`
 - Media: `@[embed](url)`, `@[video](url)`, `@[audio](url)`, `@[file](url)`, `@[pdf](url)`
+- Table of contents: `[TOC]`
 
 **Create a child page:**
 ```json

@@ -228,6 +228,7 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 - ブックマーク: `[bookmark](url)` または `[bookmark:キャプション](url)`
 - カラム: `:::columns` / `:::column` / `:::`
 - メディア: `@[embed](url)`, `@[video](url)`, `@[audio](url)`, `@[file](url)`, `@[pdf](url)`
+- 目次: `[TOC]`
 
 **子ページを作成:**
 ```json

@@ -100,10 +100,10 @@ export const Fields = {
       default:
         'Markdown: # headings, - lists, - [ ] checkboxes, ``` code, > quotes, | tables |, ![]() images, **bold**, *italic*, ~~strike~~, `code`, [links](). ' +
         'Extended: <details><summary> toggle, > [!NOTE/WARNING/TIP/IMPORTANT/CAUTION] callout, $$ equation, <u>/++ underline, {color:x}{/color}, {bg:x}{/bg}, ' +
-        '[bookmark](), :::columns, @[embed/video/audio/file/pdf]().',
+        '[bookmark](), :::columns, @[embed/video/audio/file/pdf](), [TOC] table of contents.',
       short:
         '# headings, - lists, - [ ] checkboxes, ``` code, > quotes, | tables |, **bold**, *italic*, [links](), ' +
-        '<details> toggle, > [!NOTE] callout, $$ equation.',
+        '<details> toggle, > [!NOTE] callout, $$ equation, [TOC] table of contents.',
     },
   },
 
