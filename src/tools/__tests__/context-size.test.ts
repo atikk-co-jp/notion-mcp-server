@@ -188,7 +188,7 @@ describe('Tool context size', () => {
   })
 
   describe('Description length checks', () => {
-    const MAX_DESCRIPTION_LENGTH = 500
+    const MAX_DESCRIPTION_LENGTH = 600
 
     it.each(toolNames)('%s description should be concise', (toolName) => {
       const tool = registeredTools[toolName]

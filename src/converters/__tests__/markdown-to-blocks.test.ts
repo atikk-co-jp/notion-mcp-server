@@ -994,4 +994,37 @@ const x = 1
       expect(result[3].type).toBe('paragraph')
     })
   })
+
+  describe('table_of_contents', () => {
+    it('converts [TOC] to table_of_contents', () => {
+      const blocks = markdownToBlocks('[TOC]')
+      expect(blocks).toHaveLength(1)
+      expect(blocks[0].type).toBe('table_of_contents')
+      expect(getBlockProp(blocks[0], 'table_of_contents')).toEqual({ color: 'default' })
+    })
+
+    it('converts [toc] (lowercase) to table_of_contents', () => {
+      const blocks = markdownToBlocks('[toc]')
+      expect(blocks).toHaveLength(1)
+      expect(blocks[0].type).toBe('table_of_contents')
+    })
+
+    it('converts [Toc] (mixed case) to table_of_contents', () => {
+      const blocks = markdownToBlocks('[Toc]')
+      expect(blocks).toHaveLength(1)
+      expect(blocks[0].type).toBe('table_of_contents')
+    })
+
+    it('handles [TOC] with surrounding whitespace', () => {
+      const blocks = markdownToBlocks('  [TOC]  ')
+      expect(blocks).toHaveLength(1)
+      expect(blocks[0].type).toBe('table_of_contents')
+    })
+
+    it('does not convert [TOC] inside text', () => {
+      const blocks = markdownToBlocks('See [TOC] for details')
+      expect(blocks).toHaveLength(1)
+      expect(blocks[0].type).toBe('paragraph')
+    })
+  })
 })
