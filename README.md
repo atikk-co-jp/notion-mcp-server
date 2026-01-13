@@ -159,11 +159,26 @@ Retrieve a Notion page by its ID.
 
 ### create-page
 
-Create a new page in a data source.
+Create a new page. Supports two parent types:
+- **Child page**: Use `parent.page_id` to create a page under an existing page
+- **Database entry**: Use `parent.data_source_id` to create a page in a database
 
+**Create a child page:**
 ```json
 {
-  "data_source_id": "data-source-uuid-here",
+  "parent": { "page_id": "parent-page-uuid-here" },
+  "properties": {
+    "title": {
+      "title": [{ "text": { "content": "Child Page Title" } }]
+    }
+  }
+}
+```
+
+**Create a database entry:**
+```json
+{
+  "parent": { "data_source_id": "data-source-uuid-here" },
   "properties": {
     "Name": {
       "title": [{ "text": { "content": "New Page Title" } }]
@@ -177,10 +192,14 @@ Create a new page in a data source.
 
 ### create-page-simple ⭐
 
-Create a new page using Markdown. **~80% fewer output tokens** compared to `create-page`.
+Create a new page using Markdown. **~80% fewer input tokens** compared to `create-page`.
+
+Supports two parent types:
+- **Child page**: Use `parent.page_id` to create a page under an existing page
+- **Database entry**: Use `parent.data_source_id` to create a page in a database
 
 **Parameters:**
-- `data_source_id` (required): The data source ID to create the page in
+- `parent` (required): Either `{ page_id }` or `{ data_source_id }`
 - `title` (required): Page title as a simple string
 - `content` (optional): Page content in Markdown
 - `properties` (optional): Additional Notion properties
@@ -207,9 +226,19 @@ Create a new page using Markdown. **~80% fewer output tokens** compared to `crea
 - Columns: `:::columns` / `:::column` / `:::`
 - Media: `@[embed](url)`, `@[video](url)`, `@[audio](url)`, `@[file](url)`, `@[pdf](url)`
 
+**Create a child page:**
 ```json
 {
-  "data_source_id": "data-source-uuid-here",
+  "parent": { "page_id": "parent-page-uuid-here" },
+  "title": "Meeting Notes",
+  "content": "## Agenda\n\n1. Review progress\n2. Next steps"
+}
+```
+
+**Create a database entry:**
+```json
+{
+  "parent": { "data_source_id": "data-source-uuid-here" },
   "title": "Bug Report",
   "content": "## Steps to Reproduce\n\n1. Login\n2. Open settings\n\n## Expected Behavior\n\nShould display correctly",
   "properties": {
