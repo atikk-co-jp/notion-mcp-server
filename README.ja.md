@@ -120,7 +120,9 @@ Notionのタスクデータベースから、特定の条件でタスクを取�
 | | [Update block](https://developers.notion.com/reference/update-a-block) | `update-block` 📤 | JSON | `{id}` |
 | | | `update-block-simple` ⭐📤 | Markdown | `{id}` |
 | | [Delete block](https://developers.notion.com/reference/delete-a-block) | `delete-block` 📤 | JSON | `{id}` |
-| | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | JSON | **markdown**/json |
+| | | `delete-blocks-batch` 📤 | JSON | `{deleted_count, failed_count}` |
+| | | `clear-page-content` 📤 | JSON | `{deleted_count, failed_count}` |
+| | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | JSON | **markdown**/simple/json |
 | | [Append block children](https://developers.notion.com/reference/patch-block-children) | `append-block-children` 📤 | JSON | `{block_ids}` |
 | | | `append-blocks-simple` ⭐📤 | Markdown | `{block_ids}` |
 | **ページコンテンツ** | | | | |
@@ -409,8 +411,9 @@ Markdownを使ってページを作成します。`create-page`と比較して**
 - `block_id` (必須): 子ブロックを取得するブロックまたはページのID
 - `start_cursor` (任意): ページネーション用カーソル
 - `page_size` (任意): 返す結果の数 (1-100)
-- `format` (任意): 出力形式 - `"markdown"` (デフォルト) または `"json"`
+- `format` (任意): 出力形式 - `"markdown"` (デフォルト)、`"simple"`、または `"json"`
   - `markdown`: トークン使用量を大幅に削減（約96%削減）した人間が読みやすいマークダウン形式
+  - `simple`: ID + タイプ + Markdownコンテンツ（軽量、削除対象選定用）
   - `json`: Notion APIのレスポンスをそのまま返す
 - `fetch_nested` (任意): `format="markdown"`の時、ネストされた子ブロックを再帰的に取得する（デフォルト: false）
 
@@ -419,6 +422,25 @@ Markdownを使ってページを作成します。`create-page`と比較して**
   "block_id": "ページまたはブロックのUUID",
   "format": "markdown",
   "fetch_nested": true
+}
+```
+
+**削除対象のブロックIDを取得:**
+```json
+{
+  "block_id": "ページまたはブロックのUUID",
+  "format": "simple"
+}
+```
+
+レスポンス:
+```json
+{
+  "blocks": [
+    { "id": "abc123", "type": "heading_1", "content": "# タイトル" },
+    { "id": "def456", "type": "paragraph", "content": "本文テキスト" }
+  ],
+  "has_more": false
 }
 ```
 
@@ -528,6 +550,62 @@ Markdownを使ってブロックを追加します。`append-block-children`と�
 ```
 
 **対象ブロックタイプ:** paragraph, heading_1/2/3, bulleted_list_item, numbered_list_item, to_do, quote, callout, toggle
+
+### delete-blocks-batch
+
+複数のブロックをIDで一括削除します。APIレート制限（3 req/s）を尊重して順次削除します。
+
+**パラメータ:**
+- `block_ids` (必須): 削除するブロックIDの配列（最大100件）
+
+**使い分け:** 特定のブロックを選んで削除したい場合。事前に `get-block-children` で `format="simple"` を使ってブロックIDを取得してください。
+
+```json
+{
+  "block_ids": ["block-uuid-1", "block-uuid-2", "block-uuid-3"]
+}
+```
+
+レスポンス:
+```json
+{
+  "deleted_count": 3,
+  "failed_count": 0,
+  "deleted": ["block-uuid-1", "block-uuid-2", "block-uuid-3"]
+}
+```
+
+### clear-page-content
+
+ページの全コンテンツを削除します。デフォルトで `child_database` と `child_page` ブロックは保護されます。
+
+**パラメータ:**
+- `page_id` (必須): 削除するページのID
+- `preserve_types` (任意): 保護するブロックタイプ（デフォルト: `["child_database", "child_page"]`）。`[]`を指定するとすべて削除。
+
+**使い分け:** 個々のブロックを選択せずにページ全体のコンテンツを削除したい場合。
+
+```json
+{
+  "page_id": "ページのUUID"
+}
+```
+
+**すべて削除（子データベース/ページも含む）:**
+```json
+{
+  "page_id": "ページのUUID",
+  "preserve_types": []
+}
+```
+
+レスポンス:
+```json
+{
+  "deleted_count": 15,
+  "failed_count": 0
+}
+```
 
 ### create-comment
 

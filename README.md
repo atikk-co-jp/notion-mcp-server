@@ -120,7 +120,9 @@ That's it! Restart your AI client and start using Notion.
 | | [Update block](https://developers.notion.com/reference/update-a-block) | `update-block` 📤 | JSON | `{id}` |
 | | | `update-block-simple` ⭐📤 | Markdown | `{id}` |
 | | [Delete block](https://developers.notion.com/reference/delete-a-block) | `delete-block` 📤 | JSON | `{id}` |
-| | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | JSON | **markdown**/json |
+| | | `delete-blocks-batch` 📤 | JSON | `{deleted_count, failed_count}` |
+| | | `clear-page-content` 📤 | JSON | `{deleted_count, failed_count}` |
+| | [Retrieve block children](https://developers.notion.com/reference/get-block-children) | `get-block-children` | JSON | **markdown**/simple/json |
 | | [Append block children](https://developers.notion.com/reference/patch-block-children) | `append-block-children` 📤 | JSON | `{block_ids}` |
 | | | `append-blocks-simple` ⭐📤 | Markdown | `{block_ids}` |
 | | | `replace-page-content` ⭐📤 | Markdown | `{deleted_count, created_count}` |
@@ -408,8 +410,9 @@ Get the child blocks of a page or block.
 - `block_id` (required): The ID of the block or page to get children from
 - `start_cursor` (optional): Cursor for pagination
 - `page_size` (optional): Number of results to return (1-100)
-- `format` (optional): Output format - `"markdown"` (default) or `"json"`
+- `format` (optional): Output format - `"markdown"` (default), `"simple"`, or `"json"`
   - `markdown`: Returns human-readable markdown with significantly reduced token usage (~96% reduction)
+  - `simple`: Returns ID + type + markdown content (lightweight, for deletion target selection)
   - `json`: Returns raw Notion API response
 - `fetch_nested` (optional): When `format="markdown"`, fetch nested children blocks recursively (default: false)
 
@@ -418,6 +421,25 @@ Get the child blocks of a page or block.
   "block_id": "page-or-block-uuid-here",
   "format": "markdown",
   "fetch_nested": true
+}
+```
+
+**Get block IDs for deletion:**
+```json
+{
+  "block_id": "page-or-block-uuid-here",
+  "format": "simple"
+}
+```
+
+Returns:
+```json
+{
+  "blocks": [
+    { "id": "abc123", "type": "heading_1", "content": "# Title" },
+    { "id": "def456", "type": "paragraph", "content": "Some text" }
+  ],
+  "has_more": false
 }
 ```
 
@@ -521,6 +543,62 @@ Find text in a page and replace it with new content. Supports regex patterns for
   "find": "item\\d+",
   "replace": "updated item",
   "use_regex": true
+}
+```
+
+### delete-blocks-batch
+
+Delete multiple blocks by their IDs. Blocks are deleted sequentially to respect API rate limits (3 req/s).
+
+**Parameters:**
+- `block_ids` (required): Array of block IDs to delete (max 100)
+
+**Use when:** You want to delete specific blocks. Use `get-block-children` with `format="simple"` to get block IDs first.
+
+```json
+{
+  "block_ids": ["block-uuid-1", "block-uuid-2", "block-uuid-3"]
+}
+```
+
+Returns:
+```json
+{
+  "deleted_count": 3,
+  "failed_count": 0,
+  "deleted": ["block-uuid-1", "block-uuid-2", "block-uuid-3"]
+}
+```
+
+### clear-page-content
+
+Delete all content from a page. By default, preserves `child_database` and `child_page` blocks.
+
+**Parameters:**
+- `page_id` (required): The page ID to clear
+- `preserve_types` (optional): Block types to preserve (default: `["child_database", "child_page"]`). Set to `[]` to delete all.
+
+**Use when:** You want to delete all content from a page without selecting individual blocks.
+
+```json
+{
+  "page_id": "page-uuid-here"
+}
+```
+
+**Delete everything (including child databases/pages):**
+```json
+{
+  "page_id": "page-uuid-here",
+  "preserve_types": []
+}
+```
+
+Returns:
+```json
+{
+  "deleted_count": 15,
+  "failed_count": 0
 }
 ```
 

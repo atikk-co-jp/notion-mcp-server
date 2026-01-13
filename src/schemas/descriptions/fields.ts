@@ -64,7 +64,11 @@ export const Fields = {
   // Format
   // ============================================
   format: {
-    desc: "Output format: 'simple' or 'json'",
+    desc: {
+      default: "Output format: 'simple' or 'json'",
+      block_children:
+        "Output format: 'markdown' (default, human-readable), 'simple' (ID + type + content, for deletion), 'json' (full API response)",
+    },
   },
 
   // ============================================
@@ -228,6 +232,7 @@ export const F = (() => {
   data_source_id_target: string
   properties_schema: string
   properties_update: string
+  format_block_children: string
   filter_search: string
   icon_emoji: string
   markdown_syntax_short: string

@@ -3,13 +3,22 @@ import { z } from 'zod'
 import { blocksToMarkdown } from '../converters/index.js'
 import { type BlockObjectResponse, isFullBlock, type NotionClient } from '../notion-client.js'
 import { F } from '../schemas/descriptions/index.js'
-import { formatMarkdownResponse, formatPaginatedResponse, handleError } from '../utils/index.js'
+import {
+  formatMarkdownResponse,
+  formatPaginatedResponse,
+  formatSimpleResponse,
+  handleError,
+} from '../utils/index.js'
 
 const inputSchema = {
   block_id: z.string().describe(F.block_id),
   start_cursor: z.string().optional().describe(F.start_cursor),
   page_size: z.number().min(1).max(100).optional().describe(F.page_size),
-  format: z.enum(['json', 'markdown']).optional().default('markdown').describe(F.format),
+  format: z
+    .enum(['json', 'markdown', 'simple'])
+    .optional()
+    .default('markdown')
+    .describe(F.format_block_children),
   fetch_nested: z.boolean().optional().default(false).describe(F.fetch_nested),
 }
 
@@ -48,6 +57,23 @@ export function registerGetBlockChildren(server: McpServer, notion: NotionClient
           }
 
           return formatMarkdownResponse(markdown, response.has_more, response.next_cursor)
+        }
+
+        if (format === 'simple') {
+          // Simple format: ID + type + markdown content (lightweight, for deletion target selection)
+          const simpleBlocks = await Promise.all(
+            blocks.map(async (block) => ({
+              id: block.id,
+              type: block.type,
+              content: await blocksToMarkdown([block]),
+            })),
+          )
+
+          return formatSimpleResponse({
+            blocks: simpleBlocks,
+            has_more: response.has_more,
+            next_cursor: response.next_cursor,
+          })
         }
 
         // JSON形式
